@@ -1,11 +1,11 @@
 default:
   batches: 128
-  epochs: 100
+  epochs: 1000
   test_size: 512
-  L: 17
-  p: 0.1
-  circuit_noise: false
-  measurement_error_rate: 0.0
+  L: 7
+  p: 0.01
+  circuit_noise: true
+  measurement_error_rate: 0.01
   network:
     _target_: models.TransformedEND2D
     ensemble: false

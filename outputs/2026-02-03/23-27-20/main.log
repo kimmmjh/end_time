@@ -1,0 +1,503 @@
+[2026-02-03 23:27:20,682][root][INFO] - Lattice size: 7, Error rate: 0.01, Circuit Noise: True
+[2026-02-03 23:27:21,995][root][INFO] - Start Training
+[2026-02-03 23:27:22,349][root][INFO] - ==================
+[2026-02-03 23:27:22,349][root][INFO] - Starting Epoch 0.
+[2026-02-03 23:27:30,897][root][INFO] - Evaluating Model.
+[2026-02-03 23:27:31,088][root][INFO] - {'loss': 2.776669939979911, 'accuracy': np.float32(0.05859375), 'accuracy_std': np.float32(0.010379566), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0004263085903162874, 'epoch_duration': 8.548210620880127}
+[2026-02-03 23:27:31,088][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:27:31,278][root][INFO] - ==================
+[2026-02-03 23:27:31,278][root][INFO] - Starting Epoch 1.
+[2026-02-03 23:27:34,741][root][INFO] - Evaluating Model.
+[2026-02-03 23:27:34,870][root][INFO] - {'loss': 2.772222964093089, 'accuracy': np.float32(0.05078125), 'accuracy_std': np.float32(0.009702862), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0005049459687966433, 'epoch_duration': 3.4627599716186523}
+[2026-02-03 23:27:34,870][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:27:35,064][root][INFO] - ==================
+[2026-02-03 23:27:35,064][root][INFO] - Starting Epoch 2.
+[2026-02-03 23:27:38,623][root][INFO] - Evaluating Model.
+[2026-02-03 23:27:38,733][root][INFO] - {'loss': 2.770751565694809, 'accuracy': np.float32(0.052734375), 'accuracy_std': np.float32(0.009877518), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0006350501193685704, 'epoch_duration': 3.5591390132904053}
+[2026-02-03 23:27:38,733][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:27:38,930][root][INFO] - ==================
+[2026-02-03 23:27:38,930][root][INFO] - Starting Epoch 3.
+[2026-02-03 23:27:42,169][root][INFO] - Evaluating Model.
+[2026-02-03 23:27:42,299][root][INFO] - {'loss': 2.770765380933881, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0008151948517004671, 'epoch_duration': 3.23864483833313}
+[2026-02-03 23:27:42,299][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:27:42,492][root][INFO] - ==================
+[2026-02-03 23:27:42,492][root][INFO] - Starting Epoch 4.
+[2026-02-03 23:27:45,970][root][INFO] - Evaluating Model.
+[2026-02-03 23:27:46,282][root][INFO] - {'loss': 2.7697000801563263, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0010434054349754349, 'epoch_duration': 3.4778249263763428}
+[2026-02-03 23:27:46,282][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:27:46,502][root][INFO] - ==================
+[2026-02-03 23:27:46,502][root][INFO] - Starting Epoch 5.
+[2026-02-03 23:27:49,667][root][INFO] - Evaluating Model.
+[2026-02-03 23:27:49,770][root][INFO] - {'loss': 2.7699496261775494, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.001317180244717964, 'epoch_duration': 3.164945363998413}
+[2026-02-03 23:27:49,770][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:27:49,976][root][INFO] - ==================
+[2026-02-03 23:27:49,976][root][INFO] - Starting Epoch 6.
+[2026-02-03 23:27:53,146][root][INFO] - Evaluating Model.
+[2026-02-03 23:27:53,273][root][INFO] - {'loss': 2.7686567343771458, 'accuracy': np.float32(0.0546875), 'accuracy_std': np.float32(0.010048396), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.001633518185382871, 'epoch_duration': 3.170529365539551}
+[2026-02-03 23:27:53,273][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:27:53,495][root][INFO] - ==================
+[2026-02-03 23:27:53,495][root][INFO] - Starting Epoch 7.
+[2026-02-03 23:27:56,552][root][INFO] - Evaluating Model.
+[2026-02-03 23:27:56,686][root][INFO] - {'loss': 2.7701914086937904, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0019889515881024687, 'epoch_duration': 3.0562613010406494}
+[2026-02-03 23:27:56,686][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:27:56,907][root][INFO] - ==================
+[2026-02-03 23:27:56,907][root][INFO] - Starting Epoch 8.
+[2026-02-03 23:28:00,065][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:00,365][root][INFO] - {'loss': 2.7705239206552505, 'accuracy': np.float32(0.060546875), 'accuracy_std': np.float32(0.01054019), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0023795842229697274, 'epoch_duration': 3.158341646194458}
+[2026-02-03 23:28:00,365][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:00,569][root][INFO] - ==================
+[2026-02-03 23:28:00,569][root][INFO] - Starting Epoch 9.
+[2026-02-03 23:28:04,116][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:04,247][root][INFO] - {'loss': 2.7694362178444862, 'accuracy': np.float32(0.064453125), 'accuracy_std': np.float32(0.01085225), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.002801134009170106, 'epoch_duration': 3.5472817420959473}
+[2026-02-03 23:28:04,247][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:04,469][root][INFO] - ==================
+[2026-02-03 23:28:04,469][root][INFO] - Starting Epoch 10.
+[2026-02-03 23:28:08,046][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:08,173][root][INFO] - {'loss': 2.7697097808122635, 'accuracy': np.float32(0.076171875), 'accuracy_std': np.float32(0.011723517), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0032489799547773283, 'epoch_duration': 3.5770084857940674}
+[2026-02-03 23:28:08,173][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:08,426][root][INFO] - ==================
+[2026-02-03 23:28:08,426][root][INFO] - Starting Epoch 11.
+[2026-02-03 23:28:11,814][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:11,956][root][INFO] - {'loss': 2.768662590533495, 'accuracy': np.float32(0.08203125), 'accuracy_std': np.float32(0.0121274255), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.003718212811663145, 'epoch_duration': 3.3887810707092285}
+[2026-02-03 23:28:11,957][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:12,179][root][INFO] - ==================
+[2026-02-03 23:28:12,179][root][INFO] - Starting Epoch 12.
+[2026-02-03 23:28:15,481][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:15,607][root][INFO] - {'loss': 2.768736684694886, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.004203688890246414, 'epoch_duration': 3.301936388015747}
+[2026-02-03 23:28:15,607][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:15,813][root][INFO] - ==================
+[2026-02-03 23:28:15,813][root][INFO] - Starting Epoch 13.
+[2026-02-03 23:28:19,354][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:19,692][root][INFO] - {'loss': 2.768839582800865, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0047000864441688805, 'epoch_duration': 3.5416390895843506}
+[2026-02-03 23:28:19,692][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:19,930][root][INFO] - ==================
+[2026-02-03 23:28:19,930][root][INFO] - Starting Epoch 14.
+[2026-02-03 23:28:23,411][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:23,537][root][INFO] - {'loss': 2.7684788405895233, 'accuracy': np.float32(0.0859375), 'accuracy_std': np.float32(0.012386378), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005201964006813814, 'epoch_duration': 3.4807755947113037}
+[2026-02-03 23:28:23,537][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:23,733][root][INFO] - ==================
+[2026-02-03 23:28:23,733][root][INFO] - Starting Epoch 15.
+[2026-02-03 23:28:27,008][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:27,135][root][INFO] - {'loss': 2.7685415744781494, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005703820040187645, 'epoch_duration': 3.2749009132385254}
+[2026-02-03 23:28:27,135][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:27,326][root][INFO] - ==================
+[2026-02-03 23:28:27,326][root][INFO] - Starting Epoch 16.
+[2026-02-03 23:28:30,594][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:30,709][root][INFO] - {'loss': 2.768215509131551, 'accuracy': np.float32(0.076171875), 'accuracy_std': np.float32(0.011723517), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006200153242298796, 'epoch_duration': 3.2680203914642334}
+[2026-02-03 23:28:30,709][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:30,913][root][INFO] - ==================
+[2026-02-03 23:28:30,913][root][INFO] - Starting Epoch 17.
+[2026-02-03 23:28:34,174][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:34,281][root][INFO] - {'loss': 2.768270365893841, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00668552285194947, 'epoch_duration': 3.2607030868530273}
+[2026-02-03 23:28:34,281][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:34,487][root][INFO] - ==================
+[2026-02-03 23:28:34,487][root][INFO] - Starting Epoch 18.
+[2026-02-03 23:28:37,917][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:38,219][root][INFO] - {'loss': 2.767629886046052, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0071546082898845485, 'epoch_duration': 3.429957866668701}
+[2026-02-03 23:28:38,219][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:38,420][root][INFO] - ==================
+[2026-02-03 23:28:38,420][root][INFO] - Starting Epoch 19.
+[2026-02-03 23:28:42,060][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:42,181][root][INFO] - {'loss': 2.7681898586452007, 'accuracy': np.float32(0.08203125), 'accuracy_std': np.float32(0.0121274255), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007602267482516547, 'epoch_duration': 3.6398839950561523}
+[2026-02-03 23:28:42,181][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:42,382][root][INFO] - ==================
+[2026-02-03 23:28:42,382][root][INFO] - Starting Epoch 20.
+[2026-02-03 23:28:46,044][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:46,155][root][INFO] - {'loss': 2.767884735018015, 'accuracy': np.float32(0.05078125), 'accuracy_std': np.float32(0.009702862), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008023593228887014, 'epoch_duration': 3.6623058319091797}
+[2026-02-03 23:28:46,155][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:46,348][root][INFO] - ==================
+[2026-02-03 23:28:46,348][root][INFO] - Starting Epoch 21.
+[2026-02-03 23:28:49,892][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:50,023][root][INFO] - {'loss': 2.7679566498845816, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008413966992974718, 'epoch_duration': 3.543903350830078}
+[2026-02-03 23:28:50,023][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:50,213][root][INFO] - ==================
+[2026-02-03 23:28:50,213][root][INFO] - Starting Epoch 22.
+[2026-02-03 23:28:53,733][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:53,851][root][INFO] - {'loss': 2.7679370306432247, 'accuracy': np.float32(0.07421875), 'accuracy_std': np.float32(0.011584466), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008769109531683984, 'epoch_duration': 3.5205700397491455}
+[2026-02-03 23:28:53,851][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:54,041][root][INFO] - ==================
+[2026-02-03 23:28:54,041][root][INFO] - Starting Epoch 23.
+[2026-02-03 23:28:57,389][root][INFO] - Evaluating Model.
+[2026-02-03 23:28:57,507][root][INFO] - {'loss': 2.7686042059212923, 'accuracy': np.float32(0.07421875), 'accuracy_std': np.float32(0.011584466), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00908512780353365, 'epoch_duration': 3.3479321002960205}
+[2026-02-03 23:28:57,507][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:28:57,903][root][INFO] - ==================
+[2026-02-03 23:28:57,903][root][INFO] - Starting Epoch 24.
+[2026-02-03 23:29:01,217][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:01,328][root][INFO] - {'loss': 2.7684215549379587, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009358557643837653, 'epoch_duration': 3.3137776851654053}
+[2026-02-03 23:29:01,328][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:01,533][root][INFO] - ==================
+[2026-02-03 23:29:01,533][root][INFO] - Starting Epoch 25.
+[2026-02-03 23:29:04,732][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:04,849][root][INFO] - {'loss': 2.7679296173155308, 'accuracy': np.float32(0.06640625), 'accuracy_std': np.float32(0.011003946), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009586401738575659, 'epoch_duration': 3.1984620094299316}
+[2026-02-03 23:29:04,849][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:05,032][root][INFO] - ==================
+[2026-02-03 23:29:05,032][root][INFO] - Starting Epoch 26.
+[2026-02-03 23:29:08,388][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:08,515][root][INFO] - {'loss': 2.767633942887187, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009766162480687476, 'epoch_duration': 3.355980396270752}
+[2026-02-03 23:29:08,515][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:08,706][root][INFO] - ==================
+[2026-02-03 23:29:08,706][root][INFO] - Starting Epoch 27.
+[2026-02-03 23:29:12,243][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:12,345][root][INFO] - {'loss': 2.7680079974234104, 'accuracy': np.float32(0.0546875), 'accuracy_std': np.float32(0.010048396), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009895869348623453, 'epoch_duration': 3.536808490753174}
+[2026-02-03 23:29:12,345][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:12,535][root][INFO] - ==================
+[2026-02-03 23:29:12,535][root][INFO] - Starting Epoch 28.
+[2026-02-03 23:29:15,638][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:15,938][root][INFO] - {'loss': 2.7685824260115623, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009974100507029533, 'epoch_duration': 3.103358507156372}
+[2026-02-03 23:29:15,938][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:16,127][root][INFO] - ==================
+[2026-02-03 23:29:16,127][root][INFO] - Starting Epoch 29.
+[2026-02-03 23:29:19,274][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:19,393][root][INFO] - {'loss': 2.7675063889473677, 'accuracy': np.float32(0.046875), 'accuracy_std': np.float32(0.00934137), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009999999692657944, 'epoch_duration': 3.1462411880493164}
+[2026-02-03 23:29:19,393][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:19,590][root][INFO] - ==================
+[2026-02-03 23:29:19,590][root][INFO] - Starting Epoch 30.
+[2026-02-03 23:29:23,145][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:23,261][root][INFO] - {'loss': 2.768028849735856, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009994886392657103, 'epoch_duration': 3.5550878047943115}
+[2026-02-03 23:29:23,261][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:23,450][root][INFO] - ==================
+[2026-02-03 23:29:23,450][root][INFO] - Starting Epoch 31.
+[2026-02-03 23:29:27,036][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:27,152][root][INFO] - {'loss': 2.76855824328959, 'accuracy': np.float32(0.0859375), 'accuracy_std': np.float32(0.012386378), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009979714096471403, 'epoch_duration': 3.585817813873291}
+[2026-02-03 23:29:27,152][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:27,341][root][INFO] - ==================
+[2026-02-03 23:29:27,341][root][INFO] - Starting Epoch 32.
+[2026-02-03 23:29:31,100][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:31,212][root][INFO] - {'loss': 2.7675438299775124, 'accuracy': np.float32(0.08203125), 'accuracy_std': np.float32(0.0121274255), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009954513359086191, 'epoch_duration': 3.7597713470458984}
+[2026-02-03 23:29:31,212][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:31,417][root][INFO] - ==================
+[2026-02-03 23:29:31,417][root][INFO] - Starting Epoch 33.
+[2026-02-03 23:29:34,835][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:34,949][root][INFO] - {'loss': 2.7686441391706467, 'accuracy': np.float32(0.072265625), 'accuracy_std': np.float32(0.011443075), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009919334931432785, 'epoch_duration': 3.4177446365356445}
+[2026-02-03 23:29:34,949][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:35,341][root][INFO] - ==================
+[2026-02-03 23:29:35,341][root][INFO] - Starting Epoch 34.
+[2026-02-03 23:29:38,829][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:38,948][root][INFO] - {'loss': 2.76830711401999, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009874249658182838, 'epoch_duration': 3.487820625305176}
+[2026-02-03 23:29:38,948][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:39,137][root][INFO] - ==================
+[2026-02-03 23:29:39,137][root][INFO] - Starting Epoch 35.
+[2026-02-03 23:29:42,365][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:42,476][root][INFO] - {'loss': 2.7698241397738457, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009819348335076611, 'epoch_duration': 3.2276926040649414}
+[2026-02-03 23:29:42,476][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:42,682][root][INFO] - ==================
+[2026-02-03 23:29:42,682][root][INFO] - Starting Epoch 36.
+[2026-02-03 23:29:45,860][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:45,986][root][INFO] - {'loss': 2.7692467104643583, 'accuracy': np.float32(0.05859375), 'accuracy_std': np.float32(0.010379566), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009754741526072424, 'epoch_duration': 3.177541971206665}
+[2026-02-03 23:29:45,986][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:46,176][root][INFO] - ==================
+[2026-02-03 23:29:46,176][root][INFO] - Starting Epoch 37.
+[2026-02-03 23:29:49,513][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:49,632][root][INFO] - {'loss': 2.768716659396887, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00968055934068557, 'epoch_duration': 3.337296962738037}
+[2026-02-03 23:29:49,640][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:49,831][root][INFO] - ==================
+[2026-02-03 23:29:49,831][root][INFO] - Starting Epoch 38.
+[2026-02-03 23:29:53,572][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:53,889][root][INFO] - {'loss': 2.7679381147027016, 'accuracy': np.float32(0.0859375), 'accuracy_std': np.float32(0.012386378), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009596951171965056, 'epoch_duration': 3.7401957511901855}
+[2026-02-03 23:29:53,889][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:54,080][root][INFO] - ==================
+[2026-02-03 23:29:54,080][root][INFO] - Starting Epoch 39.
+[2026-02-03 23:29:57,098][root][INFO] - Evaluating Model.
+[2026-02-03 23:29:57,210][root][INFO] - {'loss': 2.7675439678132534, 'accuracy': np.float32(0.05859375), 'accuracy_std': np.float32(0.010379566), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009504085395635891, 'epoch_duration': 3.01887845993042}
+[2026-02-03 23:29:57,210][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:29:57,399][root][INFO] - ==================
+[2026-02-03 23:29:57,399][root][INFO] - Starting Epoch 40.
+[2026-02-03 23:30:00,422][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:00,533][root][INFO] - {'loss': 2.768499121069908, 'accuracy': np.float32(0.0546875), 'accuracy_std': np.float32(0.010048396), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009402149031012785, 'epoch_duration': 3.022719621658325}
+[2026-02-03 23:30:00,533][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:00,738][root][INFO] - ==================
+[2026-02-03 23:30:00,738][root][INFO] - Starting Epoch 41.
+[2026-02-03 23:30:04,142][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:04,268][root][INFO] - {'loss': 2.767803894355893, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009291347364368121, 'epoch_duration': 3.4039769172668457}
+[2026-02-03 23:30:04,268][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:04,457][root][INFO] - ==================
+[2026-02-03 23:30:04,457][root][INFO] - Starting Epoch 42.
+[2026-02-03 23:30:08,067][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:08,196][root][INFO] - {'loss': 2.7669951636344194, 'accuracy': np.float32(0.060546875), 'accuracy_std': np.float32(0.01054019), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00917190353551275, 'epoch_duration': 3.6097781658172607}
+[2026-02-03 23:30:08,196][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:08,382][root][INFO] - ==================
+[2026-02-03 23:30:08,382][root][INFO] - Starting Epoch 43.
+[2026-02-03 23:30:12,163][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:12,478][root][INFO] - {'loss': 2.767408289015293, 'accuracy': np.float32(0.064453125), 'accuracy_std': np.float32(0.01085225), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009044058088422086, 'epoch_duration': 3.780604600906372}
+[2026-02-03 23:30:12,478][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:12,684][root][INFO] - ==================
+[2026-02-03 23:30:12,684][root][INFO] - Starting Epoch 44.
+[2026-02-03 23:30:16,276][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:16,399][root][INFO] - {'loss': 2.7671186085790396, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008908068486812562, 'epoch_duration': 3.592273235321045}
+[2026-02-03 23:30:16,399][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:16,588][root][INFO] - ==================
+[2026-02-03 23:30:16,588][root][INFO] - Starting Epoch 45.
+[2026-02-03 23:30:20,004][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:20,123][root][INFO] - {'loss': 2.767395133152604, 'accuracy': np.float32(0.072265625), 'accuracy_std': np.float32(0.011443075), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008764208595643965, 'epoch_duration': 3.416182041168213}
+[2026-02-03 23:30:20,123][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:20,313][root][INFO] - ==================
+[2026-02-03 23:30:20,313][root][INFO] - Starting Epoch 46.
+[2026-02-03 23:30:23,596][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:23,715][root][INFO] - {'loss': 2.767565904185176, 'accuracy': np.float32(0.076171875), 'accuracy_std': np.float32(0.011723517), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008612768129591856, 'epoch_duration': 3.2832226753234863}
+[2026-02-03 23:30:23,715][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:23,906][root][INFO] - ==================
+[2026-02-03 23:30:23,906][root][INFO] - Starting Epoch 47.
+[2026-02-03 23:30:27,069][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:27,195][root][INFO] - {'loss': 2.7675829622894526, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008454052069600771, 'epoch_duration': 3.1630876064300537}
+[2026-02-03 23:30:27,195][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:27,384][root][INFO] - ==================
+[2026-02-03 23:30:27,384][root][INFO] - Starting Epoch 48.
+[2026-02-03 23:30:30,628][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:30,955][root][INFO] - {'loss': 2.7671847362071276, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00828838004869318, 'epoch_duration': 3.2438621520996094}
+[2026-02-03 23:30:30,955][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:31,146][root][INFO] - ==================
+[2026-02-03 23:30:31,146][root][INFO] - Starting Epoch 49.
+[2026-02-03 23:30:35,036][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:35,147][root][INFO] - {'loss': 2.7675011325627565, 'accuracy': np.float32(0.05078125), 'accuracy_std': np.float32(0.009702862), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00811608570827112, 'epoch_duration': 3.8898074626922607}
+[2026-02-03 23:30:35,147][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:35,353][root][INFO] - ==================
+[2026-02-03 23:30:35,353][root][INFO] - Starting Epoch 50.
+[2026-02-03 23:30:38,668][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:38,789][root][INFO] - {'loss': 2.7684402093291283, 'accuracy': np.float32(0.08203125), 'accuracy_std': np.float32(0.0121274255), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00793751602620682, 'epoch_duration': 3.3152570724487305}
+[2026-02-03 23:30:38,789][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:38,979][root][INFO] - ==================
+[2026-02-03 23:30:38,979][root][INFO] - Starting Epoch 51.
+[2026-02-03 23:30:42,044][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:42,155][root][INFO] - {'loss': 2.7676012367010117, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007753030618075434, 'epoch_duration': 3.0651371479034424}
+[2026-02-03 23:30:42,155][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:42,345][root][INFO] - ==================
+[2026-02-03 23:30:42,345][root][INFO] - Starting Epoch 52.
+[2026-02-03 23:30:45,479][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:45,600][root][INFO] - {'loss': 2.767962085083127, 'accuracy': np.float32(0.072265625), 'accuracy_std': np.float32(0.011443075), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007563001012937137, 'epoch_duration': 3.1345720291137695}
+[2026-02-03 23:30:45,600][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:45,795][root][INFO] - ==================
+[2026-02-03 23:30:45,795][root][INFO] - Starting Epoch 53.
+[2026-02-03 23:30:49,435][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:49,753][root][INFO] - {'loss': 2.7677306700497866, 'accuracy': np.float32(0.087890625), 'accuracy_std': np.float32(0.012512951), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007367809905127035, 'epoch_duration': 3.640474557876587}
+[2026-02-03 23:30:49,753][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:49,946][root][INFO] - ==================
+[2026-02-03 23:30:49,946][root][INFO] - Starting Epoch 54.
+[2026-02-03 23:30:53,664][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:53,791][root][INFO] - {'loss': 2.7667649406939745, 'accuracy': np.float32(0.05078125), 'accuracy_std': np.float32(0.009702862), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007167850383559715, 'epoch_duration': 3.717794418334961}
+[2026-02-03 23:30:53,791][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:53,980][root][INFO] - ==================
+[2026-02-03 23:30:53,980][root][INFO] - Starting Epoch 55.
+[2026-02-03 23:30:57,684][root][INFO] - Evaluating Model.
+[2026-02-03 23:30:57,794][root][INFO] - {'loss': 2.767689526081085, 'accuracy': np.float32(0.046875), 'accuracy_std': np.float32(0.00934137), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006963525140100471, 'epoch_duration': 3.7038724422454834}
+[2026-02-03 23:30:57,794][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:30:57,985][root][INFO] - ==================
+[2026-02-03 23:30:57,985][root][INFO] - Starting Epoch 56.
+[2026-02-03 23:31:01,454][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:01,577][root][INFO] - {'loss': 2.7675907239317894, 'accuracy': np.float32(0.05859375), 'accuracy_std': np.float32(0.010379566), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006755245658597493, 'epoch_duration': 3.4691050052642822}
+[2026-02-03 23:31:01,577][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:01,767][root][INFO] - ==================
+[2026-02-03 23:31:01,767][root][INFO] - Starting Epoch 57.
+[2026-02-03 23:31:05,146][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:05,255][root][INFO] - {'loss': 2.768105423077941, 'accuracy': np.float32(0.05859375), 'accuracy_std': np.float32(0.010379566), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006543431386208144, 'epoch_duration': 3.3795275688171387}
+[2026-02-03 23:31:05,255][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:05,445][root][INFO] - ==================
+[2026-02-03 23:31:05,445][root][INFO] - Starting Epoch 58.
+[2026-02-03 23:31:08,531][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:08,641][root][INFO] - {'loss': 2.7676381804049015, 'accuracy': np.float32(0.08203125), 'accuracy_std': np.float32(0.0121274255), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0063285088886882186, 'epoch_duration': 3.085160493850708}
+[2026-02-03 23:31:08,641][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:09,036][root][INFO] - ==================
+[2026-02-03 23:31:09,036][root][INFO] - Starting Epoch 59.
+[2026-02-03 23:31:12,311][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:12,438][root][INFO] - {'loss': 2.767691045999527, 'accuracy': np.float32(0.099609375), 'accuracy_std': np.float32(0.013235203), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006110910991345269, 'epoch_duration': 3.275096893310547}
+[2026-02-03 23:31:12,438][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:12,633][root][INFO] - ==================
+[2026-02-03 23:31:12,633][root][INFO] - Starting Epoch 60.
+[2026-02-03 23:31:16,413][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:16,539][root][INFO] - {'loss': 2.7675054855644703, 'accuracy': np.float32(0.060546875), 'accuracy_std': np.float32(0.01054019), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005891075907386043, 'epoch_duration': 3.780198574066162}
+[2026-02-03 23:31:16,539][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:16,729][root][INFO] - ==================
+[2026-02-03 23:31:16,729][root][INFO] - Starting Epoch 61.
+[2026-02-03 23:31:20,191][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:20,310][root][INFO] - {'loss': 2.7675242964178324, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005669446355413406, 'epoch_duration': 3.4621121883392334}
+[2026-02-03 23:31:20,310][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:20,557][root][INFO] - ==================
+[2026-02-03 23:31:20,557][root][INFO] - Starting Epoch 62.
+[2026-02-03 23:31:23,808][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:23,936][root][INFO] - {'loss': 2.7672597207129, 'accuracy': np.float32(0.060546875), 'accuracy_std': np.float32(0.01054019), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005446468667849986, 'epoch_duration': 3.2512505054473877}
+[2026-02-03 23:31:23,936][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:24,141][root][INFO] - ==================
+[2026-02-03 23:31:24,141][root][INFO] - Starting Epoch 63.
+[2026-02-03 23:31:27,141][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:27,264][root][INFO] - {'loss': 2.7677717451006174, 'accuracy': np.float32(0.06640625), 'accuracy_std': np.float32(0.011003946), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005222591892084077, 'epoch_duration': 3.0002267360687256}
+[2026-02-03 23:31:27,264][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:27,490][root][INFO] - ==================
+[2026-02-03 23:31:27,490][root][INFO] - Starting Epoch 64.
+[2026-02-03 23:31:30,540][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:30,867][root][INFO] - {'loss': 2.7676315158605576, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.004998266886147963, 'epoch_duration': 3.0495681762695312}
+[2026-02-03 23:31:30,867][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:31,088][root][INFO] - ==================
+[2026-02-03 23:31:31,088][root][INFO] - Starting Epoch 65.
+[2026-02-03 23:31:34,043][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:34,162][root][INFO] - {'loss': 2.7672957573086023, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00477394541074984, 'epoch_duration': 2.9555776119232178}
+[2026-02-03 23:31:34,162][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:34,369][root][INFO] - ==================
+[2026-02-03 23:31:34,369][root][INFO] - Starting Epoch 66.
+[2026-02-03 23:31:37,196][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:37,306][root][INFO] - {'loss': 2.7682114969938993, 'accuracy': np.float32(0.076171875), 'accuracy_std': np.float32(0.011723517), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.004550079219487864, 'epoch_duration': 2.826889753341675}
+[2026-02-03 23:31:37,306][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:37,508][root][INFO] - ==================
+[2026-02-03 23:31:37,508][root][INFO] - Starting Epoch 67.
+[2026-02-03 23:31:40,352][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:40,463][root][INFO] - {'loss': 2.7683664225041866, 'accuracy': np.float32(0.052734375), 'accuracy_std': np.float32(0.009877518), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.004327119149078539, 'epoch_duration': 2.8440654277801514}
+[2026-02-03 23:31:40,463][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:40,669][root][INFO] - ==================
+[2026-02-03 23:31:40,669][root][INFO] - Starting Epoch 68.
+[2026-02-03 23:31:43,509][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:43,634][root][INFO] - {'loss': 2.769481746479869, 'accuracy': np.float32(0.052734375), 'accuracy_std': np.float32(0.009877518), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0041055142114315565, 'epoch_duration': 2.8408052921295166}
+[2026-02-03 23:31:43,634][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:43,853][root][INFO] - ==================
+[2026-02-03 23:31:43,853][root][INFO] - Starting Epoch 69.
+[2026-02-03 23:31:46,942][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:47,259][root][INFO] - {'loss': 2.7674354258924723, 'accuracy': np.float32(0.107421875), 'accuracy_std': np.float32(0.013684675), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.003885710689399566, 'epoch_duration': 3.088409423828125}
+[2026-02-03 23:31:47,259][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:47,448][root][INFO] - ==================
+[2026-02-03 23:31:47,448][root][INFO] - Starting Epoch 70.
+[2026-02-03 23:31:50,813][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:50,940][root][INFO] - {'loss': 2.7676769457757473, 'accuracy': np.float32(0.06640625), 'accuracy_std': np.float32(0.011003946), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.003668151238023914, 'epoch_duration': 3.364647150039673}
+[2026-02-03 23:31:50,940][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:51,130][root][INFO] - ==================
+[2026-02-03 23:31:51,130][root][INFO] - Starting Epoch 71.
+[2026-02-03 23:31:55,068][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:55,179][root][INFO] - {'loss': 2.767475873231888, 'accuracy': np.float32(0.0859375), 'accuracy_std': np.float32(0.012386378), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0034532739930862835, 'epoch_duration': 3.9383368492126465}
+[2026-02-03 23:31:55,179][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:55,368][root][INFO] - ==================
+[2026-02-03 23:31:55,368][root][INFO] - Starting Epoch 72.
+[2026-02-03 23:31:59,195][root][INFO] - Evaluating Model.
+[2026-02-03 23:31:59,306][root][INFO] - {'loss': 2.7680121809244156, 'accuracy': np.float32(0.07421875), 'accuracy_std': np.float32(0.011584466), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0032415116887615516, 'epoch_duration': 3.8270936012268066}
+[2026-02-03 23:31:59,306][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:31:59,496][root][INFO] - ==================
+[2026-02-03 23:31:59,496][root][INFO] - Starting Epoch 73.
+[2026-02-03 23:32:02,631][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:02,742][root][INFO] - {'loss': 2.767680449411273, 'accuracy': np.float32(0.052734375), 'accuracy_std': np.float32(0.009877518), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0030332907861487447, 'epoch_duration': 3.135815143585205}
+[2026-02-03 23:32:02,742][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:02,948][root][INFO] - ==================
+[2026-02-03 23:32:02,948][root][INFO] - Starting Epoch 74.
+[2026-02-03 23:32:05,939][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:06,238][root][INFO] - {'loss': 2.7673794366419315, 'accuracy': np.float32(0.080078125), 'accuracy_std': np.float32(0.0119949225), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00282903061443514, 'epoch_duration': 2.9908158779144287}
+[2026-02-03 23:32:06,238][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:06,444][root][INFO] - ==================
+[2026-02-03 23:32:06,444][root][INFO] - Starting Epoch 75.
+[2026-02-03 23:32:09,911][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:10,038][root][INFO] - {'loss': 2.768643982708454, 'accuracy': np.float32(0.07421875), 'accuracy_std': np.float32(0.011584466), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0026291425264230862, 'epoch_duration': 3.4667418003082275}
+[2026-02-03 23:32:10,038][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:10,227][root][INFO] - ==================
+[2026-02-03 23:32:10,227][root][INFO] - Starting Epoch 76.
+[2026-02-03 23:32:13,878][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:13,989][root][INFO] - {'loss': 2.767227305099368, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.002434029070120209, 'epoch_duration': 3.6506431102752686}
+[2026-02-03 23:32:13,989][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:14,195][root][INFO] - ==================
+[2026-02-03 23:32:14,195][root][INFO] - Starting Epoch 77.
+[2026-02-03 23:32:17,864][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:17,990][root][INFO] - {'loss': 2.7672442961484194, 'accuracy': np.float32(0.064453125), 'accuracy_std': np.float32(0.01085225), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00224408317806129, 'epoch_duration': 3.6683995723724365}
+[2026-02-03 23:32:17,990][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:18,180][root][INFO] - ==================
+[2026-02-03 23:32:18,180][root][INFO] - Starting Epoch 78.
+[2026-02-03 23:32:21,770][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:21,881][root][INFO] - {'loss': 2.7671949733048677, 'accuracy': np.float32(0.07421875), 'accuracy_std': np.float32(0.011584466), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.002059687375994437, 'epoch_duration': 3.5898735523223877}
+[2026-02-03 23:32:21,881][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:22,086][root][INFO] - ==================
+[2026-02-03 23:32:22,086][root][INFO] - Starting Epoch 79.
+[2026-02-03 23:32:25,412][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:25,712][root][INFO] - {'loss': 2.767357688397169, 'accuracy': np.float32(0.05078125), 'accuracy_std': np.float32(0.009702862), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.001881213012525135, 'epoch_duration': 3.3255491256713867}
+[2026-02-03 23:32:25,712][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:25,918][root][INFO] - ==================
+[2026-02-03 23:32:25,918][root][INFO] - Starting Epoch 80.
+[2026-02-03 23:32:28,894][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:29,005][root][INFO] - {'loss': 2.7673251163214445, 'accuracy': np.float32(0.107421875), 'accuracy_std': np.float32(0.013684675), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0017090195112695731, 'epoch_duration': 2.975667953491211}
+[2026-02-03 23:32:29,005][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:29,196][root][INFO] - ==================
+[2026-02-03 23:32:29,196][root][INFO] - Starting Epoch 81.
+[2026-02-03 23:32:32,523][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:32,650][root][INFO] - {'loss': 2.767855565994978, 'accuracy': np.float32(0.0859375), 'accuracy_std': np.float32(0.012386378), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0015434536470233158, 'epoch_duration': 3.327077627182007}
+[2026-02-03 23:32:32,650][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:32,840][root][INFO] - ==================
+[2026-02-03 23:32:32,840][root][INFO] - Starting Epoch 82.
+[2026-02-03 23:32:36,701][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:36,812][root][INFO] - {'loss': 2.767887329682708, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.001384848847403015, 'epoch_duration': 3.861079692840576}
+[2026-02-03 23:32:36,812][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:37,002][root][INFO] - ==================
+[2026-02-03 23:32:37,002][root][INFO] - Starting Epoch 83.
+[2026-02-03 23:32:40,956][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:41,067][root][INFO] - {'loss': 2.767952226102352, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0012335245213675626, 'epoch_duration': 3.954742431640625}
+[2026-02-03 23:32:41,067][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:41,257][root][INFO] - ==================
+[2026-02-03 23:32:41,257][root][INFO] - Starting Epoch 84.
+[2026-02-03 23:32:44,548][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:44,659][root][INFO] - {'loss': 2.7678487673401833, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0010897854159709543, 'epoch_duration': 3.2913601398468018}
+[2026-02-03 23:32:44,659][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:45,055][root][INFO] - ==================
+[2026-02-03 23:32:45,055][root][INFO] - Starting Epoch 85.
+[2026-02-03 23:32:48,032][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:48,142][root][INFO] - {'loss': 2.7680334392935038, 'accuracy': np.float32(0.05078125), 'accuracy_std': np.float32(0.009702862), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0009539210026422808, 'epoch_duration': 2.976827383041382}
+[2026-02-03 23:32:48,142][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:48,331][root][INFO] - ==================
+[2026-02-03 23:32:48,331][root][INFO] - Starting Epoch 86.
+[2026-02-03 23:32:51,472][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:51,583][root][INFO] - {'loss': 2.766979895532131, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0008262048942287929, 'epoch_duration': 3.141092538833618}
+[2026-02-03 23:32:51,583][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:51,772][root][INFO] - ==================
+[2026-02-03 23:32:51,772][root][INFO] - Starting Epoch 87.
+[2026-02-03 23:32:55,270][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:55,381][root][INFO] - {'loss': 2.76702518761158, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0007068942939760394, 'epoch_duration': 3.4977803230285645}
+[2026-02-03 23:32:55,381][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:55,572][root][INFO] - ==================
+[2026-02-03 23:32:55,572][root][INFO] - Starting Epoch 88.
+[2026-02-03 23:32:59,181][root][INFO] - Evaluating Model.
+[2026-02-03 23:32:59,308][root][INFO] - {'loss': 2.7680931333452463, 'accuracy': np.float32(0.064453125), 'accuracy_std': np.float32(0.01085225), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0005962294775547619, 'epoch_duration': 3.60945987701416}
+[2026-02-03 23:32:59,308][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:32:59,498][root][INFO] - ==================
+[2026-02-03 23:32:59,498][root][INFO] - Starting Epoch 89.
+[2026-02-03 23:33:03,217][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:03,343][root][INFO] - {'loss': 2.767680522054434, 'accuracy': np.float32(0.04296875), 'accuracy_std': np.float32(0.00896199), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0004944333091776672, 'epoch_duration': 3.7192654609680176}
+[2026-02-03 23:33:03,343][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:03,723][root][INFO] - ==================
+[2026-02-03 23:33:03,723][root][INFO] - Starting Epoch 90.
+[2026-02-03 23:33:06,968][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:07,078][root][INFO] - {'loss': 2.7679748740047216, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0004017107927805653, 'epoch_duration': 3.244767427444458}
+[2026-02-03 23:33:07,078][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:07,268][root][INFO] - ==================
+[2026-02-03 23:33:07,268][root][INFO] - Starting Epoch 91.
+[2026-02-03 23:33:10,228][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:10,339][root][INFO] - {'loss': 2.766920980066061, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0003182486591717237, 'epoch_duration': 2.960042953491211}
+[2026-02-03 23:33:10,339][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:10,545][root][INFO] - ==================
+[2026-02-03 23:33:10,545][root][INFO] - Starting Epoch 92.
+[2026-02-03 23:33:13,598][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:13,709][root][INFO] - {'loss': 2.7677060663700104, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0002442149899808703, 'epoch_duration': 3.0533077716827393}
+[2026-02-03 23:33:13,709][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:13,900][root][INFO] - ==================
+[2026-02-03 23:33:13,900][root][INFO] - Starting Epoch 93.
+[2026-02-03 23:33:17,645][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:17,756][root][INFO] - {'loss': 2.766947105526924, 'accuracy': np.float32(0.0625), 'accuracy_std': np.float32(0.010697707), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0001797588791651607, 'epoch_duration': 3.745760679244995}
+[2026-02-03 23:33:17,756][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:17,947][root][INFO] - ==================
+[2026-02-03 23:33:17,947][root][INFO] - Starting Epoch 94.
+[2026-02-03 23:33:21,917][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:22,028][root][INFO] - {'loss': 2.766991702839732, 'accuracy': np.float32(0.076171875), 'accuracy_std': np.float32(0.011723517), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00012501013275378816, 'epoch_duration': 3.970048427581787}
+[2026-02-03 23:33:22,028][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:22,407][root][INFO] - ==================
+[2026-02-03 23:33:22,407][root][INFO] - Starting Epoch 95.
+[2026-02-03 23:33:25,953][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:26,064][root][INFO] - {'loss': 2.7676093988120556, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 8.007900743591894e-05, 'epoch_duration': 3.5459201335906982}
+[2026-02-03 23:33:26,064][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:26,253][root][INFO] - ==================
+[2026-02-03 23:33:26,253][root][INFO] - Starting Epoch 96.
+[2026-02-03 23:33:29,229][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:29,355][root][INFO] - {'loss': 2.7674725968390703, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 4.505598851839035e-05, 'epoch_duration': 2.9756522178649902}
+[2026-02-03 23:33:29,355][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:29,545][root][INFO] - ==================
+[2026-02-03 23:33:29,545][root][INFO] - Starting Epoch 97.
+[2026-02-03 23:33:32,554][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:32,665][root][INFO] - {'loss': 2.7671576645225286, 'accuracy': np.float32(0.083984375), 'accuracy_std': np.float32(0.01225789), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 2.0011607700347206e-05, 'epoch_duration': 3.0089609622955322}
+[2026-02-03 23:33:32,665][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:32,855][root][INFO] - ==================
+[2026-02-03 23:33:32,855][root][INFO] - Starting Epoch 98.
+[2026-02-03 23:33:36,320][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:36,446][root][INFO] - {'loss': 2.7670588921755552, 'accuracy': np.float32(0.05859375), 'accuracy_std': np.float32(0.010379566), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 4.9963010317845574e-06, 'epoch_duration': 3.4653754234313965}
+[2026-02-03 23:33:36,446][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:36,637][root][INFO] - ==================
+[2026-02-03 23:33:36,637][root][INFO] - Starting Epoch 99.
+[2026-02-03 23:33:40,369][root][INFO] - Evaluating Model.
+[2026-02-03 23:33:40,480][root][INFO] - {'loss': 2.768029272556305, 'accuracy': np.float32(0.056640625), 'accuracy_std': np.float32(0.0102156885), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 4.030734205644824e-08, 'epoch_duration': 3.7316031455993652}
+[2026-02-03 23:33:40,480][root][INFO] - Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-02-03\23-27-20
+[2026-02-03 23:33:40,890][root][INFO] - Saving Model.
