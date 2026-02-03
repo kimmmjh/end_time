@@ -1,0 +1,8 @@
+- default.L=6
+- default.p=0.0
+- default.batches=10
+- default.epochs=1
+- default.circuit_noise=True
+- ++save_model=False
+- ++net.channels=[64,64]
+- ++net.depths=[2,2]

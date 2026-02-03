@@ -1,0 +1,6 @@
+[2026-02-03 03:36:59,404][root][INFO] - Lattice size: 6, Error rate: 0.0, Circuit Noise: True
+[2026-02-03 03:36:59,885][root][INFO] - Start Training
+[2026-02-03 03:37:03,791][root][INFO] - ==================
+[2026-02-03 03:37:03,791][root][INFO] - Starting Epoch 0.
+[2026-02-03 03:37:07,689][root][INFO] - Evaluating Model.
+[2026-02-03 03:37:07,848][root][INFO] - {'loss': 2.484557795524597, 'accuracy': np.float32(0.22265625), 'accuracy_std': np.float32(0.018386075), 'confusion_matrix': <Figure size 6400x6400 with 1 Axes>, 'learning_rate': 0.0004951936798652623, 'epoch_duration': 3.897425889968872}
