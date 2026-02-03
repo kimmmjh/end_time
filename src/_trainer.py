@@ -10,6 +10,8 @@ from panqec.codes import StabilizerCode
 import logging
 import time
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+
 
 
 class Trainer:
@@ -70,6 +72,7 @@ class Trainer:
         self._save_directory = wandb.run.dir
         self._save_model = save_model
         
+        self.history = {'loss': [], 'accuracy': []}
         self.start_epoch = 0
         if load_model_path is not None:
             self.load_model(load_model_path)
@@ -125,6 +128,11 @@ class Trainer:
             )
             self._output(str(metrics.__dict__))
             wandb.log(metrics.__dict__)
+            
+            # Update history and save plots
+            self.history['loss'].append(metrics.loss)
+            self.history['accuracy'].append(metrics.accuracy)
+            self.save_plots(path=self._save_directory)
 
         """Sve the finished model."""
         if self._save_model:
@@ -208,6 +216,7 @@ class Trainer:
             'model_state_dict': model_state,
             'optimizer_states': optim_states,
             'scheduler_states': sched_states,
+            'history': self.history,
         }
         
         torch.save(checkpoint, f"{path}/{model_name}.pt")
@@ -250,4 +259,38 @@ class Trainer:
         if 'epoch' in checkpoint:
             self.start_epoch = checkpoint['epoch']
             self._output(f"Resuming from epoch {self.start_epoch}")
+            
+        # 5. Restore History
+        if 'history' in checkpoint:
+            self.history = checkpoint['history']
+
+    def save_plots(self, path: str = ".") -> None:
+        """
+        Save Loss and Accuracy plots to the output directory.
+        :param path: Output directory path.
+        """
+        epochs = range(1, len(self.history['loss']) + 1)
+        
+        # Plot Loss
+        plt.figure(figsize=(10, 5))
+        plt.plot(epochs, self.history['loss'], label='Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.title('Training Loss')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(f"{path}/loss_curve.png")
+        plt.close()
+        
+        # Plot Accuracy
+        plt.figure(figsize=(10, 5))
+        plt.plot(epochs, self.history['accuracy'], label='Accuracy', color='orange')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.title('Training Accuracy')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(f"{path}/accuracy_curve.png")
+        plt.close()
+
 
