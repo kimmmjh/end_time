@@ -9,6 +9,7 @@ from ._data_generator import DataGenerator
 from panqec.codes import StabilizerCode
 import logging
 import time
+from tqdm import tqdm
 
 
 class Trainer:
@@ -143,7 +144,11 @@ class Trainer:
         """
 
         loss = 0.
-        for _ in range(batches):
+        iterator = range(batches)
+        if train:
+             iterator = tqdm(iterator, desc="Training")
+             
+        for _ in iterator:
             X, y = data_generator.generate_batch(use_qmc=train, device=device)
             """Zero out the gradient for all optimizers."""
             for optimizer in self.optimizers:
