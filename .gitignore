@@ -6,9 +6,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Hydra outputs
-outputs/
-
 # Wandb
 wandb/
 

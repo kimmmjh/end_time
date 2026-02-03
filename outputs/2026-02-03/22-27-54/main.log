@@ -1,0 +1,403 @@
+[2026-02-03 22:27:54,419][root][INFO] - Lattice size: 17, Error rate: 0.1, Circuit Noise: False
+[2026-02-03 22:27:55,983][root][INFO] - Start Training
+[2026-02-03 22:27:56,005][root][INFO] - ==================
+[2026-02-03 22:27:56,005][root][INFO] - Starting Epoch 0.
+[2026-02-03 22:28:17,465][root][INFO] - Evaluating Model.
+[2026-02-03 22:28:17,730][root][INFO] - {'loss': 2.3056830000132322, 'accuracy': np.float32(0.34570312), 'accuracy_std': np.float32(0.021018615), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0004263085903162874, 'epoch_duration': 21.46043848991394}
+[2026-02-03 22:28:17,730][root][INFO] - ==================
+[2026-02-03 22:28:17,730][root][INFO] - Starting Epoch 1.
+[2026-02-03 22:28:33,679][root][INFO] - Evaluating Model.
+[2026-02-03 22:28:33,858][root][INFO] - {'loss': 1.5609985692426562, 'accuracy': np.float32(0.5996094), 'accuracy_std': np.float32(0.021654151), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0005049459687966433, 'epoch_duration': 15.949301719665527}
+[2026-02-03 22:28:33,858][root][INFO] - ==================
+[2026-02-03 22:28:33,860][root][INFO] - Starting Epoch 2.
+[2026-02-03 22:28:49,684][root][INFO] - Evaluating Model.
+[2026-02-03 22:28:49,862][root][INFO] - {'loss': 0.9147622808814049, 'accuracy': np.float32(0.765625), 'accuracy_std': np.float32(0.018720986), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0006350501193685704, 'epoch_duration': 15.824400424957275}
+[2026-02-03 22:28:49,862][root][INFO] - ==================
+[2026-02-03 22:28:49,862][root][INFO] - Starting Epoch 3.
+[2026-02-03 22:29:05,867][root][INFO] - Evaluating Model.
+[2026-02-03 22:29:06,033][root][INFO] - {'loss': 0.5723499688319862, 'accuracy': np.float32(0.8378906), 'accuracy_std': np.float32(0.016287813), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0008151948517004671, 'epoch_duration': 16.00503897666931}
+[2026-02-03 22:29:06,033][root][INFO] - ==================
+[2026-02-03 22:29:06,033][root][INFO] - Starting Epoch 4.
+[2026-02-03 22:29:21,773][root][INFO] - Evaluating Model.
+[2026-02-03 22:29:21,942][root][INFO] - {'loss': 0.39513801666907966, 'accuracy': np.float32(0.88671875), 'accuracy_std': np.float32(0.014006738), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0010434054349754349, 'epoch_duration': 15.740315675735474}
+[2026-02-03 22:29:21,942][root][INFO] - ==================
+[2026-02-03 22:29:21,942][root][INFO] - Starting Epoch 5.
+[2026-02-03 22:29:37,838][root][INFO] - Evaluating Model.
+[2026-02-03 22:29:38,196][root][INFO] - {'loss': 0.26032830274198204, 'accuracy': np.float32(0.9082031), 'accuracy_std': np.float32(0.012760581), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.001317180244717964, 'epoch_duration': 15.8961820602417}
+[2026-02-03 22:29:38,196][root][INFO] - ==================
+[2026-02-03 22:29:38,196][root][INFO] - Starting Epoch 6.
+[2026-02-03 22:29:54,051][root][INFO] - Evaluating Model.
+[2026-02-03 22:29:54,224][root][INFO] - {'loss': 0.18776941439136863, 'accuracy': np.float32(0.9550781), 'accuracy_std': np.float32(0.0091540525), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.001633518185382871, 'epoch_duration': 15.855035305023193}
+[2026-02-03 22:29:54,224][root][INFO] - ==================
+[2026-02-03 22:29:54,224][root][INFO] - Starting Epoch 7.
+[2026-02-03 22:30:10,200][root][INFO] - Evaluating Model.
+[2026-02-03 22:30:10,375][root][INFO] - {'loss': 0.15986369067104533, 'accuracy': np.float32(0.9453125), 'accuracy_std': np.float32(0.010048396), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0019889515881024687, 'epoch_duration': 15.975945711135864}
+[2026-02-03 22:30:10,375][root][INFO] - ==================
+[2026-02-03 22:30:10,375][root][INFO] - Starting Epoch 8.
+[2026-02-03 22:30:26,141][root][INFO] - Evaluating Model.
+[2026-02-03 22:30:26,316][root][INFO] - {'loss': 0.1311828019679524, 'accuracy': np.float32(0.9667969), 'accuracy_std': np.float32(0.00791812), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0023795842229697274, 'epoch_duration': 15.766211032867432}
+[2026-02-03 22:30:26,316][root][INFO] - ==================
+[2026-02-03 22:30:26,316][root][INFO] - Starting Epoch 9.
+[2026-02-03 22:30:42,232][root][INFO] - Evaluating Model.
+[2026-02-03 22:30:42,402][root][INFO] - {'loss': 0.11519208271056414, 'accuracy': np.float32(0.9453125), 'accuracy_std': np.float32(0.010048396), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.002801134009170106, 'epoch_duration': 15.915536165237427}
+[2026-02-03 22:30:42,402][root][INFO] - ==================
+[2026-02-03 22:30:42,402][root][INFO] - Starting Epoch 10.
+[2026-02-03 22:30:58,168][root][INFO] - Evaluating Model.
+[2026-02-03 22:30:58,344][root][INFO] - {'loss': 0.10876285308040679, 'accuracy': np.float32(0.96484375), 'accuracy_std': np.float32(0.0081394445), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0032489799547773283, 'epoch_duration': 15.765452146530151}
+[2026-02-03 22:30:58,344][root][INFO] - ==================
+[2026-02-03 22:30:58,344][root][INFO] - Starting Epoch 11.
+[2026-02-03 22:31:14,214][root][INFO] - Evaluating Model.
+[2026-02-03 22:31:14,548][root][INFO] - {'loss': 0.10288966132793576, 'accuracy': np.float32(0.96875), 'accuracy_std': np.float32(0.0076894606), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.003718212811663145, 'epoch_duration': 15.870614528656006}
+[2026-02-03 22:31:14,548][root][INFO] - ==================
+[2026-02-03 22:31:14,548][root][INFO] - Starting Epoch 12.
+[2026-02-03 22:31:30,383][root][INFO] - Evaluating Model.
+[2026-02-03 22:31:30,561][root][INFO] - {'loss': 0.10223037641844712, 'accuracy': np.float32(0.9746094), 'accuracy_std': np.float32(0.006952116), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.004203688890246414, 'epoch_duration': 15.834944486618042}
+[2026-02-03 22:31:30,561][root][INFO] - ==================
+[2026-02-03 22:31:30,561][root][INFO] - Starting Epoch 13.
+[2026-02-03 22:31:47,313][root][INFO] - Evaluating Model.
+[2026-02-03 22:31:47,491][root][INFO] - {'loss': 0.09967147564748302, 'accuracy': np.float32(0.9589844), 'accuracy_std': np.float32(0.0087648695), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0047000864441688805, 'epoch_duration': 16.75174641609192}
+[2026-02-03 22:31:47,492][root][INFO] - ==================
+[2026-02-03 22:31:47,492][root][INFO] - Starting Epoch 14.
+[2026-02-03 22:32:03,960][root][INFO] - Evaluating Model.
+[2026-02-03 22:32:04,156][root][INFO] - {'loss': 0.090045786841074, 'accuracy': np.float32(0.96484375), 'accuracy_std': np.float32(0.0081394445), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005201964006813814, 'epoch_duration': 16.468504190444946}
+[2026-02-03 22:32:04,156][root][INFO] - ==================
+[2026-02-03 22:32:04,157][root][INFO] - Starting Epoch 15.
+[2026-02-03 22:32:21,122][root][INFO] - Evaluating Model.
+[2026-02-03 22:32:21,311][root][INFO] - {'loss': 0.08825953962514177, 'accuracy': np.float32(0.97265625), 'accuracy_std': np.float32(0.007207319), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005703820040187645, 'epoch_duration': 16.965245008468628}
+[2026-02-03 22:32:21,311][root][INFO] - ==================
+[2026-02-03 22:32:21,311][root][INFO] - Starting Epoch 16.
+[2026-02-03 22:32:37,654][root][INFO] - Evaluating Model.
+[2026-02-03 22:32:37,853][root][INFO] - {'loss': 0.09963918817811646, 'accuracy': np.float32(0.9550781), 'accuracy_std': np.float32(0.0091540525), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006200153242298796, 'epoch_duration': 16.34323287010193}
+[2026-02-03 22:32:37,853][root][INFO] - ==================
+[2026-02-03 22:32:37,853][root][INFO] - Starting Epoch 17.
+[2026-02-03 22:32:53,918][root][INFO] - Evaluating Model.
+[2026-02-03 22:32:54,310][root][INFO] - {'loss': 0.09193763410439715, 'accuracy': np.float32(0.9746094), 'accuracy_std': np.float32(0.006952116), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00668552285194947, 'epoch_duration': 16.065144777297974}
+[2026-02-03 22:32:54,310][root][INFO] - ==================
+[2026-02-03 22:32:54,310][root][INFO] - Starting Epoch 18.
+[2026-02-03 22:33:10,525][root][INFO] - Evaluating Model.
+[2026-02-03 22:33:10,718][root][INFO] - {'loss': 0.09248327088425867, 'accuracy': np.float32(0.9765625), 'accuracy_std': np.float32(0.0066860663), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0071546082898845485, 'epoch_duration': 16.214523792266846}
+[2026-02-03 22:33:10,718][root][INFO] - ==================
+[2026-02-03 22:33:10,718][root][INFO] - Starting Epoch 19.
+[2026-02-03 22:33:27,110][root][INFO] - Evaluating Model.
+[2026-02-03 22:33:27,290][root][INFO] - {'loss': 0.08709994467790239, 'accuracy': np.float32(0.98046875), 'accuracy_std': np.float32(0.0061157104), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007602267482516547, 'epoch_duration': 16.39101767539978}
+[2026-02-03 22:33:27,290][root][INFO] - ==================
+[2026-02-03 22:33:27,290][root][INFO] - Starting Epoch 20.
+[2026-02-03 22:33:43,593][root][INFO] - Evaluating Model.
+[2026-02-03 22:33:43,780][root][INFO] - {'loss': 0.08066143421456218, 'accuracy': np.float32(0.98046875), 'accuracy_std': np.float32(0.0061157104), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008023593228887014, 'epoch_duration': 16.30295968055725}
+[2026-02-03 22:33:43,780][root][INFO] - ==================
+[2026-02-03 22:33:43,780][root][INFO] - Starting Epoch 21.
+[2026-02-03 22:34:00,107][root][INFO] - Evaluating Model.
+[2026-02-03 22:34:00,294][root][INFO] - {'loss': 0.0796547083882615, 'accuracy': np.float32(0.9707031), 'accuracy_std': np.float32(0.00745279), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008413966992974718, 'epoch_duration': 16.32730221748352}
+[2026-02-03 22:34:00,294][root][INFO] - ==================
+[2026-02-03 22:34:00,294][root][INFO] - Starting Epoch 22.
+[2026-02-03 22:34:16,464][root][INFO] - Evaluating Model.
+[2026-02-03 22:34:16,631][root][INFO] - {'loss': 0.07297009965986945, 'accuracy': np.float32(0.9746094), 'accuracy_std': np.float32(0.006952116), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008769109531683984, 'epoch_duration': 16.169902086257935}
+[2026-02-03 22:34:16,631][root][INFO] - ==================
+[2026-02-03 22:34:16,631][root][INFO] - Starting Epoch 23.
+[2026-02-03 22:34:32,831][root][INFO] - Evaluating Model.
+[2026-02-03 22:34:33,201][root][INFO] - {'loss': 0.07898460299475119, 'accuracy': np.float32(0.97265625), 'accuracy_std': np.float32(0.007207319), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00908512780353365, 'epoch_duration': 16.19940757751465}
+[2026-02-03 22:34:33,201][root][INFO] - ==================
+[2026-02-03 22:34:33,201][root][INFO] - Starting Epoch 24.
+[2026-02-03 22:34:49,157][root][INFO] - Evaluating Model.
+[2026-02-03 22:34:49,331][root][INFO] - {'loss': 0.07698131828510668, 'accuracy': np.float32(0.96875), 'accuracy_std': np.float32(0.0076894606), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009358557643837653, 'epoch_duration': 15.95583987236023}
+[2026-02-03 22:34:49,331][root][INFO] - ==================
+[2026-02-03 22:34:49,331][root][INFO] - Starting Epoch 25.
+[2026-02-03 22:35:05,324][root][INFO] - Evaluating Model.
+[2026-02-03 22:35:05,501][root][INFO] - {'loss': 0.0729895944823511, 'accuracy': np.float32(0.96484375), 'accuracy_std': np.float32(0.0081394445), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009586401738575659, 'epoch_duration': 15.990520477294922}
+[2026-02-03 22:35:05,501][root][INFO] - ==================
+[2026-02-03 22:35:05,501][root][INFO] - Starting Epoch 26.
+[2026-02-03 22:35:21,291][root][INFO] - Evaluating Model.
+[2026-02-03 22:35:21,442][root][INFO] - {'loss': 0.0727232874778565, 'accuracy': np.float32(0.984375), 'accuracy_std': np.float32(0.0054809432), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009766162480687476, 'epoch_duration': 15.790061712265015}
+[2026-02-03 22:35:21,442][root][INFO] - ==================
+[2026-02-03 22:35:21,442][root][INFO] - Starting Epoch 27.
+[2026-02-03 22:35:37,117][root][INFO] - Evaluating Model.
+[2026-02-03 22:35:37,275][root][INFO] - {'loss': 0.06345871403755154, 'accuracy': np.float32(0.98828125), 'accuracy_std': np.float32(0.004756045), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009895869348623453, 'epoch_duration': 15.674620628356934}
+[2026-02-03 22:35:37,275][root][INFO] - ==================
+[2026-02-03 22:35:37,275][root][INFO] - Starting Epoch 28.
+[2026-02-03 22:35:52,988][root][INFO] - Evaluating Model.
+[2026-02-03 22:35:53,143][root][INFO] - {'loss': 0.07771413718000986, 'accuracy': np.float32(0.9824219), 'accuracy_std': np.float32(0.0058076484), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009974100507029533, 'epoch_duration': 15.712032794952393}
+[2026-02-03 22:35:53,143][root][INFO] - ==================
+[2026-02-03 22:35:53,143][root][INFO] - Starting Epoch 29.
+[2026-02-03 22:36:08,892][root][INFO] - Evaluating Model.
+[2026-02-03 22:36:09,248][root][INFO] - {'loss': 0.0645116969535593, 'accuracy': np.float32(0.984375), 'accuracy_std': np.float32(0.0054809432), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009999999692657944, 'epoch_duration': 15.74979567527771}
+[2026-02-03 22:36:09,248][root][INFO] - ==================
+[2026-02-03 22:36:09,248][root][INFO] - Starting Epoch 30.
+[2026-02-03 22:36:25,005][root][INFO] - Evaluating Model.
+[2026-02-03 22:36:25,173][root][INFO] - {'loss': 0.06373444943164941, 'accuracy': np.float32(0.98046875), 'accuracy_std': np.float32(0.0061157104), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009994886392657103, 'epoch_duration': 15.757138729095459}
+[2026-02-03 22:36:25,173][root][INFO] - ==================
+[2026-02-03 22:36:25,173][root][INFO] - Starting Epoch 31.
+[2026-02-03 22:36:40,929][root][INFO] - Evaluating Model.
+[2026-02-03 22:36:41,087][root][INFO] - {'loss': 0.062193884295993485, 'accuracy': np.float32(0.9902344), 'accuracy_std': np.float32(0.004345943), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009979714096471403, 'epoch_duration': 15.755092144012451}
+[2026-02-03 22:36:41,087][root][INFO] - ==================
+[2026-02-03 22:36:41,087][root][INFO] - Starting Epoch 32.
+[2026-02-03 22:36:56,754][root][INFO] - Evaluating Model.
+[2026-02-03 22:36:56,911][root][INFO] - {'loss': 0.06487152335466817, 'accuracy': np.float32(0.96484375), 'accuracy_std': np.float32(0.0081394445), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009954513359086191, 'epoch_duration': 15.66765308380127}
+[2026-02-03 22:36:56,911][root][INFO] - ==================
+[2026-02-03 22:36:56,913][root][INFO] - Starting Epoch 33.
+[2026-02-03 22:37:12,624][root][INFO] - Evaluating Model.
+[2026-02-03 22:37:12,789][root][INFO] - {'loss': 0.06749261342338286, 'accuracy': np.float32(0.984375), 'accuracy_std': np.float32(0.0054809432), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009919334931432785, 'epoch_duration': 15.71065616607666}
+[2026-02-03 22:37:12,789][root][INFO] - ==================
+[2026-02-03 22:37:12,789][root][INFO] - Starting Epoch 34.
+[2026-02-03 22:37:28,476][root][INFO] - Evaluating Model.
+[2026-02-03 22:37:28,629][root][INFO] - {'loss': 0.05262849414430093, 'accuracy': np.float32(0.9824219), 'accuracy_std': np.float32(0.0058076484), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009874249658182838, 'epoch_duration': 15.684719800949097}
+[2026-02-03 22:37:28,629][root][INFO] - ==================
+[2026-02-03 22:37:28,629][root][INFO] - Starting Epoch 35.
+[2026-02-03 22:37:44,406][root][INFO] - Evaluating Model.
+[2026-02-03 22:37:44,579][root][INFO] - {'loss': 0.05346140892652329, 'accuracy': np.float32(0.96875), 'accuracy_std': np.float32(0.0076894606), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009819348335076611, 'epoch_duration': 15.77670431137085}
+[2026-02-03 22:37:44,579][root][INFO] - ==================
+[2026-02-03 22:37:44,579][root][INFO] - Starting Epoch 36.
+[2026-02-03 22:38:00,405][root][INFO] - Evaluating Model.
+[2026-02-03 22:38:00,759][root][INFO] - {'loss': 0.060409513433114626, 'accuracy': np.float32(0.9785156), 'accuracy_std': np.float32(0.006407819), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009754741526072424, 'epoch_duration': 15.826931715011597}
+[2026-02-03 22:38:00,759][root][INFO] - ==================
+[2026-02-03 22:38:00,759][root][INFO] - Starting Epoch 37.
+[2026-02-03 22:38:16,522][root][INFO] - Evaluating Model.
+[2026-02-03 22:38:16,682][root][INFO] - {'loss': 0.05739737734256778, 'accuracy': np.float32(0.984375), 'accuracy_std': np.float32(0.0054809432), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00968055934068557, 'epoch_duration': 15.763709545135498}
+[2026-02-03 22:38:16,682][root][INFO] - ==================
+[2026-02-03 22:38:16,682][root][INFO] - Starting Epoch 38.
+[2026-02-03 22:38:32,450][root][INFO] - Evaluating Model.
+[2026-02-03 22:38:32,606][root][INFO] - {'loss': 0.06205495019094087, 'accuracy': np.float32(0.97265625), 'accuracy_std': np.float32(0.007207319), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009596951171965056, 'epoch_duration': 15.768556118011475}
+[2026-02-03 22:38:32,606][root][INFO] - ==================
+[2026-02-03 22:38:32,606][root][INFO] - Starting Epoch 39.
+[2026-02-03 22:38:48,318][root][INFO] - Evaluating Model.
+[2026-02-03 22:38:48,472][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.9824219), 'accuracy_std': np.float32(0.0058076484), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009504085395635891, 'epoch_duration': 15.711383819580078}
+[2026-02-03 22:38:48,472][root][INFO] - ==================
+[2026-02-03 22:38:48,472][root][INFO] - Starting Epoch 40.
+[2026-02-03 22:39:04,154][root][INFO] - Evaluating Model.
+[2026-02-03 22:39:04,299][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.96875), 'accuracy_std': np.float32(0.0076894606), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009402149031012785, 'epoch_duration': 15.681553840637207}
+[2026-02-03 22:39:04,299][root][INFO] - ==================
+[2026-02-03 22:39:04,299][root][INFO] - Starting Epoch 41.
+[2026-02-03 22:39:19,902][root][INFO] - Evaluating Model.
+[2026-02-03 22:39:20,243][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.08203125), 'accuracy_std': np.float32(0.0121274255), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009291347364368121, 'epoch_duration': 15.602396965026855}
+[2026-02-03 22:39:20,243][root][INFO] - ==================
+[2026-02-03 22:39:20,243][root][INFO] - Starting Epoch 42.
+[2026-02-03 22:39:35,963][root][INFO] - Evaluating Model.
+[2026-02-03 22:39:36,117][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.087890625), 'accuracy_std': np.float32(0.012512951), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00917190353551275, 'epoch_duration': 15.719913244247437}
+[2026-02-03 22:39:36,117][root][INFO] - ==================
+[2026-02-03 22:39:36,117][root][INFO] - Starting Epoch 43.
+[2026-02-03 22:39:51,843][root][INFO] - Evaluating Model.
+[2026-02-03 22:39:52,001][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.009044058088422086, 'epoch_duration': 15.726656436920166}
+[2026-02-03 22:39:52,001][root][INFO] - ==================
+[2026-02-03 22:39:52,001][root][INFO] - Starting Epoch 44.
+[2026-02-03 22:40:07,724][root][INFO] - Evaluating Model.
+[2026-02-03 22:40:07,877][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.0859375), 'accuracy_std': np.float32(0.012386378), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008908068486812562, 'epoch_duration': 15.722715377807617}
+[2026-02-03 22:40:07,877][root][INFO] - ==================
+[2026-02-03 22:40:07,877][root][INFO] - Starting Epoch 45.
+[2026-02-03 22:40:23,585][root][INFO] - Evaluating Model.
+[2026-02-03 22:40:23,747][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.08984375), 'accuracy_std': np.float32(0.012637667), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008764208595643965, 'epoch_duration': 15.70777678489685}
+[2026-02-03 22:40:23,747][root][INFO] - ==================
+[2026-02-03 22:40:23,747][root][INFO] - Starting Epoch 46.
+[2026-02-03 22:40:39,308][root][INFO] - Evaluating Model.
+[2026-02-03 22:40:39,465][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008612768129591856, 'epoch_duration': 15.56063985824585}
+[2026-02-03 22:40:39,465][root][INFO] - ==================
+[2026-02-03 22:40:39,465][root][INFO] - Starting Epoch 47.
+[2026-02-03 22:40:55,140][root][INFO] - Evaluating Model.
+[2026-02-03 22:40:55,303][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.083984375), 'accuracy_std': np.float32(0.01225789), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.008454052069600771, 'epoch_duration': 15.67446231842041}
+[2026-02-03 22:40:55,303][root][INFO] - ==================
+[2026-02-03 22:40:55,303][root][INFO] - Starting Epoch 48.
+[2026-02-03 22:41:10,914][root][INFO] - Evaluating Model.
+[2026-02-03 22:41:11,285][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00828838004869318, 'epoch_duration': 15.610840320587158}
+[2026-02-03 22:41:11,285][root][INFO] - ==================
+[2026-02-03 22:41:11,285][root][INFO] - Starting Epoch 49.
+[2026-02-03 22:41:26,975][root][INFO] - Evaluating Model.
+[2026-02-03 22:41:27,148][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.072265625), 'accuracy_std': np.float32(0.011443075), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00811608570827112, 'epoch_duration': 15.689899444580078}
+[2026-02-03 22:41:27,148][root][INFO] - ==================
+[2026-02-03 22:41:27,148][root][INFO] - Starting Epoch 50.
+[2026-02-03 22:41:42,819][root][INFO] - Evaluating Model.
+[2026-02-03 22:41:42,975][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.083984375), 'accuracy_std': np.float32(0.01225789), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00793751602620682, 'epoch_duration': 15.670517206192017}
+[2026-02-03 22:41:42,975][root][INFO] - ==================
+[2026-02-03 22:41:42,975][root][INFO] - Starting Epoch 51.
+[2026-02-03 22:41:58,686][root][INFO] - Evaluating Model.
+[2026-02-03 22:41:58,846][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.091796875), 'accuracy_std': np.float32(0.012760581), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007753030618075434, 'epoch_duration': 15.708203554153442}
+[2026-02-03 22:41:58,848][root][INFO] - ==================
+[2026-02-03 22:41:58,848][root][INFO] - Starting Epoch 52.
+[2026-02-03 22:42:14,474][root][INFO] - Evaluating Model.
+[2026-02-03 22:42:14,636][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.08984375), 'accuracy_std': np.float32(0.012637667), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007563001012937137, 'epoch_duration': 15.626429080963135}
+[2026-02-03 22:42:14,636][root][INFO] - ==================
+[2026-02-03 22:42:14,636][root][INFO] - Starting Epoch 53.
+[2026-02-03 22:42:30,225][root][INFO] - Evaluating Model.
+[2026-02-03 22:42:30,573][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.095703125), 'accuracy_std': np.float32(0.0130012045), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007367809905127035, 'epoch_duration': 15.589074850082397}
+[2026-02-03 22:42:30,573][root][INFO] - ==================
+[2026-02-03 22:42:30,573][root][INFO] - Starting Epoch 54.
+[2026-02-03 22:42:46,157][root][INFO] - Evaluating Model.
+[2026-02-03 22:42:46,309][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09765625), 'accuracy_std': np.float32(0.013119009), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.007167850383559715, 'epoch_duration': 15.584478378295898}
+[2026-02-03 22:42:46,309][root][INFO] - ==================
+[2026-02-03 22:42:46,309][root][INFO] - Starting Epoch 55.
+[2026-02-03 22:43:02,096][root][INFO] - Evaluating Model.
+[2026-02-03 22:43:02,250][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.07421875), 'accuracy_std': np.float32(0.011584466), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006963525140100471, 'epoch_duration': 15.786664962768555}
+[2026-02-03 22:43:02,250][root][INFO] - ==================
+[2026-02-03 22:43:02,252][root][INFO] - Starting Epoch 56.
+[2026-02-03 22:43:18,005][root][INFO] - Evaluating Model.
+[2026-02-03 22:43:18,163][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.08203125), 'accuracy_std': np.float32(0.0121274255), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006755245658597493, 'epoch_duration': 15.753138065338135}
+[2026-02-03 22:43:18,163][root][INFO] - ==================
+[2026-02-03 22:43:18,163][root][INFO] - Starting Epoch 57.
+[2026-02-03 22:43:33,882][root][INFO] - Evaluating Model.
+[2026-02-03 22:43:34,035][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09765625), 'accuracy_std': np.float32(0.013119009), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006543431386208144, 'epoch_duration': 15.718750238418579}
+[2026-02-03 22:43:34,035][root][INFO] - ==================
+[2026-02-03 22:43:34,035][root][INFO] - Starting Epoch 58.
+[2026-02-03 22:43:49,690][root][INFO] - Evaluating Model.
+[2026-02-03 22:43:49,856][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.083984375), 'accuracy_std': np.float32(0.01225789), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0063285088886882186, 'epoch_duration': 15.655383586883545}
+[2026-02-03 22:43:49,856][root][INFO] - ==================
+[2026-02-03 22:43:49,856][root][INFO] - Starting Epoch 59.
+[2026-02-03 22:44:05,497][root][INFO] - Evaluating Model.
+[2026-02-03 22:44:05,653][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.080078125), 'accuracy_std': np.float32(0.0119949225), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.006110910991345269, 'epoch_duration': 15.640525579452515}
+[2026-02-03 22:44:05,653][root][INFO] - ==================
+[2026-02-03 22:44:05,653][root][INFO] - Starting Epoch 60.
+[2026-02-03 22:44:21,424][root][INFO] - Evaluating Model.
+[2026-02-03 22:44:21,830][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.072265625), 'accuracy_std': np.float32(0.011443075), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005891075907386043, 'epoch_duration': 15.770920276641846}
+[2026-02-03 22:44:21,830][root][INFO] - ==================
+[2026-02-03 22:44:21,830][root][INFO] - Starting Epoch 61.
+[2026-02-03 22:44:38,007][root][INFO] - Evaluating Model.
+[2026-02-03 22:44:38,184][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.099609375), 'accuracy_std': np.float32(0.013235203), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005669446355413406, 'epoch_duration': 16.177451372146606}
+[2026-02-03 22:44:38,184][root][INFO] - ==================
+[2026-02-03 22:44:38,184][root][INFO] - Starting Epoch 62.
+[2026-02-03 22:44:54,342][root][INFO] - Evaluating Model.
+[2026-02-03 22:44:54,522][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.103515625), 'accuracy_std': np.float32(0.013462923), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005446468667849986, 'epoch_duration': 16.15780544281006}
+[2026-02-03 22:44:54,522][root][INFO] - ==================
+[2026-02-03 22:44:54,522][root][INFO] - Starting Epoch 63.
+[2026-02-03 22:45:10,568][root][INFO] - Evaluating Model.
+[2026-02-03 22:45:10,764][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.0703125), 'accuracy_std': np.float32(0.011299254), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.005222591892084077, 'epoch_duration': 16.045530319213867}
+[2026-02-03 22:45:10,764][root][INFO] - ==================
+[2026-02-03 22:45:10,764][root][INFO] - Starting Epoch 64.
+[2026-02-03 22:45:26,749][root][INFO] - Evaluating Model.
+[2026-02-03 22:45:26,924][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.004998266886147963, 'epoch_duration': 15.985569953918457}
+[2026-02-03 22:45:26,926][root][INFO] - ==================
+[2026-02-03 22:45:26,926][root][INFO] - Starting Epoch 65.
+[2026-02-03 22:45:42,719][root][INFO] - Evaluating Model.
+[2026-02-03 22:45:43,066][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09375), 'accuracy_std': np.float32(0.012881744), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00477394541074984, 'epoch_duration': 15.792459964752197}
+[2026-02-03 22:45:43,066][root][INFO] - ==================
+[2026-02-03 22:45:43,066][root][INFO] - Starting Epoch 66.
+[2026-02-03 22:45:59,177][root][INFO] - Evaluating Model.
+[2026-02-03 22:45:59,364][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.08984375), 'accuracy_std': np.float32(0.012637667), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.004550079219487864, 'epoch_duration': 16.111020803451538}
+[2026-02-03 22:45:59,364][root][INFO] - ==================
+[2026-02-03 22:45:59,364][root][INFO] - Starting Epoch 67.
+[2026-02-03 22:46:15,339][root][INFO] - Evaluating Model.
+[2026-02-03 22:46:15,515][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.08984375), 'accuracy_std': np.float32(0.012637667), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.004327119149078539, 'epoch_duration': 15.97534465789795}
+[2026-02-03 22:46:15,515][root][INFO] - ==================
+[2026-02-03 22:46:15,515][root][INFO] - Starting Epoch 68.
+[2026-02-03 22:46:31,376][root][INFO] - Evaluating Model.
+[2026-02-03 22:46:31,555][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09375), 'accuracy_std': np.float32(0.012881744), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0041055142114315565, 'epoch_duration': 15.860901594161987}
+[2026-02-03 22:46:31,555][root][INFO] - ==================
+[2026-02-03 22:46:31,555][root][INFO] - Starting Epoch 69.
+[2026-02-03 22:46:47,279][root][INFO] - Evaluating Model.
+[2026-02-03 22:46:47,438][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.003885710689399566, 'epoch_duration': 15.724451541900635}
+[2026-02-03 22:46:47,438][root][INFO] - ==================
+[2026-02-03 22:46:47,438][root][INFO] - Starting Epoch 70.
+[2026-02-03 22:47:03,163][root][INFO] - Evaluating Model.
+[2026-02-03 22:47:03,328][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.068359375), 'accuracy_std': np.float32(0.011152912), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.003668151238023914, 'epoch_duration': 15.724647045135498}
+[2026-02-03 22:47:03,328][root][INFO] - ==================
+[2026-02-03 22:47:03,328][root][INFO] - Starting Epoch 71.
+[2026-02-03 22:47:18,953][root][INFO] - Evaluating Model.
+[2026-02-03 22:47:19,106][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.099609375), 'accuracy_std': np.float32(0.013235203), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0034532739930862835, 'epoch_duration': 15.625150680541992}
+[2026-02-03 22:47:19,106][root][INFO] - ==================
+[2026-02-03 22:47:19,106][root][INFO] - Starting Epoch 72.
+[2026-02-03 22:47:34,832][root][INFO] - Evaluating Model.
+[2026-02-03 22:47:34,990][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.10546875), 'accuracy_std': np.float32(0.013574526), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0032415116887615516, 'epoch_duration': 15.725412845611572}
+[2026-02-03 22:47:34,990][root][INFO] - ==================
+[2026-02-03 22:47:34,990][root][INFO] - Starting Epoch 73.
+[2026-02-03 22:47:50,530][root][INFO] - Evaluating Model.
+[2026-02-03 22:47:50,686][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.099609375), 'accuracy_std': np.float32(0.013235203), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0030332907861487447, 'epoch_duration': 15.540335416793823}
+[2026-02-03 22:47:50,688][root][INFO] - ==================
+[2026-02-03 22:47:50,688][root][INFO] - Starting Epoch 74.
+[2026-02-03 22:48:06,358][root][INFO] - Evaluating Model.
+[2026-02-03 22:48:06,520][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09375), 'accuracy_std': np.float32(0.012881744), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00282903061443514, 'epoch_duration': 15.669995069503784}
+[2026-02-03 22:48:06,520][root][INFO] - ==================
+[2026-02-03 22:48:06,520][root][INFO] - Starting Epoch 75.
+[2026-02-03 22:48:22,201][root][INFO] - Evaluating Model.
+[2026-02-03 22:48:22,357][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09765625), 'accuracy_std': np.float32(0.013119009), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0026291425264230862, 'epoch_duration': 15.680644989013672}
+[2026-02-03 22:48:22,357][root][INFO] - ==================
+[2026-02-03 22:48:22,357][root][INFO] - Starting Epoch 76.
+[2026-02-03 22:48:38,009][root][INFO] - Evaluating Model.
+[2026-02-03 22:48:38,174][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.087890625), 'accuracy_std': np.float32(0.012512951), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.002434029070120209, 'epoch_duration': 15.651356935501099}
+[2026-02-03 22:48:38,174][root][INFO] - ==================
+[2026-02-03 22:48:38,174][root][INFO] - Starting Epoch 77.
+[2026-02-03 22:48:53,842][root][INFO] - Evaluating Model.
+[2026-02-03 22:48:54,190][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.109375), 'accuracy_std': np.float32(0.013793405), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00224408317806129, 'epoch_duration': 15.668087005615234}
+[2026-02-03 22:48:54,190][root][INFO] - ==================
+[2026-02-03 22:48:54,190][root][INFO] - Starting Epoch 78.
+[2026-02-03 22:49:09,780][root][INFO] - Evaluating Model.
+[2026-02-03 22:49:09,937][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.076171875), 'accuracy_std': np.float32(0.011723517), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.002059687375994437, 'epoch_duration': 15.590539932250977}
+[2026-02-03 22:49:09,937][root][INFO] - ==================
+[2026-02-03 22:49:09,937][root][INFO] - Starting Epoch 79.
+[2026-02-03 22:49:25,520][root][INFO] - Evaluating Model.
+[2026-02-03 22:49:25,689][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.001881213012525135, 'epoch_duration': 15.582942008972168}
+[2026-02-03 22:49:25,689][root][INFO] - ==================
+[2026-02-03 22:49:25,689][root][INFO] - Starting Epoch 80.
+[2026-02-03 22:49:41,307][root][INFO] - Evaluating Model.
+[2026-02-03 22:49:41,458][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.083984375), 'accuracy_std': np.float32(0.01225789), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0017090195112695731, 'epoch_duration': 15.617788553237915}
+[2026-02-03 22:49:41,460][root][INFO] - ==================
+[2026-02-03 22:49:41,460][root][INFO] - Starting Epoch 81.
+[2026-02-03 22:49:57,094][root][INFO] - Evaluating Model.
+[2026-02-03 22:49:57,257][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.08984375), 'accuracy_std': np.float32(0.012637667), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0015434536470233158, 'epoch_duration': 15.634166479110718}
+[2026-02-03 22:49:57,257][root][INFO] - ==================
+[2026-02-03 22:49:57,257][root][INFO] - Starting Epoch 82.
+[2026-02-03 22:50:12,901][root][INFO] - Evaluating Model.
+[2026-02-03 22:50:13,056][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.091796875), 'accuracy_std': np.float32(0.012760581), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.001384848847403015, 'epoch_duration': 15.64347243309021}
+[2026-02-03 22:50:13,056][root][INFO] - ==================
+[2026-02-03 22:50:13,056][root][INFO] - Starting Epoch 83.
+[2026-02-03 22:50:28,714][root][INFO] - Evaluating Model.
+[2026-02-03 22:50:28,853][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09765625), 'accuracy_std': np.float32(0.013119009), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0012335245213675626, 'epoch_duration': 15.658082723617554}
+[2026-02-03 22:50:28,869][root][INFO] - ==================
+[2026-02-03 22:50:28,869][root][INFO] - Starting Epoch 84.
+[2026-02-03 22:50:44,605][root][INFO] - Evaluating Model.
+[2026-02-03 22:50:44,748][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.0859375), 'accuracy_std': np.float32(0.012386378), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0010897854159709543, 'epoch_duration': 15.736148595809937}
+[2026-02-03 22:50:44,748][root][INFO] - ==================
+[2026-02-03 22:50:44,748][root][INFO] - Starting Epoch 85.
+[2026-02-03 22:51:00,351][root][INFO] - Evaluating Model.
+[2026-02-03 22:51:00,523][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09375), 'accuracy_std': np.float32(0.012881744), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0009539210026422808, 'epoch_duration': 15.603438138961792}
+[2026-02-03 22:51:00,523][root][INFO] - ==================
+[2026-02-03 22:51:00,523][root][INFO] - Starting Epoch 86.
+[2026-02-03 22:51:16,123][root][INFO] - Evaluating Model.
+[2026-02-03 22:51:16,303][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.087890625), 'accuracy_std': np.float32(0.012512951), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0008262048942287929, 'epoch_duration': 15.60031008720398}
+[2026-02-03 22:51:16,303][root][INFO] - ==================
+[2026-02-03 22:51:16,303][root][INFO] - Starting Epoch 87.
+[2026-02-03 22:51:31,961][root][INFO] - Evaluating Model.
+[2026-02-03 22:51:32,130][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.0546875), 'accuracy_std': np.float32(0.010048396), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0007068942939760394, 'epoch_duration': 15.657435894012451}
+[2026-02-03 22:51:32,130][root][INFO] - ==================
+[2026-02-03 22:51:32,132][root][INFO] - Starting Epoch 88.
+[2026-02-03 22:51:47,811][root][INFO] - Evaluating Model.
+[2026-02-03 22:51:47,968][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.091796875), 'accuracy_std': np.float32(0.012760581), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0005962294775547619, 'epoch_duration': 15.679121971130371}
+[2026-02-03 22:51:47,968][root][INFO] - ==================
+[2026-02-03 22:51:47,968][root][INFO] - Starting Epoch 89.
+[2026-02-03 22:52:03,665][root][INFO] - Evaluating Model.
+[2026-02-03 22:52:04,017][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.087890625), 'accuracy_std': np.float32(0.012512951), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0004944333091776672, 'epoch_duration': 15.696964740753174}
+[2026-02-03 22:52:04,017][root][INFO] - ==================
+[2026-02-03 22:52:04,017][root][INFO] - Starting Epoch 90.
+[2026-02-03 22:52:19,674][root][INFO] - Evaluating Model.
+[2026-02-03 22:52:19,816][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.080078125), 'accuracy_std': np.float32(0.0119949225), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0004017107927805653, 'epoch_duration': 15.657575845718384}
+[2026-02-03 22:52:19,816][root][INFO] - ==================
+[2026-02-03 22:52:19,816][root][INFO] - Starting Epoch 91.
+[2026-02-03 22:52:35,399][root][INFO] - Evaluating Model.
+[2026-02-03 22:52:35,555][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.099609375), 'accuracy_std': np.float32(0.013235203), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0003182486591717237, 'epoch_duration': 15.582323789596558}
+[2026-02-03 22:52:35,555][root][INFO] - ==================
+[2026-02-03 22:52:35,555][root][INFO] - Starting Epoch 92.
+[2026-02-03 22:52:51,164][root][INFO] - Evaluating Model.
+[2026-02-03 22:52:51,324][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.083984375), 'accuracy_std': np.float32(0.01225789), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0002442149899808703, 'epoch_duration': 15.609251499176025}
+[2026-02-03 22:52:51,324][root][INFO] - ==================
+[2026-02-03 22:52:51,324][root][INFO] - Starting Epoch 93.
+[2026-02-03 22:53:06,932][root][INFO] - Evaluating Model.
+[2026-02-03 22:53:07,090][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.09375), 'accuracy_std': np.float32(0.012881744), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.0001797588791651607, 'epoch_duration': 15.608504295349121}
+[2026-02-03 22:53:07,090][root][INFO] - ==================
+[2026-02-03 22:53:07,090][root][INFO] - Starting Epoch 94.
+[2026-02-03 22:53:22,816][root][INFO] - Evaluating Model.
+[2026-02-03 22:53:22,971][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.083984375), 'accuracy_std': np.float32(0.01225789), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 0.00012501013275378816, 'epoch_duration': 15.726221799850464}
+[2026-02-03 22:53:22,973][root][INFO] - ==================
+[2026-02-03 22:53:22,973][root][INFO] - Starting Epoch 95.
+[2026-02-03 22:53:38,665][root][INFO] - Evaluating Model.
+[2026-02-03 22:53:38,828][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 8.007900743591894e-05, 'epoch_duration': 15.69202995300293}
+[2026-02-03 22:53:38,828][root][INFO] - ==================
+[2026-02-03 22:53:38,828][root][INFO] - Starting Epoch 96.
+[2026-02-03 22:53:54,907][root][INFO] - Evaluating Model.
+[2026-02-03 22:53:55,063][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.07421875), 'accuracy_std': np.float32(0.011584466), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 4.505598851839035e-05, 'epoch_duration': 16.07815456390381}
+[2026-02-03 22:53:55,063][root][INFO] - ==================
+[2026-02-03 22:53:55,063][root][INFO] - Starting Epoch 97.
+[2026-02-03 22:54:10,685][root][INFO] - Evaluating Model.
+[2026-02-03 22:54:10,847][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.08984375), 'accuracy_std': np.float32(0.012637667), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 2.0011607700347206e-05, 'epoch_duration': 15.62274980545044}
+[2026-02-03 22:54:10,847][root][INFO] - ==================
+[2026-02-03 22:54:10,847][root][INFO] - Starting Epoch 98.
+[2026-02-03 22:54:26,332][root][INFO] - Evaluating Model.
+[2026-02-03 22:54:26,490][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.083984375), 'accuracy_std': np.float32(0.01225789), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 4.9963010317845574e-06, 'epoch_duration': 15.48325228691101}
+[2026-02-03 22:54:26,492][root][INFO] - ==================
+[2026-02-03 22:54:26,492][root][INFO] - Starting Epoch 99.
+[2026-02-03 22:54:42,073][root][INFO] - Evaluating Model.
+[2026-02-03 22:54:42,219][root][INFO] - {'loss': nan, 'accuracy': np.float32(0.078125), 'accuracy_std': np.float32(0.01186031), 'confusion_matrix': <Figure size 3200x3200 with 1 Axes>, 'learning_rate': 4.030734205644824e-08, 'epoch_duration': 15.580657005310059}
+[2026-02-03 22:54:42,219][root][INFO] - Saving Model.
