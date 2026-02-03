@@ -174,6 +174,12 @@ class Trainer:
 
                 """Update weights and step schedulers."""
                 for optimizer in self.optimizers:
+                    self.scaler.unscale_(optimizer)
+
+                # Clip gradients to prevent exploding gradients
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+
+                for optimizer in self.optimizers:
                     self.scaler.step(optimizer)
 
                 self.scaler.update()
