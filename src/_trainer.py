@@ -1,4 +1,5 @@
 import torch
+import os
 from torch import nn, Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
@@ -44,6 +45,7 @@ class Trainer:
             verbose: bool = False,
             save_model: bool = False,
             load_model_path: str = None,
+            save_directory: str = None,
     ) -> None:
         """
         Initialize the trainer object.
@@ -69,7 +71,7 @@ class Trainer:
         self._num_batches = args.default.batches
         self._num_epochs = args.default.epochs
         self._batch_size = args.batch_size
-        self._save_directory = wandb.run.dir
+        self._save_directory = save_directory if save_directory else wandb.run.dir
         self._save_model = save_model
         
         self.history = {'loss': [], 'accuracy': []}
@@ -130,8 +132,8 @@ class Trainer:
             wandb.log(metrics.__dict__)
             
             # Update history and save plots
-            self.history['loss'].append(metrics.loss)
-            self.history['accuracy'].append(metrics.accuracy)
+            self.history['loss'].append(float(metrics.loss))
+            self.history['accuracy'].append(float(metrics.accuracy))
             self.save_plots(path=self._save_directory)
 
         """Sve the finished model."""
@@ -269,6 +271,7 @@ class Trainer:
         Save Loss and Accuracy plots to the output directory.
         :param path: Output directory path.
         """
+        self._output(f"Saving plots to {path}")
         epochs = range(1, len(self.history['loss']) + 1)
         
         # Plot Loss

@@ -1,6 +1,6 @@
-# TheEND 2D: Toric Code Neural Decoder
+# TheEND time: Circuit level noise Toric Code Neural Decoder
 
-This directory contains the implementation of the 2D Toric Code Equivariant Neural Decoder, supporting both Phenomenological and Circuit-Level Noise (via Stim).
+This directory contains the implementation of the 2D Toric Code Equivariant Neural Decoder, supporting both Phenomenological and Circuit-Level Noise (via Stim). Implemented based on oliverweissl/NeuralDecoderToric3D
 
 ## Essentials
 

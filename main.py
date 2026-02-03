@@ -91,6 +91,13 @@ def main(args) -> None:
     save_model = args.save_model if "save_model" in args else False
     load_model = args.load_model if "load_model" in args else None
 
+    # Get Hydra output directory
+    try:
+        output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    except (ValueError, IndexError):
+        # Fallback if not running with Hydra or if config not set
+        output_dir = os.getcwd()
+
     trainer = Trainer(
         model=decoder,
         loss_function=criterion,
@@ -98,7 +105,8 @@ def main(args) -> None:
         schedulers=schedulers,
         args=args,
         save_model=save_model,
-        load_model_path=load_model
+        load_model_path=load_model,
+        save_directory=output_dir
     )
     """Start training."""
     trainer.train(
