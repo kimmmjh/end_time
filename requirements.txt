@@ -1,0 +1,18 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+# Core
+torch
+numpy
+scipy
+scikit-learn
+
+# QEC & Simulation
+panqec
+stim
+ldpc
+
+# Configuration & Logging
+hydra-core
+wandb
+omegaconf
+tqdm
