@@ -26,8 +26,17 @@ class DynamicCELoss(nn.Module):
         :param target: The target tensor in the same form.
         """
         """Calculating weights and updating counters."""
-        self.logit_counter = self.logit_counter + target.sum(dim=0)
-        self.global_counter = self.global_counter + target.shape[0]
+        """Calculating weights and updating counters."""
+        with torch.no_grad():
+            if target.ndim == 1:
+                # Target is indices (B,)
+                counts = F.one_hot(target, num_classes=self.num_classes).sum(dim=0).float()
+            else:
+                # Target is one-hot (B, C) - this shouldn't happen with current config but good for safety
+                counts = target.sum(dim=0).float()
+                
+            self.logit_counter = self.logit_counter + counts
+            self.global_counter = self.global_counter + target.shape[0]
         weights = (self.global_counter / (self.logit_counter * self.num_classes))
 
         """Calculating loss."""
