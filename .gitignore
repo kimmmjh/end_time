@@ -1,0 +1,22 @@
+# MacOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Hydra outputs
+outputs/
+
+# Wandb
+wandb/
+
+# IDEs
+.idea/
+.vscode/
+
+# Environment
+.env
+venv/
+env/
