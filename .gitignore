@@ -17,3 +17,6 @@ wandb/
 .env
 venv/
 env/
+
+# Ignore model files
+outputs/**/*.pt
