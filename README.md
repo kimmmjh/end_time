@@ -28,5 +28,5 @@ python main.py net=ch64_64_64 default.circuit_noise=False default.L=17 default.p
 
 For resume learning:
 ``` bash
-+load_model=outputs/2026-02-03/12-30-00/model.pt
++load_model=outputs/"date&time"/model.pt
 ```
