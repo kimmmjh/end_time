@@ -1,10 +1,9 @@
---extra-index-url https://download.pytorch.org/whl/cu121
-
 # Core
 torch
 numpy
 scipy
 scikit-learn
+einops
 
 # QEC & Simulation
 panqec

@@ -41,6 +41,7 @@ class Trainer:
             args,
             verbose: bool = False,
             save_model: bool = False,
+            load_model_path: str = None,
     ) -> None:
         """
         Initialize the trainer object.
@@ -68,6 +69,10 @@ class Trainer:
         self._batch_size = args.batch_size
         self._save_directory = wandb.run.dir
         self._save_model = save_model
+        
+        self.start_epoch = 0
+        if load_model_path is not None:
+            self.load_model(load_model_path)
 
     def train(
             self, *,
@@ -95,7 +100,8 @@ class Trainer:
         )
 
         """Start Training."""
-        for epoch in range(self._num_epochs):
+        """Start Training."""
+        for epoch in range(self.start_epoch, self._num_epochs):
             self._output(f"{'=' * 18}")
             self._output(f"Starting Epoch {epoch}.")
             epoch_start = time.time()
@@ -123,7 +129,7 @@ class Trainer:
         """Sve the finished model."""
         if self._save_model:
             self._output("Saving Model.")
-            self.save_model(path=self._save_directory, model_name=wandb.run.name)
+            self.save_model(path=self._save_directory, model_name=wandb.run.name, epoch=self._num_epochs-1)
 
     def _process_batches(
             self,
@@ -175,11 +181,67 @@ class Trainer:
                     scheduler.step()
         return loss / batches, (y_pred, y)
 
-    def save_model(self, path: str = ".", model_name: str = "model") -> None:
+    def save_model(self, path: str = ".", model_name: str = "model", epoch: int = 0) -> None:
         """
-        Save the current model in the Trainer.
+        Save the current model and training state.
 
        :param path: The path to save it to.
        :param model_name: The name of the saved model.
+       :param epoch: The current epoch.
         """
-        torch.save(self.model, f"{path}/{model_name}.pt")
+        
+        # Helper to get state dicts
+        optim_states = [opt.state_dict() for opt in self.optimizers]
+        sched_states = [sch.state_dict() for sch in self.schedulers]
+        
+        # If model is DataParallel, access module
+        model_state = self.model.module.state_dict() if isinstance(self.model, nn.DataParallel) else self.model.state_dict()
+        
+        checkpoint = {
+            'epoch': epoch + 1,
+            'model_state_dict': model_state,
+            'optimizer_states': optim_states,
+            'scheduler_states': sched_states,
+        }
+        
+        torch.save(checkpoint, f"{path}/{model_name}.pt")
+
+    def load_model(self, path: str) -> None:
+        """
+        Load a checkpoint and restore training state.
+        :param path: Path to the .pt checkpoint file
+        """
+        self._output(f"Loading checkpoint from {path}")
+        
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        checkpoint = torch.load(path, map_location=device)
+        
+        # 1. Restore Model
+        # Handle case where checkpoint was DataParallel but current model isn't, or vice-versa
+        # For simplicity, assume matching architecture
+        try:
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+        except RuntimeError as e:
+            # Try to handle 'module.' prefix mismatch
+            state_dict = checkpoint['model_state_dict']
+            new_state_dict = {}
+            for k, v in state_dict.items():
+                name = k.replace("module.", "") if k.startswith("module.") else k 
+                new_state_dict[name] = v
+            self.model.load_state_dict(new_state_dict)
+            
+        # 2. Restore Optimizers
+        if 'optimizer_states' in checkpoint:
+            for opt, state in zip(self.optimizers, checkpoint['optimizer_states']):
+                opt.load_state_dict(state)
+                
+        # 3. Restore Schedulers
+        if 'scheduler_states' in checkpoint:
+            for sch, state in zip(self.schedulers, checkpoint['scheduler_states']):
+                sch.load_state_dict(state)
+                
+        # 4. Restore Epoch
+        if 'epoch' in checkpoint:
+            self.start_epoch = checkpoint['epoch']
+            self._output(f"Resuming from epoch {self.start_epoch}")
+

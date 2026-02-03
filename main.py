@@ -88,13 +88,17 @@ def main(args) -> None:
     """Setup Trainer and start training"""
     logging.info("Start Training")
 
+    save_model = args.save_model if "save_model" in args else False
+    load_model = args.load_model if "load_model" in args else None
+
     trainer = Trainer(
         model=decoder,
         loss_function=criterion,
         optimizers=optimizers,
         schedulers=schedulers,
         args=args,
-        save_model=args.save_model  # Define whether the model should be saved after training.
+        save_model=save_model,
+        load_model_path=load_model
     )
     """Start training."""
     trainer.train(

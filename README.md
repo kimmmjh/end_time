@@ -14,30 +14,19 @@ This directory contains the essential implementation of the 2D Toric Code Equiva
 ### 1. Circuit-Level Noise (Stim)
 Train the decoder on realistic circuit noise (Z-basis and X-basis):
 
-```bash
-python main.py --config-name 2d \
-    default.L=6 \
-    default.p=0.01 \
-    default.circuit_noise=True \
-    default.measurement_error_rate=0.01 \
-    ++net.channels=[64,64,64] \
-    ++net.depths=[2,2,2]
+``` bash
+python main.py net=ch64_64_64 default.circuit_noise=True default.L=7 default.p=0.01 default.measurement_error_rate=0.01 default.epochs=100 default.batches=128 +save_model=True
 ```
 
-### 2. Code Capacity Noise (Phenomenological)
+### 2. Code Level Noise (Phenomenological)
 Train on simple bit-flip/phase-flip noise:
+Probability of No Error (I): 1 - p, Probability of X,Y,Z: p / 3 each
 
-```bash
-python main.py --config-name 2d \
-    default.L=8 \
-    default.p=0.05
+``` bash
+python main.py net=ch64_64_64 default.circuit_noise=False default.L=17 default.p=0.10 default.epochs=100 default.batches=128 +save_model=True
 ```
 
-## Requirements
-*   `torch`
-*   `panqec`
-*   `stim`
-*   `hydra-core`
-*   `numpy`
-*   `scikit-learn`
-*   `wandb` (optional)
+For resume learning:
+``` bash
++load_model=outputs/2026-02-03/12-30-00/model.pt
+```
