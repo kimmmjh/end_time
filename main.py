@@ -84,7 +84,7 @@ def main(args) -> None:
             steps_per_epoch=args.default.batches
         ))
 
-    criterion = nn.CrossEntropyLoss() # DynamicCELoss(2**(2*code.k), device)
+    criterion = DynamicCELoss(2**(2*code.k), device) # nn.CrossEntropyLoss()
 
     """Setup Trainer and start training"""
     logging.info("Start Training")

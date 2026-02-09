@@ -105,7 +105,6 @@ class Trainer:
         )
 
         """Start Training."""
-        """Start Training."""
         for epoch in range(self.start_epoch, self._num_epochs):
             self._output(f"{'=' * 18}")
             self._output(f"Starting Epoch {epoch}.")
@@ -295,5 +294,3 @@ class Trainer:
         plt.grid(True)
         plt.savefig(f"{path}/accuracy_curve.png")
         plt.close()
-
-
