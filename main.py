@@ -38,7 +38,8 @@ def main(args) -> None:
 
     circuit_noise = getattr(args.default, "circuit_noise", False)
     measurement_error_rate = getattr(args.default, "measurement_error_rate", 0.0)
-    logging.info(f"Lattice size: {L}, Error rate: {p}, Circuit Noise: {circuit_noise}")
+    epochs = args.default.epochs
+    logging.info(f"Lattice size: {L}, Error rate: {p}, Circuit Noise: {circuit_noise}, Measurement Error: {measurement_error_rate}, Epochs: {epochs}")
 
     """Start Wandb experiment."""
     wandb.init(mode="disabled")
@@ -83,7 +84,7 @@ def main(args) -> None:
             steps_per_epoch=args.default.batches
         ))
 
-    criterion = DynamicCELoss(2**(2*code.k), device)
+    criterion = nn.CrossEntropyLoss() # DynamicCELoss(2**(2*code.k), device)
 
     """Setup Trainer and start training"""
     logging.info("Start Training")
