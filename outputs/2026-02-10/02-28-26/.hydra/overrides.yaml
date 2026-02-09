@@ -1,0 +1,8 @@
+- net=ch64_64_64
+- default.circuit_noise=True
+- default.L=7
+- default.p=0.004
+- default.measurement_error_rate=0.004
+- default.epochs=500
+- default.batches=128
+- +save_model=True

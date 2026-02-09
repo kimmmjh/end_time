@@ -14,8 +14,10 @@ class DynamicCELoss(nn.Module):
         :param device: The device to use the loss on.
         """
         super(DynamicCELoss, self).__init__()
-        self.logit_counter = torch.zeros(size=(tensor_size,), device=device) + 1e-6 # This counts the number of occurrences for certain logicals.
-        self.global_counter = torch.zeros(size=(tensor_size,), device=device)  # This counts the total number of samples viewed.
+        # Initialize with 1.0 (Laplace smoothing) to avoid division by zero
+        self.logit_counter = torch.ones(size=(tensor_size,), device=device) 
+        # Start global counter at tensor_size (as if we saw 1 of each class)
+        self.global_counter = torch.tensor(float(tensor_size), device=device) 
         self.num_classes = tensor_size
 
     def forward(self, output: Tensor, target: Tensor) -> Tensor:
@@ -25,7 +27,6 @@ class DynamicCELoss(nn.Module):
         :param output: The output tensor of the NN in form of (b, tensor_size).
         :param target: The target tensor in the same form.
         """
-        """Calculating weights and updating counters."""
         """Calculating weights and updating counters."""
         with torch.no_grad():
             if target.ndim == 1:
@@ -37,7 +38,12 @@ class DynamicCELoss(nn.Module):
                 
             self.logit_counter = self.logit_counter + counts
             self.global_counter = self.global_counter + target.shape[0]
+        
+        # Calculate inverse frequency weights
         weights = (self.global_counter / (self.logit_counter * self.num_classes))
+        
+        # Clamp weights to avoid explosion for extremely rare classes
+        weights = torch.clamp(weights, max=100.0)
 
         """Calculating loss."""
         loss = F.cross_entropy(output, target, weights)
