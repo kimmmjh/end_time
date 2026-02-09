@@ -30,3 +30,6 @@ For resume learning:
 ``` bash
 +load_model=outputs/"date&time"/model.pt
 ```
+
+
+python main.py net=ch64_64_64 default.circuit_noise=True default.L=7 default.p=0.004 default.measurement_error_rate=0.004 default.epochs=100 +save_model=True
