@@ -70,7 +70,7 @@ def main(args) -> None:
     optimizers.append(opt := torch.optim.AdamW(params=network.parameters(), lr=1e-3, weight_decay=1e-4))
     schedulers.append(torch.optim.lr_scheduler.OneCycleLR(
         optimizer=opt,
-        max_lr=0.01,
+        max_lr=0.001, # Reduced from 0.01 for stability (NaN fix)
         epochs=args.default.epochs,  # Define the amount of epochs to train (int).
         steps_per_epoch=args.default.batches  # Define the amount of batches per epoch (int).
     ))
@@ -79,7 +79,7 @@ def main(args) -> None:
         optimizers.append(ens_opt := torch.optim.AdamW(params=ensemble.parameters(), lr=1e-3, weight_decay=1e-4))
         schedulers.append(torch.optim.lr_scheduler.OneCycleLR(
             optimizer=ens_opt,
-            max_lr=0.01,
+            max_lr=0.001,
             epochs=args.default.epochs,
             steps_per_epoch=args.default.batches
         ))
