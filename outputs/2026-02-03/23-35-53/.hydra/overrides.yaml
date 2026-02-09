@@ -1,0 +1,7 @@
+- net=ch64_64_64
+- default.circuit_noise=False
+- default.L=17
+- default.p=0.10
+- default.epochs=100
+- default.batches=128
+- +save_model=True

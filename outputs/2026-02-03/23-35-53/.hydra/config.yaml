@@ -1,0 +1,30 @@
+default:
+  batches: 128
+  epochs: 100
+  test_size: 512
+  L: 17
+  p: 0.1
+  circuit_noise: false
+  measurement_error_rate: 0.0
+  network:
+    _target_: models.TransformedEND2D
+    ensemble: false
+  pooling:
+    _target_: models.pooling_layers.TranslationalEquivariantPooling2D
+  code:
+    _target_: panqec.codes.Toric2DCode
+  wandb_api: <insert API key>
+  project_name: <insert project name>
+  entity: <insert entity>
+net:
+  channels:
+  - 64
+  - 64
+  - 64
+  depths:
+  - 3
+  - 3
+  - 3
+description: 2D QEC - TheEND
+batch_size: 512
+save_model: true
