@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from ._auxiliary_functions import generate_syndrome, sample_errors, get_logical_errors
 from typing import Callable
 from scipy.sparse import csr_matrix, vstack
-from .stim_utils import generate_stim_circuit
+from .stim_utils import generate_stim_circuit, generate_phenomenological_circuit
 
 
 class DataGenerator:
@@ -35,7 +35,7 @@ class DataGenerator:
             one_hot: bool = False,
             verbose: bool = True,
             for_ldpc: bool = False,
-            circuit_noise: bool = False,
+            noise_model: str = "capacity",  # Replaced circuit_noise
             measurement_error_rate: float = 0.0,
     ) -> None:
         """
@@ -48,12 +48,13 @@ class DataGenerator:
         :param one_hot: If classes should be returned one-hot encoded (Only has affect when using categorical classification).
         :param verbose: If messages should be printed.
         :param for_ldpc: If used in ldpc library -> slightly different process.
+        :param noise_model: Noise model to use: "capacity", "phenomenological", or "circuit".
         """
         self._verbose_print: Callable[[str], None] = print if verbose else lambda x: None
         self._categorical_classification = categorical_classification
         self._one_hot = one_hot
         self._for_ldpc = for_ldpc
-        self._circuit_noise = circuit_noise
+        self.noise_model = noise_model
         self._measurement_error_rate = measurement_error_rate
 
         self.d = len(code.size)
@@ -81,12 +82,14 @@ class DataGenerator:
         self.stabilizers = code.stabilizer_matrix if for_ldpc else csr_matrix(matrix)
         self.n = code.n
         
-        if self._circuit_noise:
-            # Initialize Stim Circuits and Samplers for mixed training
-            self.circuit_z = generate_stim_circuit(code, rounds=self.L, p=self.error_rate, q=self._measurement_error_rate, basis="Z")
+        if self.noise_model in ["circuit", "phenomenological"]:
+            # Initialize Stim Circuits and Samplers
+            generator = generate_stim_circuit if self.noise_model == "circuit" else generate_phenomenological_circuit
+            
+            self.circuit_z = generator(code, rounds=self.L, p=self.error_rate, q=self._measurement_error_rate, basis="Z")
             self.sampler_z = self.circuit_z.compile_detector_sampler()
             
-            self.circuit_x = generate_stim_circuit(code, rounds=self.L, p=self.error_rate, q=self._measurement_error_rate, basis="X")
+            self.circuit_x = generator(code, rounds=self.L, p=self.error_rate, q=self._measurement_error_rate, basis="X")
             self.sampler_x = self.circuit_x.compile_detector_sampler()
 
     def _check_class(self, logical_error: NDArray) -> int:
@@ -108,7 +111,7 @@ class DataGenerator:
         :returns: The syndrome and logical error. If used for ldpc library additionally return errors.
         """
         self._verbose_print("\tGenerating Errors")
-        if self._circuit_noise:
+        if self.noise_model in ["circuit", "phenomenological"]:
             # Stim-based generation with mixed basis
             half = self.batch_size // 2
             other = self.batch_size - half

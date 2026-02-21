@@ -3,7 +3,7 @@ import os
 from torch import nn, Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
-import wandb
+
 from src.metrics import WandbMetrics
 from typing import Callable, Type
 from ._data_generator import DataGenerator
@@ -83,7 +83,7 @@ class Trainer:
             self, *,
             code: StabilizerCode,
             error_rate: float,
-            circuit_noise: bool = False,
+            noise_model: str = "capacity",
             measurement_error_rate: float = 0.0,
     ) -> None:
         """
@@ -100,7 +100,7 @@ class Trainer:
             verbose=False,
             error_rate=error_rate,
             batch_size=self._batch_size,
-            circuit_noise=circuit_noise,
+            noise_model=noise_model,
             measurement_error_rate=measurement_error_rate,
         )
 
@@ -128,7 +128,7 @@ class Trainer:
                 epoch_duration=epoch_time,
             )
             self._output(str(metrics.__dict__))
-            wandb.log(metrics.__dict__)
+            # wandb.log(metrics.__dict__)
             
             # Update history and save plots
             self.history['loss'].append(float(metrics.loss))
@@ -138,7 +138,7 @@ class Trainer:
         """Sve the finished model."""
         if self._save_model:
             self._output("Saving Model.")
-            self.save_model(path=self._save_directory, model_name=wandb.run.name, epoch=self._num_epochs-1)
+            self.save_model(path=self._save_directory, model_name="model", epoch=self._num_epochs-1)
 
     def _process_batches(
             self,

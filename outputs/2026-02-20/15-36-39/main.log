@@ -1,0 +1,12 @@
+[2026-02-20 15:36:39,336][root][INFO] - Lattice size: 5, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 2
+[2026-02-20 15:36:40,364][root][INFO] - Start Training
+[2026-02-20 15:36:41,676][root][INFO] - ==================
+[2026-02-20 15:36:41,676][root][INFO] - Starting Epoch 0.
+[2026-02-20 15:36:47,797][root][INFO] - Evaluating Model.
+[2026-02-20 15:36:48,102][root][INFO] - {'loss': 2.770623874664307, 'accuracy': np.float32(0.16796875), 'accuracy_std': np.float32(0.016521486), 'confusion_matrix': <Figure size 6400x6400 with 1 Axes>, 'learning_rate': 0.0007169430017913008, 'epoch_duration': 6.120985984802246}
+[2026-02-20 15:36:48,102][root][INFO] - Saving plots to /Users/justinkim/WORK/qiya/qec/END/TheEND_2D_time/outputs/2026-02-20/15-36-39
+[2026-02-20 15:36:48,176][root][INFO] - ==================
+[2026-02-20 15:36:48,176][root][INFO] - Starting Epoch 1.
+[2026-02-20 15:36:53,914][root][INFO] - Evaluating Model.
+[2026-02-20 15:36:54,081][root][INFO] - {'loss': 2.7022143363952638, 'accuracy': np.float32(0.17773438), 'accuracy_std': np.float32(0.016894946), 'confusion_matrix': <Figure size 6400x6400 with 1 Axes>, 'learning_rate': 1.2539993764912554e-05, 'epoch_duration': 5.737493276596069}
+[2026-02-20 15:36:54,081][root][INFO] - Saving plots to /Users/justinkim/WORK/qiya/qec/END/TheEND_2D_time/outputs/2026-02-20/15-36-39

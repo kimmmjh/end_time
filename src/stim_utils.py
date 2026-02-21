@@ -181,3 +181,173 @@ def generate_stim_circuit(code: StabilizerCode, rounds: int, p: float, q: float,
             c.append("OBSERVABLE_INCLUDE", targets, offset + i) 
                 
     return c
+
+
+def generate_phenomenological_circuit(code: StabilizerCode, rounds: int, p: float, q: float, basis: str = "Z") -> stim.Circuit:
+    """
+    Generates a Stim circuit for Phenomenological Noise (Noisy Measurements, No Circuit Gates).
+    Uses MPP (Measure Pauli Product) to measure stabilizers directly.
+    """
+    c = stim.Circuit()
+    
+    qubit_map = code.qubit_index
+    num_data = code.n
+    num_stab = len(code.stabilizer_index)
+    
+    # Precompute types
+    types = [""] * num_stab
+    for loc, s_idx in code.stabilizer_index.items():
+        types[s_idx] = code.stabilizer_type(loc)
+        
+    # Helper to get global indices
+    def data(q_idx): return q_idx # 0 to num_data-1
+
+    # 1. Initialize
+    if basis == "Z":
+        c.append("R", range(num_data)) # Z-basis initialization
+    else:
+        c.append("RX", range(num_data)) # X-basis initialization
+
+    # 2. Rounds
+    for round_i in range(rounds):
+        # A. Error on Data Qubits
+        if p > 0:
+            c.append("DEPOLARIZE1", range(num_data), p)
+            
+        # B. Measure Stabilizers (Perfectly via MPP, then add noise)
+        # Iterate over all stabilizers and add MPP instruction
+        # We can batch MPP instructions if they commute, but for now linear is fine for Stim
+        # Actually Stim MPP can take multiple targets.
+        
+        # In Phenomenological noise, we measure ALL stabilizers simultaneously (conceptually).
+        # We use MPP with X-error on the result.
+        
+        mpp_targets = []
+        for loc, s_idx in code.stabilizer_index.items():
+            op = code.get_stabilizer(loc)
+            # op is {q_loc: 'X' or 'Z'}
+            
+            # Construct MPP target for this stabilizer
+            # Format: stim.target_x(q) or stim.target_z(q) combined with combiners
+            # e.g. X1*X2 -> target_x(1), combin, target_x(2)
+            
+            # For each qubit in the stabilizer
+            q_locs = list(op.keys())
+            for k, q_loc in enumerate(q_locs):
+                pauli = op[q_loc]
+                q_idx = qubit_map[q_loc]
+                
+                if pauli == 'X':
+                    mpp_targets.append(stim.target_x(q_idx))
+                elif pauli == 'Z':
+                    mpp_targets.append(stim.target_z(q_idx))
+                elif pauli == 'Y':
+                     mpp_targets.append(stim.target_y(q_idx))
+                     
+                if k < len(q_locs) - 1:
+                    mpp_targets.append(stim.target_combiner())
+                    
+            # After defining the operator, we need to add the noise probability to the result?
+            # Stim's MPP doesn't support noise arg directly in Python API like simple gates?
+            # Wait, `c.append("MPP", targets, p)` works implies noise on the flipping the result?
+            # Documentation says: "The probability of flipping the measurement result."
+            # So we pass `q` (measurement error) here.
+            
+            # But we are adding multiple stabilizers to one MPP command?
+            # If we do `c.append("MPP", ...)` with multiple stabilizers, we need to separate them.
+            # But `MPP` is a single instruction for *one* product.
+            # No, MPP can do multiple products if separated by nothing?
+            # "MPP X0*X1 Z2*Z3" -> Two measurements.
+            # How to separate in API?
+            # "args: A list of targets. ... Combiners join targets..."
+            # Simpler: One MPP instruction per stabilizer? Or one giant MPP block?
+            # One Instruction with many targets is better for simulation speed?
+            # Let's do one instruction per stabilizer to be safe and clear, 
+            # OR typically we group them.
+            # Let's just loop and append specific MPP for each stabilizer.
+            pass
+
+        # To support "MPP ...", we construct a long list of targets.
+        # Targets for Stab 0, then Stab 1, etc.
+        # But wait, we need to index the measure results for Detectors.
+        # M[0], M[1]... corresponding to stabilizers 0..N.
+        # So order matters! code.stabilizer_index gives us the order.
+        
+        ordered_stabs = [None] * num_stab
+        for loc, s_idx in code.stabilizer_index.items():
+            ordered_stabs[s_idx] = code.get_stabilizer(loc)
+            
+        full_mpp_targets = []
+        for s_idx, op in enumerate(ordered_stabs):
+            q_locs = list(op.keys())
+            for k, q_loc in enumerate(q_locs):
+                pauli = op[q_loc]
+                q_idx = qubit_map[q_loc]
+                if pauli == 'X': full_mpp_targets.append(stim.target_x(q_idx))
+                elif pauli == 'Z': full_mpp_targets.append(stim.target_z(q_idx))
+                elif pauli == 'Y': full_mpp_targets.append(stim.target_y(q_idx))
+                
+                if k < len(q_locs) - 1:
+                    full_mpp_targets.append(stim.target_combiner())
+                    
+            # No, this merges ALL stabilizers into ONE giant operator if we don't separate?
+            # "Separate disjoint PMPs with no combiner." - Stim doc.
+            # So just appending targets consecutively defines multiple measurements.
+            # e.g. [X0, Comb, X1, Z2, Comb, Z3] -> Measures X0*X1 and Z2*Z3.
+            pass
+            
+        # Apply MPP with measurement noise q
+        c.append("MPP", full_mpp_targets, q)
+        
+        # 3. Detectors (Same logic as generate_stim_circuit)
+        # Using record lookback.
+        # We just performed `num_stab` measurements.
+        # Rec indices: -num_stab ... -1.
+        
+        if round_i > 0:
+            for i in range(num_stab):
+                current_rec = stim.target_rec(-num_stab + i)
+                prev_rec = stim.target_rec(-2*num_stab + i)
+                c.append("DETECTOR", [current_rec, prev_rec], [0.0]*3)
+        else:
+            for i in range(num_stab):
+                current_rec = stim.target_rec(-num_stab + i)
+                # First round detectors (comparing to deterministic start)
+                # If Z-basis start: Z-stabilizers (Vertex) are +1. X-stabilizers (Face) are random?
+                # Wait, if init |0>:
+                # Z-stabs (Z...Z) on |0...0> -> +1 (Eigenvalue +1, result False/0). Deterministic.
+                # X-stabs (X...X) on |0...0> -> Random +1/-1.
+                # So for Faces (X-type), the first measurement is uniform random. Detector is undefined/random.
+                # Usually we only declare detectors for deterministic ones OR start from round 1.
+                
+                # Copying logic from generate_stim_circuit:
+                # if types[i] == 'vertex': Detector(Rec)
+                # else: Detector(Rec, Rec) ?? -> Always 0.
+                
+                # Ideally, just match existing logic to stay consistent.
+                if types[i] == 'vertex':
+                    c.append("DETECTOR", [current_rec], [0.0]*3)
+                else:
+                    c.append("DETECTOR", [current_rec, current_rec], [0.0]*3) # Dummy detector
+
+
+    # 4. Observables
+    # Same as generate_stim_circuit
+    current_log_x = code.get_logicals_x()
+    for i, op in enumerate(current_log_x):
+        if basis == "X":
+            targets = []
+            for loc, pauli in op.items():
+                 targets.append(stim.target_x(qubit_map[loc]))
+            c.append("OBSERVABLE_INCLUDE", targets, i)
+
+    current_log_z = code.get_logicals_z()
+    offset = len(current_log_x)
+    for i, op in enumerate(current_log_z):
+        if basis == "Z":
+            targets = []
+            for loc, pauli in op.items():
+                targets.append(stim.target_z(qubit_map[loc]))
+            c.append("OBSERVABLE_INCLUDE", targets, offset + i)
+
+    return c

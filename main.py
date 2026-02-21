@@ -1,5 +1,5 @@
 import os
-import wandb
+
 import torch
 import logging
 import hydra
@@ -25,27 +25,19 @@ def main(args) -> None:
     :param args: The parsed hydra arguments.
     """
     """Init variables for later use."""
-    # val = args.default.wandb_api
-    # print(f"DEBUG: val='{val}'")
-    # if "insert" not in val:
-    #     os.environ["WANDB_API_KEY"] = val
-    # else:
-    #     os.environ["WANDB_MODE"] = "offline" 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     L: int = args.default.L  # parse lattice size (code is symmetric and as such follows L x L x ..).
     p: float = args.default.p  # parse the error rate [0,1).
 
+    noise_model = getattr(args.default, "noise_model", "capacity")
     circuit_noise = getattr(args.default, "circuit_noise", False)
+    if circuit_noise:
+        noise_model = "circuit"
+        
     measurement_error_rate = getattr(args.default, "measurement_error_rate", 0.0)
     epochs = args.default.epochs
-    logging.info(f"Lattice size: {L}, Error rate: {p}, Circuit Noise: {circuit_noise}, Measurement Error: {measurement_error_rate}, Epochs: {epochs}")
-
-    """Start Wandb experiment."""
-    wandb.init(mode="disabled")
-    # wandb.init(project=args.default.project_name, tags=[str(L), str(p)], entity=args.default.entity)
-    # wandb_args = omegaconf.OmegaConf.to_container(args, resolve=True, throw_on_missing=True)
-    # wandb.config.update(wandb_args)
+    logging.info(f"Lattice size: {L}, Error rate: {p}, Noise Model: {noise_model}, Measurement Error: {measurement_error_rate}, Epochs: {epochs}")
 
     """Initialize the stabilizer Code."""
     code: StabilizerCode = instantiate(args.default.code, L)  # Instantiate the error correcting code using panqec.
@@ -53,7 +45,7 @@ def main(args) -> None:
     """Make Decoder Model."""
     pooling: nn.Module = instantiate(args.default.pooling, L)  # Instantiate the pooling approach. Pooling layers can be found in 'models/pooling_layers'.
     
-    in_channels = 2 * L if circuit_noise else 2
+    in_channels = 2 * L if noise_model in ["circuit", "phenomenological"] else 2
     net_args = args.net if "net" in args and args.net is not None else {}
     network: nn.Module = instantiate(args.default.network, **net_args, lattice_size=L, in_channels=in_channels)  # Instantiate the network decoder. Decoders can be found in 'models'.
     ensemble = MViT(
@@ -113,7 +105,7 @@ def main(args) -> None:
     trainer.train(
         code=code,
         error_rate=p,
-        circuit_noise=circuit_noise,
+        noise_model=noise_model,
         measurement_error_rate=measurement_error_rate,
     )
 

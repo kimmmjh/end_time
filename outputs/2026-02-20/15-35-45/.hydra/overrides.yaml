@@ -1,0 +1,6 @@
+- default.L=5
+- default.p=0.01
+- default.measurement_error_rate=0.01
+- +default.noise_model=phenomenological
+- default.batches=10
+- default.epochs=2
