@@ -2,6 +2,7 @@ import os
 import torch
 import logging
 import argparse
+import datetime
 
 from torch import nn
 from models import Decoder
@@ -75,7 +76,8 @@ def main() -> None:
     """Setup Trainer and start training"""
     logging.info("Start Training")
 
-    output_dir = os.path.join(os.getcwd(), "outputs")
+    curr_time = datetime.datetime.now()
+    output_dir = os.path.join(os.getcwd(), "outputs", curr_time.strftime("%Y-%m-%d"), curr_time.strftime("%H-%M-%S"))
     os.makedirs(output_dir, exist_ok=True)
 
     # Convert args to an object similar to Hydras to pass minimally to Trainer without refactoring Trainer just yet

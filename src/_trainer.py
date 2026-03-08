@@ -132,7 +132,15 @@ class Trainer:
                 learning_rate=self.schedulers[0].optimizer.param_groups[0]["lr"],
                 epoch_duration=epoch_time,
             )
-            self._output(str(metrics.__dict__))
+            log_message = (
+                f"[Epoch {epoch}] "
+                f"Loss: {metrics.loss:.4f} | "
+                f"Accuracy: {metrics.accuracy:.4f} "
+                f"(±{metrics.accuracy_std:.4f}) | "
+                f"LR: {metrics.learning_rate:.6f} | "
+                f"Time: {metrics.epoch_duration:.2f}s"
+            )
+            self._output(log_message)
             # wandb.log(metrics.__dict__)
 
             # Update history and save plots

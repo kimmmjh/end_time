@@ -1,4 +1,0 @@
-[2026-02-23 10:27:43,898][root][INFO] - Lattice size: 5, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 100
-[2026-02-23 10:28:29,813][root][INFO] - Start Training
-[2026-02-23 10:28:31,138][root][INFO] - ==================
-[2026-02-23 10:28:31,138][root][INFO] - Starting Epoch 0.
