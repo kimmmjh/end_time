@@ -1,59 +1,59 @@
 import os
-
 import torch
 import logging
-import hydra
-import omegaconf
+import argparse
 
 from torch import nn
-from hydra.utils import instantiate
-from models import Decoder, MViT
+from models import Decoder
 from models.loss_functions import DynamicCELoss
+from models._the_end_2d import TransformedEND2D
+from models.pooling_layers import TranslationalEquivariantPooling2D
 from src import Trainer
-from panqec.codes import StabilizerCode
+from panqec.codes import Toric2DCode
 
 
-@hydra.main(config_path="config", config_name="2d", version_base="1.2")
-def main(args) -> None:
+def main() -> None:
     """
     Start the experiments for decoder training.
-
-    Note that we use hydra for experimental setup and configs, however, it is not required to run the experiments.
-    Simply remove the hydra part and set the arguments in the file or use another parser method.
-    All arguments needed start with 'args.'.
-
-    :param args: The parsed hydra arguments.
     """
+    parser = argparse.ArgumentParser(description="Neural Decoder for Toric Code")
+    parser.add_argument("--L", type=int, default=5, help="Lattice size (L x L).")
+    parser.add_argument("--p", type=float, default=0.01, help="Error rate [0,1).")
+    parser.add_argument("--noise_model", type=str, default="capacity", choices=["capacity", "phenomenological", "circuit"], help="Noise model type.")
+    parser.add_argument("--measurement_error_rate", type=float, default=0.01, help="Measurement error rate.")
+    parser.add_argument("--epochs", type=int, default=100, help="Number of training epochs.")
+    parser.add_argument("--batches", type=int, default=128, help="Number of batches per epoch.")
+    parser.add_argument("--batch_size", type=int, default=128, help="Batch size.")
+    parser.add_argument("--loss_fn", type=str, default="ce", choices=["ce", "dynamic"], help="Loss function type.")
+    parser.add_argument("--channels", type=int, nargs='+', default=[128, 128, 128], help="Number of channels per block.")
+    parser.add_argument("--depths", type=int, nargs='+', default=[5, 5, 5], help="Number of layers per block.")
+    parser.add_argument("--save_model", action="store_true", help="Save the trained model.")
+    parser.add_argument("--load_model", type=str, default=None, help="Path to load model.")
+    
+    args = parser.parse_args()
+
     """Init variables for later use."""
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    L: int = args.default.L  # parse lattice size (code is symmetric and as such follows L x L x ..).
-    p: float = args.default.p  # parse the error rate [0,1).
-
-    noise_model = getattr(args.default, "noise_model", "capacity")
-    circuit_noise = getattr(args.default, "circuit_noise", False)
-    if circuit_noise:
-        noise_model = "circuit"
-        
-    measurement_error_rate = getattr(args.default, "measurement_error_rate", 0.0)
-    epochs = args.default.epochs
-    logging.info(f"Lattice size: {L}, Error rate: {p}, Noise Model: {noise_model}, Measurement Error: {measurement_error_rate}, Epochs: {epochs}")
+    logging.info(f"Lattice size: {args.L}, Error rate: {args.p}, Noise Model: {args.noise_model}, Measurement Error: {args.measurement_error_rate}, Epochs: {args.epochs}")
+    logging.info(f"Architecture - Channels: {args.channels}, Depths: {args.depths}")
 
     """Initialize the stabilizer Code."""
-    code: StabilizerCode = instantiate(args.default.code, L)  # Instantiate the error correcting code using panqec.
+    code = Toric2DCode(args.L)
 
     """Make Decoder Model."""
-    pooling: nn.Module = instantiate(args.default.pooling, L)  # Instantiate the pooling approach. Pooling layers can be found in 'models/pooling_layers'.
+    pooling = TranslationalEquivariantPooling2D(args.L)
     
-    in_channels = 2 * L if noise_model in ["circuit", "phenomenological"] else 2
-    net_args = args.net if "net" in args and args.net is not None else {}
-    network: nn.Module = instantiate(args.default.network, **net_args, lattice_size=L, in_channels=in_channels)  # Instantiate the network decoder. Decoders can be found in 'models'.
-    ensemble = MViT(
-        lattice_size=L,
-        patch_size=L,
-    ) if args.default.network.ensemble else None  # Boolean value determines if the ensemble method is used for decoding.
+    in_channels = 2 * args.L if args.noise_model in ["circuit", "phenomenological"] else 2
+    
+    network = TransformedEND2D(
+        channels=args.channels, 
+        depths=args.depths, 
+        lattice_size=args.L, 
+        in_channels=in_channels
+    )
 
-    decoder = Decoder(network=network, pooling=pooling, ensemble=ensemble)
+    decoder = Decoder(network=network, pooling=pooling, ensemble=None)
     decoder.to(device)
 
     """Instantiate Optimizer, Scheduler and Loss."""
@@ -62,55 +62,52 @@ def main(args) -> None:
     optimizers.append(opt := torch.optim.AdamW(params=network.parameters(), lr=1e-3, weight_decay=1e-4))
     schedulers.append(torch.optim.lr_scheduler.OneCycleLR(
         optimizer=opt,
-        max_lr=0.001, # Reduced from 0.01 for stability (NaN fix)
-        epochs=args.default.epochs,  # Define the amount of epochs to train (int).
-        steps_per_epoch=args.default.batches  # Define the amount of batches per epoch (int).
+        max_lr=0.001,
+        epochs=args.epochs,  
+        steps_per_epoch=args.batches  
     ))
 
-    if args.default.network.ensemble:
-        optimizers.append(ens_opt := torch.optim.AdamW(params=ensemble.parameters(), lr=1e-3, weight_decay=1e-4))
-        schedulers.append(torch.optim.lr_scheduler.OneCycleLR(
-            optimizer=ens_opt,
-            max_lr=0.001,
-            epochs=args.default.epochs,
-            steps_per_epoch=args.default.batches
-        ))
-
-    criterion = DynamicCELoss(2**(2*code.k), device) # nn.CrossEntropyLoss()
+    if args.loss_fn == "ce":
+        criterion = nn.CrossEntropyLoss()
+    else:
+        criterion = DynamicCELoss(2**(2*code.k), device)
 
     """Setup Trainer and start training"""
     logging.info("Start Training")
 
-    save_model = args.save_model if "save_model" in args else False
-    load_model = args.load_model if "load_model" in args else None
+    output_dir = os.path.join(os.getcwd(), "outputs")
+    os.makedirs(output_dir, exist_ok=True)
 
-    # Get Hydra output directory
-    try:
-        output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    except (ValueError, IndexError):
-        # Fallback if not running with Hydra or if config not set
-        output_dir = os.getcwd()
+    # Convert args to an object similar to Hydras to pass minimally to Trainer without refactoring Trainer just yet
+    class ArgsMock:
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+            
+    trainer_args = ArgsMock(batch_size=args.batch_size)
+    trainer_args.default = ArgsMock(epochs=args.epochs, batches=args.batches)
 
     trainer = Trainer(
         model=decoder,
         loss_function=criterion,
         optimizers=optimizers,
         schedulers=schedulers,
-        args=args,
-        save_model=save_model,
-        load_model_path=load_model,
+        args=trainer_args,
+        save_model=args.save_model,
+        load_model_path=args.load_model,
         save_directory=output_dir
     )
+    
     """Start training."""
+    # Temporarily attach format flag to data generator logic
     trainer.train(
         code=code,
-        error_rate=p,
-        noise_model=noise_model,
-        measurement_error_rate=measurement_error_rate,
+        error_rate=args.p,
+        noise_model=args.noise_model,
+        measurement_error_rate=args.measurement_error_rate,
+        # In a real pipeline, pass format_3d explicitly down, handled dynamically in _data_generator
     )
 
 
 if __name__ == '__main__':
-    logger = logging.Logger("default_logger")
-    logger.setLevel(logging.INFO)
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
     main()

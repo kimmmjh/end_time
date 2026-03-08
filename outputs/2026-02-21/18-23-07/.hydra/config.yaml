@@ -1,6 +1,6 @@
 default:
-  batches: 10
-  epochs: 2
+  batches: 128
+  epochs: 100
   test_size: 512
   L: 5
   p: 0.01
@@ -17,5 +17,15 @@ default:
   project_name: <insert project name>
   entity: <insert entity>
   noise_model: phenomenological
+net:
+  channels:
+  - 64
+  - 64
+  - 64
+  depths:
+  - 3
+  - 3
+  - 3
 description: 2D QEC - TheEND
 batch_size: 512
+save_model: true

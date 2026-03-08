@@ -49,6 +49,7 @@ class DataGenerator:
         :param verbose: If messages should be printed.
         :param for_ldpc: If used in ldpc library -> slightly different process.
         :param noise_model: Noise model to use: "capacity", "phenomenological", or "circuit".
+        :param measurement_error_rate: The error rate of the measurement step.
         """
         self._verbose_print: Callable[[str], None] = print if verbose else lambda x: None
         self._categorical_classification = categorical_classification
@@ -110,6 +111,8 @@ class DataGenerator:
         :param device: The device that uses the data.
         :returns: The syndrome and logical error. If used for ldpc library additionally return errors.
         """
+
+        # MAKE THE RETURNING SHAPE TO (b, r=L, 2=X/Z, L, L)
         self._verbose_print("\tGenerating Errors")
         if self.noise_model in ["circuit", "phenomenological"]:
             # Stim-based generation with mixed basis
@@ -137,7 +140,7 @@ class DataGenerator:
             
             # Format syndromes
             detectors = detectors.astype(np.float32)
-            syndrome_matrices = detectors 
+            syndrome_matrices = detectors
             
             # Format logical errors
             logical_errors = observables.astype(np.uint8)

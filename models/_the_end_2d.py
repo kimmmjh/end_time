@@ -58,7 +58,7 @@ class TransformedEND2D(nn.Module):
     @torch.autocast(device_type="cuda")
     def forward(self, x: Tensor) -> Tensor:
         b, *_ = x.shape
-        x = x.reshape(b, -1, self.lattice_size, self.lattice_size)
+        x = x.reshape(b, -1, self.lattice_size, self.lattice_size)  # force the time information directly into channels dimension
 
         """The network body."""
         x = self.conv_in(x)

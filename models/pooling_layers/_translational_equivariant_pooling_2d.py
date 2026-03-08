@@ -68,12 +68,12 @@ class TranslationalEquivariantPooling2D(nn.Module):
         return x
 
     def forward(self, x: Tensor, syndrome: Tensor) -> Tensor:
-        if syndrome.shape[1] > 2 * self.l**2:
-             b = syndrome.shape[0]
+        if syndrome.shape[1] > 2 * self.l**2:           # if syndrome is not a single time step
+             b = syndrome.shape[0]                      
              num_stab = 2 * self.l**2
              t = syndrome.shape[1] // num_stab
              syndrome = syndrome.reshape(b, t, num_stab)
-             syndrome = torch.sum(syndrome, dim=1) % 2
+             syndrome = torch.sum(syndrome, dim=1) % 2  # sum over time to remove the syndrome difference cuz of measurement error
              
         for i in range(2):
             x = self.logic_action_average(x, syndrome, axis=i)
