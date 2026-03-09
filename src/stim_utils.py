@@ -165,23 +165,23 @@ def generate_stim_circuit(code: StabilizerCode, rounds: int, p: float, q: float,
     # If basis="Z": Track Logical Z (sensitive to X errors). Logical X is random.
     # If basis="X": Track Logical X (sensitive to Z errors). Logical Z is random.
     
-    # Logical Z operators
-    log_z = code.get_logicals_z()
-    for i, op in enumerate(log_z):
-        if basis == "Z":
-            targets = []
-            for loc, pauli in op.items():
-                targets.append(stim.target_z(qubit_map[loc]))
-            c.append("OBSERVABLE_INCLUDE", targets, i) # Index i
-            
     # Logical X operators
     log_x = code.get_logicals_x()
-    offset = len(log_z)
     for i, op in enumerate(log_x):
         if basis == "X":
             targets = []
             for loc, pauli in op.items():
                 targets.append(stim.target_x(qubit_map[loc]))
+            c.append("OBSERVABLE_INCLUDE", targets, i) # Index i
+        
+    # Logical Z operators
+    log_z = code.get_logicals_z()
+    offset = len(log_x)
+    for i, op in enumerate(log_z):
+        if basis == "Z":
+            targets = []
+            for loc, pauli in op.items():
+                targets.append(stim.target_z(qubit_map[loc]))
             c.append("OBSERVABLE_INCLUDE", targets, offset + i) 
                 
     return c
@@ -329,21 +329,21 @@ def generate_phenomenological_circuit(code: StabilizerCode, rounds: int, p: floa
 
     # 4. Observables
     # Same as generate_stim_circuit
-    current_log_z = code.get_logicals_z()
-    for i, op in enumerate(current_log_z):
-        if basis == "Z":
-            targets = []
-            for loc, pauli in op.items():
-                targets.append(stim.target_z(qubit_map[loc]))
-            c.append("OBSERVABLE_INCLUDE", targets, i)
-
     current_log_x = code.get_logicals_x()
-    offset = len(current_log_z)
     for i, op in enumerate(current_log_x):
         if basis == "X":
             targets = []
             for loc, pauli in op.items():
                  targets.append(stim.target_x(qubit_map[loc]))
+            c.append("OBSERVABLE_INCLUDE", targets, i)
+
+    current_log_z = code.get_logicals_z()
+    offset = len(current_log_x)
+    for i, op in enumerate(current_log_z):
+        if basis == "Z":
+            targets = []
+            for loc, pauli in op.items():
+                targets.append(stim.target_z(qubit_map[loc]))
             c.append("OBSERVABLE_INCLUDE", targets, offset + i)
 
     return c
