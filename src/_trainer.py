@@ -76,6 +76,8 @@ class Trainer:
             ],
             force=True
         )
+        import sys
+        logging.info(f"Executed Command: python {' '.join(sys.argv)}")
         self._output = logging.info if not verbose else print
         self.criterion = loss_function
         self.optimizers = optimizers
