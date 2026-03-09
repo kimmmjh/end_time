@@ -1,6 +1,6 @@
 import torch
 from torch import nn, Tensor
-from .auxiliary_components import circular_conv_2d, custom_init, AConvCircular2D
+from .auxiliary_components import circular_conv_2d, custom_init
 from .residual_blocks import WideResBlock
 
 
@@ -31,10 +31,8 @@ class TransformedEND2D(nn.Module):
         self.lattice_size = lattice_size
 
         """Initial convolution in the network."""
-        self.conv_in = AConvCircular2D(in_channels, channels[0], kernel_size, attention_channels=5, number_heads=5,
-                                       key_depths=5 * 5)
-        self.conv_out = AConvCircular2D(channels[-1], num_classes, kernel_size, attention_channels=5, number_heads=5,
-                                        key_depths=5 * 5, bias=True)
+        self.conv_in = circular_conv_2d(in_channels, channels[0], kernel_size)
+        self.conv_out = circular_conv_2d(channels[-1], num_classes, kernel_size, bias=True)
 
         """The wide-res blocks used in the network."""
         initial_block = self.make_block(channels[0], channels[0], kernel_size, depths[0])

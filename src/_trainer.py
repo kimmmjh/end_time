@@ -146,7 +146,8 @@ class Trainer:
             # Update history and save plots
             self.history["loss"].append(float(metrics.loss))
             self.history["accuracy"].append(float(metrics.accuracy))
-            self.save_plots(path=self._save_directory)
+            info_str = f"Noise: {noise_model} | p={error_rate} | q={measurement_error_rate} | LR={metrics.learning_rate:.2e}"
+            self.save_plots(path=self._save_directory, info_str=info_str)
 
         """Sve the finished model."""
         if self._save_model:
@@ -288,20 +289,23 @@ class Trainer:
         if "history" in checkpoint:
             self.history = checkpoint["history"]
 
-    def save_plots(self, path: str = ".") -> None:
+    def save_plots(self, path: str = ".", info_str: str = "") -> None:
         """
         Save Loss and Accuracy plots to the output directory.
         :param path: Output directory path.
+        :param info_str: Additional context for the plot titles.
         """
         self._output(f"Saving plots to {path}")
         epochs = range(1, len(self.history["loss"]) + 1)
+
+        title_suffix = f"\n({info_str})" if info_str else ""
 
         # Plot Loss
         plt.figure(figsize=(10, 5))
         plt.plot(epochs, self.history["loss"], label="Loss")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title("Training Loss")
+        plt.title(f"Training Loss{title_suffix}")
         plt.legend()
         plt.grid(True)
         plt.savefig(f"{path}/loss_curve.png")
@@ -312,7 +316,7 @@ class Trainer:
         plt.plot(epochs, self.history["accuracy"], label="Accuracy", color="orange")
         plt.xlabel("Epoch")
         plt.ylabel("Accuracy")
-        plt.title("Training Accuracy")
+        plt.title(f"Training Accuracy{title_suffix}")
         plt.legend()
         plt.grid(True)
         plt.savefig(f"{path}/accuracy_curve.png")

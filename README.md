@@ -13,7 +13,7 @@ This directory contains the implementation of the 2D Toric Code Equivariant Neur
 
 **1. Code Capacity Noise** (Perfect measurements, only data qubit errors)
 ```bash
-python main.py --noise_model=capacity --L=5 --p=0.01 --epochs=100 --save_model
+python main.py --noise_model=capacity --L=5 --p=0.1 --epochs=100 --save_model
 ```
 
 **2. Phenomenological Noise** (Noisy measurements, perfect instantaneous gates)
