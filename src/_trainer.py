@@ -61,7 +61,22 @@ class Trainer:
         """
         self.model = model
 
-        self._output = print if verbose else logging.info
+        # Setup logging to both console and file
+        self._save_directory = save_directory
+        if save_directory and not os.path.exists(save_directory):
+            os.makedirs(save_directory)
+            
+        log_file_path = os.path.join(save_directory if save_directory else ".", "training_log.txt")
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(message)s',
+            handlers=[
+                logging.FileHandler(log_file_path),
+                logging.StreamHandler()
+            ],
+            force=True
+        )
+        self._output = logging.info if not verbose else print
         self.criterion = loss_function
         self.optimizers = optimizers
         self.schedulers = schedulers
@@ -137,7 +152,6 @@ class Trainer:
                 f"Loss: {metrics.loss:.4f} | "
                 f"Accuracy: {metrics.accuracy:.4f} "
                 f"(±{metrics.accuracy_std:.4f}) | "
-                f"LR: {metrics.learning_rate:.6f} | "
                 f"Time: {metrics.epoch_duration:.2f}s"
             )
             self._output(log_message)
@@ -146,7 +160,7 @@ class Trainer:
             # Update history and save plots
             self.history["loss"].append(float(metrics.loss))
             self.history["accuracy"].append(float(metrics.accuracy))
-            info_str = f"Noise: {noise_model} | p={error_rate} | q={measurement_error_rate} | LR={metrics.learning_rate:.2e}"
+            info_str = f"Noise: {noise_model} | p={error_rate} | q={measurement_error_rate}"
             self.save_plots(path=self._save_directory, info_str=info_str)
 
         """Sve the finished model."""
