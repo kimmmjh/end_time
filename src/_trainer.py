@@ -99,6 +99,7 @@ class Trainer:
         self.start_epoch = 0
         if load_model_path is not None:
             self.load_model(load_model_path)
+            self._num_epochs = self.start_epoch + args.default.epochs
 
     def train(
         self,
@@ -281,8 +282,6 @@ class Trainer:
         checkpoint = torch.load(path, map_location=device)
 
         # 1. Restore Model
-        # Handle case where checkpoint was DataParallel but current model isn't, or vice-versa
-        # For simplicity, assume matching architecture
         try:
             self.model.load_state_dict(checkpoint["model_state_dict"])
         except RuntimeError as e:
@@ -294,24 +293,7 @@ class Trainer:
                 new_state_dict[name] = v
             self.model.load_state_dict(new_state_dict)
 
-        # 2. Restore Optimizers
-        if "optimizer_states" in checkpoint:
-            for opt, state in zip(self.optimizers, checkpoint["optimizer_states"]):
-                opt.load_state_dict(state)
-
-        # 3. Restore Schedulers
-        if "scheduler_states" in checkpoint:
-            for sch, state in zip(self.schedulers, checkpoint["scheduler_states"]):
-                sch.load_state_dict(state)
-
-        # 4. Restore Epoch
-        if "epoch" in checkpoint:
-            self.start_epoch = checkpoint["epoch"]
-            self._output(f"Resuming from epoch {self.start_epoch}")
-
-        # 5. Restore History
-        if "history" in checkpoint:
-            self.history = checkpoint["history"]
+        self._output(f"Successfully loaded model weights for fine-tuning/resuming.")
 
     def save_plots(self, path: str = ".", info_str: str = "") -> None:
         """

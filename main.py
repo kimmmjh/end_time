@@ -36,8 +36,6 @@ def main() -> None:
     """Init variables for later use."""
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    logging.info(f"Lattice size: {args.L}, Error rate: {args.p}, Noise Model: {args.noise_model}, Measurement Error: {args.measurement_error_rate}, Epochs: {args.epochs}")
-    logging.info(f"Architecture - Channels: {args.channels}, Depths: {args.depths}")
 
     """Initialize the stabilizer Code."""
     code = Toric2DCode(args.L)
@@ -98,6 +96,16 @@ def main() -> None:
         load_model_path=args.load_model,
         save_directory=output_dir
     )
+    
+    logging.info(f"Lattice size: {args.L}, Error rate: {args.p}, Noise Model: {args.noise_model}, Measurement Error: {args.measurement_error_rate}, Epochs: {args.epochs}")
+    logging.info(f"Architecture - Channels: {args.channels}, Depths: {args.depths}")
+    
+    # Check if network is using Attention
+    if hasattr(network, 'conv_in') and network.conv_in.__class__.__name__ == 'AConvCircular2D':
+        conv_in = network.conv_in
+        logging.info(f"Attention Mechanism: Enabled | Heads: {conv_in.number_heads} | Key Depths: {conv_in.key_depths} | Attn Channels: {conv_in.attention_channels}")
+    else:
+        logging.info("Attention Mechanism: Disabled (Pure CNN)")
     
     """Start training."""
     # Temporarily attach format flag to data generator logic
