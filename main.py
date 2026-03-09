@@ -30,6 +30,7 @@ def main() -> None:
     parser.add_argument("--depths", type=int, nargs='+', default=[3, 3, 3], help="Number of layers per block.")
     parser.add_argument("--save_model", action="store_true", help="Save the trained model.")
     parser.add_argument("--load_model", type=str, default=None, help="Path to load model.")
+    parser.add_argument("--lr", type=float, default=None, help="Learning rate (defaults: 1e-3 from scratch, 1e-4 fine-tuning).")
     
     args = parser.parse_args()
 
@@ -58,10 +59,12 @@ def main() -> None:
     """Instantiate Optimizer, Scheduler and Loss."""
     optimizers, schedulers = [], []
 
-    optimizers.append(opt := torch.optim.AdamW(params=network.parameters(), lr=1e-3, weight_decay=1e-4))
+    lr = args.lr if args.lr is not None else (1e-4 if args.load_model else 1e-3)
+
+    optimizers.append(opt := torch.optim.AdamW(params=network.parameters(), lr=lr, weight_decay=1e-4))
     schedulers.append(torch.optim.lr_scheduler.OneCycleLR(
         optimizer=opt,
-        max_lr=0.001,
+        max_lr=lr,
         epochs=args.epochs,  
         steps_per_epoch=args.batches  
     ))
