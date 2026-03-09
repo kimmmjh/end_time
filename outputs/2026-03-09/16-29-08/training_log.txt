@@ -1,0 +1,3 @@
+Executed Command: python main.py --noise_model=phenomenological --L=5 --epochs=100 --channels 64 64 64 --depths 3 3 3 --loss_fn=ce --p=0.01 --load_model=C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-03-09\16-13-54\model.pt
+Loading checkpoint from C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-03-09\16-13-54\model.pt
+Resuming from epoch 200
