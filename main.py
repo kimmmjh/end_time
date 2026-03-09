@@ -26,8 +26,8 @@ def main() -> None:
     parser.add_argument("--batches", type=int, default=128, help="Number of batches per epoch.")
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size.")
     parser.add_argument("--loss_fn", type=str, default="ce", choices=["ce", "dynamic"], help="Loss function type.")
-    parser.add_argument("--channels", type=int, nargs='+', default=[128, 128, 128], help="Number of channels per block.")
-    parser.add_argument("--depths", type=int, nargs='+', default=[5, 5, 5], help="Number of layers per block.")
+    parser.add_argument("--channels", type=int, nargs='+', default=[64, 64, 64], help="Number of channels per block.")
+    parser.add_argument("--depths", type=int, nargs='+', default=[3, 3, 3], help="Number of layers per block.")
     parser.add_argument("--save_model", action="store_true", help="Save the trained model.")
     parser.add_argument("--load_model", type=str, default=None, help="Path to load model.")
     
