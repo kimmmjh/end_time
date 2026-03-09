@@ -88,6 +88,10 @@ class Trainer:
         self._batch_size = args.batch_size
         self._save_directory = save_directory
         self._save_model = save_model
+        
+        # Save architecture info for plotting
+        self._channels = getattr(args, 'channels', [64, 64, 64])
+        self._depths = getattr(args, 'depths', [3, 3, 3])
 
         self.history = {"loss": [], "accuracy": []}
         self.start_epoch = 0
@@ -160,7 +164,12 @@ class Trainer:
             # Update history and save plots
             self.history["loss"].append(float(metrics.loss))
             self.history["accuracy"].append(float(metrics.accuracy))
-            info_str = f"Noise: {noise_model} | p={error_rate} | q={measurement_error_rate}"
+            
+            # Format info string for plots dynamically
+            q_str = f" | q={measurement_error_rate}" if noise_model != "capacity" else ""
+            arch_str = f"Ch:{self._channels} D:{self._depths}"
+            info_str = f"Noise: {noise_model} | p={error_rate}{q_str} | {arch_str}"
+            
             self.save_plots(path=self._save_directory, info_str=info_str)
 
         """Sve the finished model."""
