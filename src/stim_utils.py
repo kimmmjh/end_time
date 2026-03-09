@@ -147,12 +147,16 @@ def generate_stim_circuit(code: StabilizerCode, rounds: int, p: float, q: float,
         else:
             for i in range(num_stab):
                 current_rec = stim.target_rec(-num_stab + i)
-                if types[i] == 'vertex':
-                    c.append("DETECTOR", [current_rec], [0.0]*3)
-                else:
-                    c.append("DETECTOR", [current_rec, current_rec], [0.0]*3)
- 
-
+                if basis == "Z":
+                    if types[i] == 'vertex':
+                        c.append("DETECTOR", [current_rec], [0.0]*3)
+                    else:
+                        c.append("DETECTOR", [current_rec, current_rec], [0.0]*3)
+                else: # basis == "X"
+                    if types[i] == 'face':
+                        c.append("DETECTOR", [current_rec], [0.0]*3)
+                    else:
+                        c.append("DETECTOR", [current_rec, current_rec], [0.0]*3)
     # 5. Define Observables
     # We want to track Logical X and Logical Z errors.
     # panqec code.logicals_x is a list of operator dicts (one for each logical qubit).
@@ -312,24 +316,16 @@ def generate_phenomenological_circuit(code: StabilizerCode, rounds: int, p: floa
         else:
             for i in range(num_stab):
                 current_rec = stim.target_rec(-num_stab + i)
-                # First round detectors (comparing to deterministic start)
-                # If Z-basis start: Z-stabilizers (Vertex) are +1. X-stabilizers (Face) are random?
-                # Wait, if init |0>:
-                # Z-stabs (Z...Z) on |0...0> -> +1 (Eigenvalue +1, result False/0). Deterministic.
-                # X-stabs (X...X) on |0...0> -> Random +1/-1.
-                # So for Faces (X-type), the first measurement is uniform random. Detector is undefined/random.
-                # Usually we only declare detectors for deterministic ones OR start from round 1.
-                
-                # Copying logic from generate_stim_circuit:
-                # if types[i] == 'vertex': Detector(Rec)
-                # else: Detector(Rec, Rec) ?? -> Always 0.
-                
-                # Ideally, just match existing logic to stay consistent.
-                if types[i] == 'vertex':
-                    c.append("DETECTOR", [current_rec], [0.0]*3)
-                else:
-                    c.append("DETECTOR", [current_rec, current_rec], [0.0]*3) # Dummy detector
-
+                if basis == "Z":
+                    if types[i] == 'vertex':
+                        c.append("DETECTOR", [current_rec], [0.0]*3)
+                    else:
+                        c.append("DETECTOR", [current_rec, current_rec], [0.0]*3) # Dummy detector
+                else: # basis == "X"
+                    if types[i] == 'face':
+                        c.append("DETECTOR", [current_rec], [0.0]*3)
+                    else:
+                        c.append("DETECTOR", [current_rec, current_rec], [0.0]*3) # Dummy detector
 
     # 4. Observables
     # Same as generate_stim_circuit

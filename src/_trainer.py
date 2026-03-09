@@ -169,8 +169,7 @@ class Trainer:
             
             # Format info string for plots dynamically
             q_str = f" | q={measurement_error_rate}" if noise_model != "capacity" else ""
-            arch_str = f"Ch:{self._channels} D:{self._depths}"
-            info_str = f"Noise: {noise_model} | p={error_rate}{q_str} | {arch_str}"
+            info_str = f"Noise: {noise_model} | p={error_rate}{q_str}"
             
             self.save_plots(path=self._save_directory, info_str=info_str)
 
