@@ -1,0 +1,4 @@
+Executed Command: python main.py --noise_model=capacity --L=5 --epochs=1 --channels 64 64 64 --depths 3 3 3 --loss_fn=ce --p=0.01 --batches=1
+Lattice size: 5, Error rate: 0.01, Noise Model: capacity, Measurement Error: 0.01, Epochs: 1
+Architecture - Channels: [64, 64, 64], Depths: [3, 3, 3]
+Attention Mechanism: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5

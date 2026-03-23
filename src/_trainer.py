@@ -6,7 +6,7 @@ from torch.optim.lr_scheduler import LRScheduler
 
 from src.metrics import WandbMetrics
 from typing import Callable, Type
-from ._data_generator import DataGenerator, PhenomenologicalDataGenerator
+from ._data_generator import DataGenerator, PhenomenologicalDataGenerator, CapacityDataGenerator
 from panqec.codes import StabilizerCode
 import logging
 import time
@@ -120,13 +120,22 @@ class Trainer:
             True  # Enable cuda to find the best tuner for hardware.
         )
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        data_generator = PhenomenologicalDataGenerator(
-            code=code,
-            verbose=False,
-            error_rate=error_rate,
-            batch_size=self._batch_size,
-            measurement_error_rate=measurement_error_rate,
-        )
+        if noise_model == "capacity":
+            data_generator = CapacityDataGenerator(
+                code=code,
+                verbose=False,
+                error_rate=error_rate,
+                batch_size=self._batch_size,
+                measurement_error_rate=measurement_error_rate,
+            )
+        else:
+            data_generator = PhenomenologicalDataGenerator(
+                code=code,
+                verbose=False,
+                error_rate=error_rate,
+                batch_size=self._batch_size,
+                measurement_error_rate=measurement_error_rate,
+            )
 
         """Start Training."""
         for epoch in range(self.start_epoch, self._num_epochs):

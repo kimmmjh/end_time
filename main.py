@@ -31,7 +31,7 @@ def main() -> None:
         "--measurement_error_rate",
         type=float,
         default=0.01,
-        help="Measurement error rate.",
+        help="Measurement error rate [0,1).",
     )
     parser.add_argument(
         "--epochs", type=int, default=100, help="Number of training epochs."
@@ -135,7 +135,7 @@ def main() -> None:
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    trainer_args = ArgsMock(batch_size=args.batch_size)
+    trainer_args = ArgsMock(batch_size=args.batch_size, noise_model=args.noise_model)
     trainer_args.default = ArgsMock(epochs=args.epochs, batches=args.batches)
 
     trainer = Trainer(

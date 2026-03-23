@@ -163,29 +163,59 @@ class CapacityDataGenerator(DataGenerator):
         categorical_classification=True,
         one_hot=False,
         verbose=True,
-        for_ldpc=False,
         noise_model="capacity",
         measurement_error_rate=0,
     ):
         super().__init__(
-            code,
-            error_rate,
-            batch_size,
-            categorical_classification,
-            one_hot,
-            verbose,
-            for_ldpc,
-            noise_model,
-            measurement_error_rate,
+            code=code,
+            error_rate=error_rate,
+            batch_size=batch_size,
+            categorical_classification=categorical_classification,
+            one_hot=one_hot,
+            verbose=verbose,
+            measurement_error_rate=measurement_error_rate,
         )
 
-    def _generate_sample(self, use_qmc: bool) -> tuple[NDArray, NDArray, csr_matrix]:
-        errors = sample_errors(self.error_rate, self.n, use_qmc, self.batch_size)
+    def _initialize_circuit(self) -> None:
+        return None
+
+    def _generate_sample(self, use_qmc: bool):
+        num_qubits = self.n
+        repetitions = 1  # Capacity noise has 0 time steps (just 1 perfectly measured final frame)
+        p = self.error_rate
+        H = self.stabilizers
+        num_stabilisers = H.shape[0]
+
+        # Vectorized batch generation (much faster than a for-loop!)
+        errors = np.random.choice(
+            ["I", "X", "Y", "Z"],
+            size=(self.batch_size, repetitions, num_qubits),
+            p=[1 - p, p / 3, p / 3, p / 3],
+        )
+        
+        errors_x = np.isin(errors, ["X", "Y"]).astype(np.uint8)
+        errors_z = np.isin(errors, ["Z", "Y"]).astype(np.uint8)
+
+        # Concatenate X and Z error profiles for the H matrix interaction
+        noise_new = np.concatenate((errors_x, errors_z), axis=2)  # Shape: (b, 1, 2*num_qubits)
+        noise_total = noise_new[:, 0, :]  # Shape: (b, 2*num_qubits)
+        
         self._verbose_print("\tConstructing Syndrome Matrices")
-        syndrome_matrices = generate_syndrome(self.stabilizers, errors)
+        # Direct parity check matrix calculation: H * Error = Syndrome
+        syndrome = (noise_total @ H.T) % 2 
+        
         self._verbose_print("\tMeasuring Logicals")
-        logical_errors = get_logical_errors(self.logicals, errors)
-        return syndrome_matrices, logical_errors, errors
+        # Direct logical operator matrix calculation
+        logical_errors = (noise_total @ self.logicals.T) % 2 
+        
+        # Reshape to the same 4D format as the Phenomenological generator
+        syndrome_matrices = syndrome.reshape(
+            self.batch_size, repetitions, 2, num_stabilisers // 2
+        ).transpose(
+            0, 2, 1, 3
+        )  # Final Shape: (b, 2=X/Z, r=1, num_stabilisers//2)
+
+        return np.array(syndrome_matrices), np.array(logical_errors), None
 
 
 class PhenomenologicalDataGenerator(DataGenerator):
@@ -214,7 +244,7 @@ class PhenomenologicalDataGenerator(DataGenerator):
         )
 
     def _initialize_circuit(self) -> None:
-        return None
+        return None # Don't use stim
 
     def _generate_sample(self, use_qmc):
         num_qubits = self.n
