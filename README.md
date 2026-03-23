@@ -26,9 +26,5 @@ python main.py --noise_model=phenomenological --L=5 --p=0.01 --measurement_error
 python main.py --noise_model=circuit --L=5 --p=0.004 --measurement_error_rate=0.004 --epochs=100 --save_model
 ```
 
-### Advanced Architecture Configuration
-You can also boost the intelligence of the network by widening the convolution channels or deepening the ResNet blocks:
-```bash
-# Deep and Wide network for hard phenomenological problems
-python main.py --noise_model=phenomenological --channels 128 128 128 --depths 5 5 5 --epochs=300
-```
+### Load Model
+python main.py --noise_model=phenomenological --L=5 --epochs=100 --channels 64 64 64 --depths 3 3 3 --loss_fn=ce --p=0.01 --load_model=outputs/"output_path"/model.pt
