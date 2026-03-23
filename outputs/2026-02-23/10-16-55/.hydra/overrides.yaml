@@ -1,8 +1,0 @@
-- net=ch64_64_64
-- +default.noise_model=phenomenological
-- default.L=5
-- default.p=0.01
-- default.measurement_error_rate=0.01
-- default.epochs=100
-- +default.loss_fn=ce
-- +save_model=True

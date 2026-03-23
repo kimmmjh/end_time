@@ -1,0 +1,6 @@
+Executed Command: python /Users/justinkim/WORK/qiya/qec/END/TheEND_2D_time/main.py
+Lattice size: 5, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 100
+Architecture - Channels: [64, 64, 64], Depths: [3, 3, 3]
+Attention Mechanism: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5
+==================
+Starting Epoch 0.

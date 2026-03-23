@@ -6,7 +6,7 @@ from torch.optim.lr_scheduler import LRScheduler
 
 from src.metrics import WandbMetrics
 from typing import Callable, Type
-from ._data_generator import DataGenerator
+from ._data_generator import DataGenerator, PhenomenologicalDataGenerator
 from panqec.codes import StabilizerCode
 import logging
 import time
@@ -65,18 +65,18 @@ class Trainer:
         self._save_directory = save_directory
         if save_directory and not os.path.exists(save_directory):
             os.makedirs(save_directory)
-            
-        log_file_path = os.path.join(save_directory if save_directory else ".", "training_log.txt")
+
+        log_file_path = os.path.join(
+            save_directory if save_directory else ".", "training_log.txt"
+        )
         logging.basicConfig(
             level=logging.INFO,
-            format='%(message)s',
-            handlers=[
-                logging.FileHandler(log_file_path),
-                logging.StreamHandler()
-            ],
-            force=True
+            format="%(message)s",
+            handlers=[logging.FileHandler(log_file_path), logging.StreamHandler()],
+            force=True,
         )
         import sys
+
         logging.info(f"Executed Command: python {' '.join(sys.argv)}")
         self._output = logging.info if not verbose else print
         self.criterion = loss_function
@@ -90,10 +90,10 @@ class Trainer:
         self._batch_size = args.batch_size
         self._save_directory = save_directory
         self._save_model = save_model
-        
+
         # Save architecture info for plotting
-        self._channels = getattr(args, 'channels', [64, 64, 64])
-        self._depths = getattr(args, 'depths', [3, 3, 3])
+        self._channels = getattr(args, "channels", [64, 64, 64])
+        self._depths = getattr(args, "depths", [3, 3, 3])
 
         self.history = {"loss": [], "accuracy": []}
         self.start_epoch = 0
@@ -120,12 +120,11 @@ class Trainer:
             True  # Enable cuda to find the best tuner for hardware.
         )
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        data_generator = DataGenerator(
+        data_generator = PhenomenologicalDataGenerator(
             code=code,
             verbose=False,
             error_rate=error_rate,
             batch_size=self._batch_size,
-            noise_model=noise_model,
             measurement_error_rate=measurement_error_rate,
         )
 
@@ -167,11 +166,13 @@ class Trainer:
             # Update history and save plots
             self.history["loss"].append(float(metrics.loss))
             self.history["accuracy"].append(float(metrics.accuracy))
-            
+
             # Format info string for plots dynamically
-            q_str = f" | q={measurement_error_rate}" if noise_model != "capacity" else ""
+            q_str = (
+                f" | q={measurement_error_rate}" if noise_model != "capacity" else ""
+            )
             info_str = f"Noise: {noise_model} | p={error_rate}{q_str}"
-            
+
             self.save_plots(path=self._save_directory, info_str=info_str)
 
         """Sve the finished model."""

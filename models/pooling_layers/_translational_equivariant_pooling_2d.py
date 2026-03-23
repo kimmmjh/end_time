@@ -68,13 +68,15 @@ class TranslationalEquivariantPooling2D(nn.Module):
         return x
 
     def forward(self, x: Tensor, syndrome: Tensor) -> Tensor:
-        if syndrome.shape[1] > 2 * self.l**2:           # if syndrome is not a single time step
+        # Collapse time dimension if data is 4D Phenomenological noise (b, 2, repetitions, L^2)
+        if syndrome.dim() == 4:
+             syndrome = torch.sum(syndrome, dim=2) % 2  # -> (b, 2, L^2)
+        elif syndrome.shape[1] > 2 * self.l**2:         # Fallback for flat time series
              b = syndrome.shape[0]                      
              num_stab = 2 * self.l**2
              t = syndrome.shape[1] // num_stab
              syndrome = syndrome.reshape(b, t, num_stab)
-             syndrome = torch.sum(syndrome, dim=1) % 2  # sum over time to remove the syndrome difference cuz of measurement error
-             
+             syndrome = torch.sum(syndrome, dim=1) % 2
         for i in range(2):
             x = self.logic_action_average(x, syndrome, axis=i)
             x = x.transpose(1, 2)
