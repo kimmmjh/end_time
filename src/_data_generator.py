@@ -5,10 +5,8 @@ from torch import Tensor
 from panqec.codes import StabilizerCode
 import numpy as np
 from numpy.typing import NDArray
-from ._auxiliary_functions import generate_syndrome, sample_errors, get_logical_errors
 from typing import Callable
 from scipy.sparse import csr_matrix, vstack
-from .stim_utils import generate_stim_circuit, generate_phenomenological_circuit
 
 
 class DataGenerator:
@@ -88,12 +86,6 @@ class DataGenerator:
         self.stabilizers = csr_matrix(matrix)
         self.n = code.n
 
-        self._initialize_circuit()
-
-    def _initialize_circuit(self) -> None:
-        raise NotImplementedError("This method should be implemented by subclasses.")
-        pass
-
     def _check_class(self, logical_error: NDArray) -> int:
         """
         Get the class corresponding to a logical error.
@@ -104,29 +96,27 @@ class DataGenerator:
         power = 2 ** (np.array(range(self.d * 2))[::-1])
         return np.inner(logical_error, power)
 
-    def _generate_sample(self, use_qmc: bool) -> tuple[NDArray, NDArray, csr_matrix]:
+    def _generate_sample(self) -> tuple[NDArray, NDArray, csr_matrix]:
         """
         Generate a sample of the dataset.
 
-        :param use_qmc: Whether quasi-monte carlo sampling is used.
         :returns: The syndrome and logical error. If used for ldpc library additionally return errors.
         """
         raise NotImplementedError("This method should be implemented by subclasses.")
 
     def generate_batch(
-        self, use_qmc: bool, device: torch.device
-    ) -> tuple[Tensor, Tensor, csr_matrix] | tuple[Tensor, Tensor]:
+        self, device: torch.device
+    ) -> tuple[Tensor, Tensor]:
         """
         Generate the dataset.
 
-        :param use_qmc: Whether quasi-monte carlo sampling is used.
         :param device: The device that uses the data.
-        :returns: The syndrome and logical error. If used for ldpc library additionally return errors.
+        :returns: The syndrome and logical error.
         """
 
         # MAKE THE RETURNING SHAPE TO (b, 2=X/Z, r=L, L, L)
         self._verbose_print("\tGenerating Errors")
-        syndrome_matrices, logical_errors, errors = self._generate_sample(use_qmc)
+        syndrome_matrices, logical_errors, errors = self._generate_sample()
 
         """ Transform to indices if we use categorical classification."""
         if self._categorical_classification:
@@ -176,10 +166,7 @@ class CapacityDataGenerator(DataGenerator):
             measurement_error_rate=measurement_error_rate,
         )
 
-    def _initialize_circuit(self) -> None:
-        return None
-
-    def _generate_sample(self, use_qmc: bool):
+    def _generate_sample(self):
         num_qubits = self.n
         repetitions = 1  # Capacity noise has 0 time steps (just 1 perfectly measured final frame)
         p = self.error_rate
@@ -243,10 +230,7 @@ class PhenomenologicalDataGenerator(DataGenerator):
             measurement_error_rate=measurement_error_rate,
         )
 
-    def _initialize_circuit(self) -> None:
-        return None # Don't use stim
-
-    def _generate_sample(self, use_qmc):
+    def _generate_sample(self):
         num_qubits = self.n
         repetitions = self.L
         p = self.error_rate

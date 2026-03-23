@@ -217,7 +217,7 @@ class Trainer:
             iterator = tqdm(iterator, desc="Training")
 
         for _ in iterator:
-            X, y = data_generator.generate_batch(use_qmc=train, device=device)
+            X, y = data_generator.generate_batch(device=device)
             """Zero out the gradient for all optimizers."""
             for optimizer in self.optimizers:
                 optimizer.zero_grad()
