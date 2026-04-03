@@ -4,6 +4,8 @@ from ._se_layer import SELayer
 from ._custom_init import custom_init
 from ._attended_circular_conv_2d import AConvCircular2D
 from ._gradient_input_layer import GradientInputLayer
+from ._circular_convolution_3d import circular_conv_3d
+from ._attended_circular_conv_3d import AConvCircular3D
 
 __all__ = ["SELayer", "custom_init", "circular_conv_2d", "GradientInputLayer",
-           "AConvCircular2D"]
+           "AConvCircular2D", "circular_conv_3d", "AConvCircular3D"]

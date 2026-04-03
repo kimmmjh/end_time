@@ -3,17 +3,7 @@
 
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-
-# Wandb
-wandb/
 
 # IDEs
 .idea/
 .vscode/
-
-# Environment
-.env
-venv/
-env/

@@ -104,9 +104,7 @@ class DataGenerator:
         """
         raise NotImplementedError("This method should be implemented by subclasses.")
 
-    def generate_batch(
-        self, device: torch.device
-    ) -> tuple[Tensor, Tensor]:
+    def generate_batch(self, device: torch.device) -> tuple[Tensor, Tensor]:
         """
         Generate the dataset.
 
@@ -168,7 +166,9 @@ class CapacityDataGenerator(DataGenerator):
 
     def _generate_sample(self):
         num_qubits = self.n
-        repetitions = 1  # Capacity noise has 0 time steps (just 1 perfectly measured final frame)
+        repetitions = (
+            1  # Capacity noise has 0 time steps (just 1 perfectly measured final frame)
+        )
         p = self.error_rate
         H = self.stabilizers
         num_stabilisers = H.shape[0]
@@ -179,22 +179,24 @@ class CapacityDataGenerator(DataGenerator):
             size=(self.batch_size, repetitions, num_qubits),
             p=[1 - p, p / 3, p / 3, p / 3],
         )
-        
+
         errors_x = np.isin(errors, ["X", "Y"]).astype(np.uint8)
         errors_z = np.isin(errors, ["Z", "Y"]).astype(np.uint8)
 
         # Concatenate X and Z error profiles for the H matrix interaction
-        noise_new = np.concatenate((errors_x, errors_z), axis=2)  # Shape: (b, 1, 2*num_qubits)
+        noise_new = np.concatenate(
+            (errors_x, errors_z), axis=2
+        )  # Shape: (b, 1, 2*num_qubits)
         noise_total = noise_new[:, 0, :]  # Shape: (b, 2*num_qubits)
-        
+
         self._verbose_print("\tConstructing Syndrome Matrices")
         # Direct parity check matrix calculation: H * Error = Syndrome
-        syndrome = (noise_total @ H.T) % 2 
-        
+        syndrome = (noise_total @ H.T) % 2
+
         self._verbose_print("\tMeasuring Logicals")
         # Direct logical operator matrix calculation
-        logical_errors = (noise_total @ self.logicals.T) % 2 
-        
+        logical_errors = (noise_total @ self.logicals.T) % 2
+
         # Reshape to the same 4D format as the Phenomenological generator
         syndrome_matrices = syndrome.reshape(
             self.batch_size, repetitions, 2, num_stabilisers // 2

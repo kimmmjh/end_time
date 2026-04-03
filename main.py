@@ -7,7 +7,7 @@ import datetime
 from torch import nn
 from models import Decoder
 from models.loss_functions import DynamicCELoss
-from models._the_end_2d import TransformedEND2D
+from models._the_end_3d import TransformedEND3D
 from models.pooling_layers import TranslationalEquivariantPooling2D
 from src import Trainer
 from panqec.codes import Toric2DCode
@@ -85,11 +85,10 @@ def main() -> None:
     """Make Decoder Model."""
     pooling = TranslationalEquivariantPooling2D(args.L)
 
-    in_channels = (
-        2 * args.L if args.noise_model in ["circuit", "phenomenological"] else 2
-    )
-
-    network = TransformedEND2D(
+    # Instantiate the 3D Neural Network
+    # in_channels is always 2 (X and Z) because Time is treated as a spatial dimension
+    in_channels = 2
+    network = TransformedEND3D(
         channels=args.channels,
         depths=args.depths,
         lattice_size=args.L,
@@ -157,7 +156,7 @@ def main() -> None:
     # Check if network is using Attention
     if (
         hasattr(network, "conv_in")
-        and network.conv_in.__class__.__name__ == "AConvCircular2D"
+        and network.conv_in.__class__.__name__ == "AConvCircular3D"
     ):
         conv_in = network.conv_in
         logging.info(
