@@ -67,8 +67,8 @@ class TransformedEND3D(nn.Module):
         x = self.non_linear(x)
         x = self.conv_out(x)
 
-        """The networks head. Average out the Time dimension!"""
-        x = torch.mean(x, dim=2)  # (b, 16, t, L, L) -> (b, 16, L, L)
+        """The networks head. Extract the final Time slice!"""
+        x = x[:, :, -1, :, :]  # (b, 16, t, L, L) -> (b, 16, L, L)
 
         x = torch.roll(x, (-1, -1), (2, 3))
         x = torch.permute(x, dims=(0, 2, 3, 1))  # (b, 16, l, l) -> (b, l, l, 16)
