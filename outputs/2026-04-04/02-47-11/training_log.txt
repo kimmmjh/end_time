@@ -1,9 +1,0 @@
-Executed Command: python main.py --noise_model=phenomenological --L=5 --epochs=1 --channels 32 --depths 2 --loss_fn=ce --p=0.01 --batch_size 16 --batches 1
-Lattice size: 5, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 1
-Architecture - Channels: [32], Depths: [2]
-Attention Mechanism: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5
-==================
-Starting Epoch 0.
-Evaluating Model.
-[Epoch 0] Loss: 3.1335 | Accuracy: 0.0625 (±0.0605) | Time: 0.10s
-Saving plots to /Users/justinkim/WORK/qiya/qec/END/TheEND_2D_time/outputs/2026-04-04/02-47-11

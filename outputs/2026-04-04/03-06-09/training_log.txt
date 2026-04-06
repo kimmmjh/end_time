@@ -1,0 +1,1006 @@
+Executed Command: python main.py --noise_model=phenomenological --L=5 --p=0.01 --measurement_error_rate=0.01 --epochs=200 --loss_fn=ce --load_model outputs\2026-04-04\02-49-29\model.pt
+Loading checkpoint from outputs\2026-04-04\02-49-29\model.pt
+Successfully loaded model weights for fine-tuning/resuming.
+Lattice size: 5, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 200
+Architecture - Channels: [64, 64, 64], Depths: [3, 3, 3]
+Attention Mechanism: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5
+==================
+Starting Epoch 0.
+Evaluating Model.
+[Epoch 0] Loss: 0.4597 | Accuracy: 0.7969 (¡¾0.0356) | Time: 4.65s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 1.
+Evaluating Model.
+[Epoch 1] Loss: 0.4655 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.53s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 2.
+Evaluating Model.
+[Epoch 2] Loss: 0.4598 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.42s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 3.
+Evaluating Model.
+[Epoch 3] Loss: 0.4662 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.26s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 4.
+Evaluating Model.
+[Epoch 4] Loss: 0.4728 | Accuracy: 0.7891 (¡¾0.0361) | Time: 4.46s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 5.
+Evaluating Model.
+[Epoch 5] Loss: 0.4938 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.09s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 6.
+Evaluating Model.
+[Epoch 6] Loss: 0.4683 | Accuracy: 0.7812 (¡¾0.0365) | Time: 4.01s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 7.
+Evaluating Model.
+[Epoch 7] Loss: 0.4630 | Accuracy: 0.7891 (¡¾0.0361) | Time: 4.28s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 8.
+Evaluating Model.
+[Epoch 8] Loss: 0.4827 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.63s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 9.
+Evaluating Model.
+[Epoch 9] Loss: 0.4611 | Accuracy: 0.8750 (¡¾0.0292) | Time: 4.59s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 10.
+Evaluating Model.
+[Epoch 10] Loss: 0.4770 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.06s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 11.
+Evaluating Model.
+[Epoch 11] Loss: 0.4591 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.07s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 12.
+Evaluating Model.
+[Epoch 12] Loss: 0.4789 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.34s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 13.
+Evaluating Model.
+[Epoch 13] Loss: 0.4794 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.47s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 14.
+Evaluating Model.
+[Epoch 14] Loss: 0.4639 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.36s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 15.
+Evaluating Model.
+[Epoch 15] Loss: 0.4683 | Accuracy: 0.7734 (¡¾0.0370) | Time: 4.16s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 16.
+Evaluating Model.
+[Epoch 16] Loss: 0.4787 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.40s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 17.
+Evaluating Model.
+[Epoch 17] Loss: 0.4703 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.33s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 18.
+Evaluating Model.
+[Epoch 18] Loss: 0.4772 | Accuracy: 0.7500 (¡¾0.0383) | Time: 4.19s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 19.
+Evaluating Model.
+[Epoch 19] Loss: 0.4667 | Accuracy: 0.7969 (¡¾0.0356) | Time: 4.49s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 20.
+Evaluating Model.
+[Epoch 20] Loss: 0.4766 | Accuracy: 0.7812 (¡¾0.0365) | Time: 4.17s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 21.
+Evaluating Model.
+[Epoch 21] Loss: 0.4655 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.02s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 22.
+Evaluating Model.
+[Epoch 22] Loss: 0.4760 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.18s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 23.
+Evaluating Model.
+[Epoch 23] Loss: 0.4715 | Accuracy: 0.7969 (¡¾0.0356) | Time: 4.67s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 24.
+Evaluating Model.
+[Epoch 24] Loss: 0.4631 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.66s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 25.
+Evaluating Model.
+[Epoch 25] Loss: 0.4722 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.12s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 26.
+Evaluating Model.
+[Epoch 26] Loss: 0.4752 | Accuracy: 0.9062 (¡¾0.0258) | Time: 4.07s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 27.
+Evaluating Model.
+[Epoch 27] Loss: 0.4701 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.27s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 28.
+Evaluating Model.
+[Epoch 28] Loss: 0.4608 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.46s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 29.
+Evaluating Model.
+[Epoch 29] Loss: 0.4655 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.34s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 30.
+Evaluating Model.
+[Epoch 30] Loss: 0.4792 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.34s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 31.
+Evaluating Model.
+[Epoch 31] Loss: 0.4699 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.40s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 32.
+Evaluating Model.
+[Epoch 32] Loss: 0.4750 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.20s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 33.
+Evaluating Model.
+[Epoch 33] Loss: 0.4615 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.21s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 34.
+Evaluating Model.
+[Epoch 34] Loss: 0.4704 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.58s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 35.
+Evaluating Model.
+[Epoch 35] Loss: 0.4753 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.33s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 36.
+Evaluating Model.
+[Epoch 36] Loss: 0.4568 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.02s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 37.
+Evaluating Model.
+[Epoch 37] Loss: 0.4684 | Accuracy: 0.8750 (¡¾0.0292) | Time: 4.06s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 38.
+Evaluating Model.
+[Epoch 38] Loss: 0.4646 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.65s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 39.
+Evaluating Model.
+[Epoch 39] Loss: 0.4716 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.53s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 40.
+Evaluating Model.
+[Epoch 40] Loss: 0.4692 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.23s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 41.
+Evaluating Model.
+[Epoch 41] Loss: 0.4598 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.07s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 42.
+Evaluating Model.
+[Epoch 42] Loss: 0.4748 | Accuracy: 0.8750 (¡¾0.0292) | Time: 4.14s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 43.
+Evaluating Model.
+[Epoch 43] Loss: 0.4665 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.50s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 44.
+Evaluating Model.
+[Epoch 44] Loss: 0.4709 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.35s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 45.
+Evaluating Model.
+[Epoch 45] Loss: 0.4722 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.57s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 46.
+Evaluating Model.
+[Epoch 46] Loss: 0.4719 | Accuracy: 0.7812 (¡¾0.0365) | Time: 4.33s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 47.
+Evaluating Model.
+[Epoch 47] Loss: 0.4638 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.09s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 48.
+Evaluating Model.
+[Epoch 48] Loss: 0.4709 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.19s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 49.
+Evaluating Model.
+[Epoch 49] Loss: 0.4675 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.52s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 50.
+Evaluating Model.
+[Epoch 50] Loss: 0.4657 | Accuracy: 0.7891 (¡¾0.0361) | Time: 4.52s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 51.
+Evaluating Model.
+[Epoch 51] Loss: 0.4672 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.01s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 52.
+Evaluating Model.
+[Epoch 52] Loss: 0.4677 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.11s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 53.
+Evaluating Model.
+[Epoch 53] Loss: 0.4691 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.65s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 54.
+Evaluating Model.
+[Epoch 54] Loss: 0.4604 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.47s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 55.
+Evaluating Model.
+[Epoch 55] Loss: 0.4716 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.19s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 56.
+Evaluating Model.
+[Epoch 56] Loss: 0.4672 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.03s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 57.
+Evaluating Model.
+[Epoch 57] Loss: 0.4706 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.15s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 58.
+Evaluating Model.
+[Epoch 58] Loss: 0.4695 | Accuracy: 0.8750 (¡¾0.0292) | Time: 4.32s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 59.
+Evaluating Model.
+[Epoch 59] Loss: 0.4716 | Accuracy: 0.7969 (¡¾0.0356) | Time: 4.30s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 60.
+Evaluating Model.
+[Epoch 60] Loss: 0.4647 | Accuracy: 0.7656 (¡¾0.0374) | Time: 4.60s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 61.
+Evaluating Model.
+[Epoch 61] Loss: 0.4720 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.35s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 62.
+Evaluating Model.
+[Epoch 62] Loss: 0.4592 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.06s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 63.
+Evaluating Model.
+[Epoch 63] Loss: 0.4734 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.19s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 64.
+Evaluating Model.
+[Epoch 64] Loss: 0.4611 | Accuracy: 0.7500 (¡¾0.0383) | Time: 4.52s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 65.
+Evaluating Model.
+[Epoch 65] Loss: 0.4636 | Accuracy: 0.8750 (¡¾0.0292) | Time: 4.46s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 66.
+Evaluating Model.
+[Epoch 66] Loss: 0.4710 | Accuracy: 0.9219 (¡¾0.0237) | Time: 4.07s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 67.
+Evaluating Model.
+[Epoch 67] Loss: 0.4720 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.12s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 68.
+Evaluating Model.
+[Epoch 68] Loss: 0.4549 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.48s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 69.
+Evaluating Model.
+[Epoch 69] Loss: 0.4509 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.32s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 70.
+Evaluating Model.
+[Epoch 70] Loss: 0.4556 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.28s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 71.
+Evaluating Model.
+[Epoch 71] Loss: 0.4739 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.20s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 72.
+Evaluating Model.
+[Epoch 72] Loss: 0.4671 | Accuracy: 0.8750 (¡¾0.0292) | Time: 4.07s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 73.
+Evaluating Model.
+[Epoch 73] Loss: 0.4590 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.14s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 74.
+Evaluating Model.
+[Epoch 74] Loss: 0.4647 | Accuracy: 0.8984 (¡¾0.0267) | Time: 4.37s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 75.
+Evaluating Model.
+[Epoch 75] Loss: 0.4631 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.53s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 76.
+Evaluating Model.
+[Epoch 76] Loss: 0.4593 | Accuracy: 0.7734 (¡¾0.0370) | Time: 4.45s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 77.
+Evaluating Model.
+[Epoch 77] Loss: 0.4680 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.06s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 78.
+Evaluating Model.
+[Epoch 78] Loss: 0.4597 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.15s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 79.
+Evaluating Model.
+[Epoch 79] Loss: 0.4617 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.48s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 80.
+Evaluating Model.
+[Epoch 80] Loss: 0.4678 | Accuracy: 0.8906 (¡¾0.0276) | Time: 4.40s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 81.
+Evaluating Model.
+[Epoch 81] Loss: 0.4572 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.25s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 82.
+Evaluating Model.
+[Epoch 82] Loss: 0.4594 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.14s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 83.
+Evaluating Model.
+[Epoch 83] Loss: 0.4710 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.38s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 84.
+Evaluating Model.
+[Epoch 84] Loss: 0.4689 | Accuracy: 0.7969 (¡¾0.0356) | Time: 4.39s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 85.
+Evaluating Model.
+[Epoch 85] Loss: 0.4660 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.16s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 86.
+Evaluating Model.
+[Epoch 86] Loss: 0.4666 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.94s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 87.
+Evaluating Model.
+[Epoch 87] Loss: 0.4698 | Accuracy: 0.7734 (¡¾0.0370) | Time: 4.25s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 88.
+Evaluating Model.
+[Epoch 88] Loss: 0.4575 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.28s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 89.
+Evaluating Model.
+[Epoch 89] Loss: 0.4686 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.50s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 90.
+Evaluating Model.
+[Epoch 90] Loss: 0.4510 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.69s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 91.
+Evaluating Model.
+[Epoch 91] Loss: 0.4680 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.38s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 92.
+Evaluating Model.
+[Epoch 92] Loss: 0.4622 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.30s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 93.
+Evaluating Model.
+[Epoch 93] Loss: 0.4666 | Accuracy: 0.7656 (¡¾0.0374) | Time: 4.73s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 94.
+Evaluating Model.
+[Epoch 94] Loss: 0.4538 | Accuracy: 0.7812 (¡¾0.0365) | Time: 4.61s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 95.
+Evaluating Model.
+[Epoch 95] Loss: 0.4621 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.27s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 96.
+Evaluating Model.
+[Epoch 96] Loss: 0.4750 | Accuracy: 0.7734 (¡¾0.0370) | Time: 4.23s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 97.
+Evaluating Model.
+[Epoch 97] Loss: 0.4670 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.30s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 98.
+Evaluating Model.
+[Epoch 98] Loss: 0.4630 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.30s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 99.
+Evaluating Model.
+[Epoch 99] Loss: 0.4476 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.14s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 100.
+Evaluating Model.
+[Epoch 100] Loss: 0.4604 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.29s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 101.
+Evaluating Model.
+[Epoch 101] Loss: 0.4572 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.52s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 102.
+Evaluating Model.
+[Epoch 102] Loss: 0.4477 | Accuracy: 0.8516 (¡¾0.0314) | Time: 3.99s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 103.
+Evaluating Model.
+[Epoch 103] Loss: 0.4609 | Accuracy: 0.8828 (¡¾0.0284) | Time: 3.92s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 104.
+Evaluating Model.
+[Epoch 104] Loss: 0.4448 | Accuracy: 0.8906 (¡¾0.0276) | Time: 4.44s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 105.
+Evaluating Model.
+[Epoch 105] Loss: 0.4572 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.62s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 106.
+Evaluating Model.
+[Epoch 106] Loss: 0.4588 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.38s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 107.
+Evaluating Model.
+[Epoch 107] Loss: 0.4558 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.00s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 108.
+Evaluating Model.
+[Epoch 108] Loss: 0.4597 | Accuracy: 0.9141 (¡¾0.0248) | Time: 4.05s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 109.
+Evaluating Model.
+[Epoch 109] Loss: 0.4569 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.37s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 110.
+Evaluating Model.
+[Epoch 110] Loss: 0.4593 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.45s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 111.
+Evaluating Model.
+[Epoch 111] Loss: 0.4567 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.34s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 112.
+Evaluating Model.
+[Epoch 112] Loss: 0.4666 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.33s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 113.
+Evaluating Model.
+[Epoch 113] Loss: 0.4661 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.36s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 114.
+Evaluating Model.
+[Epoch 114] Loss: 0.4536 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.09s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 115.
+Evaluating Model.
+[Epoch 115] Loss: 0.4544 | Accuracy: 0.7656 (¡¾0.0374) | Time: 4.27s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 116.
+Evaluating Model.
+[Epoch 116] Loss: 0.4567 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.54s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 117.
+Evaluating Model.
+[Epoch 117] Loss: 0.4499 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.18s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 118.
+Evaluating Model.
+[Epoch 118] Loss: 0.4608 | Accuracy: 0.7891 (¡¾0.0361) | Time: 3.92s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 119.
+Evaluating Model.
+[Epoch 119] Loss: 0.4532 | Accuracy: 0.8906 (¡¾0.0276) | Time: 4.14s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 120.
+Evaluating Model.
+[Epoch 120] Loss: 0.4618 | Accuracy: 0.7500 (¡¾0.0383) | Time: 4.59s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 121.
+Evaluating Model.
+[Epoch 121] Loss: 0.4585 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.42s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 122.
+Evaluating Model.
+[Epoch 122] Loss: 0.4484 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.08s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 123.
+Evaluating Model.
+[Epoch 123] Loss: 0.4622 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.06s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 124.
+Evaluating Model.
+[Epoch 124] Loss: 0.4649 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.11s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 125.
+Evaluating Model.
+[Epoch 125] Loss: 0.4553 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.38s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 126.
+Evaluating Model.
+[Epoch 126] Loss: 0.4507 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.30s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 127.
+Evaluating Model.
+[Epoch 127] Loss: 0.4423 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.53s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 128.
+Evaluating Model.
+[Epoch 128] Loss: 0.4454 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.35s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 129.
+Evaluating Model.
+[Epoch 129] Loss: 0.4514 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.08s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 130.
+Evaluating Model.
+[Epoch 130] Loss: 0.4518 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.13s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 131.
+Evaluating Model.
+[Epoch 131] Loss: 0.4535 | Accuracy: 0.8906 (¡¾0.0276) | Time: 4.50s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 132.
+Evaluating Model.
+[Epoch 132] Loss: 0.4445 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.50s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 133.
+Evaluating Model.
+[Epoch 133] Loss: 0.4479 | Accuracy: 0.8516 (¡¾0.0314) | Time: 3.93s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 134.
+Evaluating Model.
+[Epoch 134] Loss: 0.4363 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.08s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 135.
+Evaluating Model.
+[Epoch 135] Loss: 0.4535 | Accuracy: 0.7969 (¡¾0.0356) | Time: 4.51s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 136.
+Evaluating Model.
+[Epoch 136] Loss: 0.4576 | Accuracy: 0.7812 (¡¾0.0365) | Time: 4.47s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 137.
+Evaluating Model.
+[Epoch 137] Loss: 0.4550 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.12s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 138.
+Evaluating Model.
+[Epoch 138] Loss: 0.4490 | Accuracy: 0.7422 (¡¾0.0387) | Time: 4.08s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 139.
+Evaluating Model.
+[Epoch 139] Loss: 0.4568 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.07s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 140.
+Evaluating Model.
+[Epoch 140] Loss: 0.4494 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.12s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 141.
+Evaluating Model.
+[Epoch 141] Loss: 0.4497 | Accuracy: 0.8125 (¡¾0.0345) | Time: 4.32s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 142.
+Evaluating Model.
+[Epoch 142] Loss: 0.4553 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.54s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 143.
+Evaluating Model.
+[Epoch 143] Loss: 0.4606 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.44s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 144.
+Evaluating Model.
+[Epoch 144] Loss: 0.4450 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.10s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 145.
+Evaluating Model.
+[Epoch 145] Loss: 0.4576 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.07s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 146.
+Evaluating Model.
+[Epoch 146] Loss: 0.4617 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.54s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 147.
+Evaluating Model.
+[Epoch 147] Loss: 0.4704 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.46s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 148.
+Evaluating Model.
+[Epoch 148] Loss: 0.4512 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.15s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 149.
+Evaluating Model.
+[Epoch 149] Loss: 0.4659 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.01s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 150.
+Evaluating Model.
+[Epoch 150] Loss: 0.4519 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.35s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 151.
+Evaluating Model.
+[Epoch 151] Loss: 0.4405 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.42s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 152.
+Evaluating Model.
+[Epoch 152] Loss: 0.4494 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.17s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 153.
+Evaluating Model.
+[Epoch 153] Loss: 0.4596 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.15s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 154.
+Evaluating Model.
+[Epoch 154] Loss: 0.4545 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.04s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 155.
+Evaluating Model.
+[Epoch 155] Loss: 0.4571 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.00s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 156.
+Evaluating Model.
+[Epoch 156] Loss: 0.4447 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.36s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 157.
+Evaluating Model.
+[Epoch 157] Loss: 0.4496 | Accuracy: 0.7891 (¡¾0.0361) | Time: 4.43s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 158.
+Evaluating Model.
+[Epoch 158] Loss: 0.4531 | Accuracy: 0.9219 (¡¾0.0237) | Time: 4.52s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 159.
+Evaluating Model.
+[Epoch 159] Loss: 0.4580 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.14s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 160.
+Evaluating Model.
+[Epoch 160] Loss: 0.4528 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.01s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 161.
+Evaluating Model.
+[Epoch 161] Loss: 0.4458 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.39s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 162.
+Evaluating Model.
+[Epoch 162] Loss: 0.4596 | Accuracy: 0.9062 (¡¾0.0258) | Time: 4.48s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 163.
+Evaluating Model.
+[Epoch 163] Loss: 0.4579 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.37s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 164.
+Evaluating Model.
+[Epoch 164] Loss: 0.4532 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.02s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 165.
+Evaluating Model.
+[Epoch 165] Loss: 0.4398 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.34s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 166.
+Evaluating Model.
+[Epoch 166] Loss: 0.4438 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.49s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 167.
+Evaluating Model.
+[Epoch 167] Loss: 0.4541 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.11s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 168.
+Evaluating Model.
+[Epoch 168] Loss: 0.4570 | Accuracy: 0.8984 (¡¾0.0267) | Time: 4.31s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 169.
+Evaluating Model.
+[Epoch 169] Loss: 0.4656 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.11s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 170.
+Evaluating Model.
+[Epoch 170] Loss: 0.4519 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.05s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 171.
+Evaluating Model.
+[Epoch 171] Loss: 0.4488 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.14s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 172.
+Evaluating Model.
+[Epoch 172] Loss: 0.4465 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.51s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 173.
+Evaluating Model.
+[Epoch 173] Loss: 0.4557 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.65s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 174.
+Evaluating Model.
+[Epoch 174] Loss: 0.4537 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.20s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 175.
+Evaluating Model.
+[Epoch 175] Loss: 0.4537 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.06s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 176.
+Evaluating Model.
+[Epoch 176] Loss: 0.4520 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.19s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 177.
+Evaluating Model.
+[Epoch 177] Loss: 0.4429 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.46s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 178.
+Evaluating Model.
+[Epoch 178] Loss: 0.4607 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.39s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 179.
+Evaluating Model.
+[Epoch 179] Loss: 0.4556 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.11s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 180.
+Evaluating Model.
+[Epoch 180] Loss: 0.4516 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.32s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 181.
+Evaluating Model.
+[Epoch 181] Loss: 0.4487 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.33s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 182.
+Evaluating Model.
+[Epoch 182] Loss: 0.4567 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.18s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 183.
+Evaluating Model.
+[Epoch 183] Loss: 0.4438 | Accuracy: 0.8438 (¡¾0.0321) | Time: 4.36s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 184.
+Evaluating Model.
+[Epoch 184] Loss: 0.4529 | Accuracy: 0.7969 (¡¾0.0356) | Time: 4.37s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 185.
+Evaluating Model.
+[Epoch 185] Loss: 0.4438 | Accuracy: 0.8672 (¡¾0.0300) | Time: 3.96s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 186.
+Evaluating Model.
+[Epoch 186] Loss: 0.4429 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.00s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 187.
+Evaluating Model.
+[Epoch 187] Loss: 0.4502 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.48s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 188.
+Evaluating Model.
+[Epoch 188] Loss: 0.4523 | Accuracy: 0.8359 (¡¾0.0327) | Time: 4.63s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 189.
+Evaluating Model.
+[Epoch 189] Loss: 0.4446 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.36s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 190.
+Evaluating Model.
+[Epoch 190] Loss: 0.4384 | Accuracy: 0.7656 (¡¾0.0374) | Time: 4.03s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 191.
+Evaluating Model.
+[Epoch 191] Loss: 0.4491 | Accuracy: 0.8750 (¡¾0.0292) | Time: 4.07s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 192.
+Evaluating Model.
+[Epoch 192] Loss: 0.4413 | Accuracy: 0.8672 (¡¾0.0300) | Time: 4.49s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 193.
+Evaluating Model.
+[Epoch 193] Loss: 0.4555 | Accuracy: 0.8594 (¡¾0.0307) | Time: 4.41s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 194.
+Evaluating Model.
+[Epoch 194] Loss: 0.4618 | Accuracy: 0.8047 (¡¾0.0350) | Time: 4.31s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 195.
+Evaluating Model.
+[Epoch 195] Loss: 0.4611 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.39s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 196.
+Evaluating Model.
+[Epoch 196] Loss: 0.4563 | Accuracy: 0.8203 (¡¾0.0339) | Time: 4.33s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 197.
+Evaluating Model.
+[Epoch 197] Loss: 0.4441 | Accuracy: 0.8828 (¡¾0.0284) | Time: 4.20s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 198.
+Evaluating Model.
+[Epoch 198] Loss: 0.4442 | Accuracy: 0.8281 (¡¾0.0333) | Time: 4.32s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
+==================
+Starting Epoch 199.
+Evaluating Model.
+[Epoch 199] Loss: 0.4306 | Accuracy: 0.8516 (¡¾0.0314) | Time: 4.52s
+Saving plots to C:\Users\icyeg\OneDrive\Desktop\Justin\end_time\outputs\2026-04-04\03-06-09
