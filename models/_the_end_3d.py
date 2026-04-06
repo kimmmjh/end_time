@@ -57,23 +57,26 @@ class TransformedEND3D(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         b, c, t, v = x.shape
-        x = x.reshape(b, 2, t, self.lattice_size, self.lattice_size)
+        x = x.reshape(b, 2, t, self.lattice_size, self.lattice_size)    # Shape: (b, 2, t, L, L)
+        
 
         """The network body."""
         x = self.conv_in(x)
+        
         x = self.blocks(x)
 
         x = self.batch_norm(x)
         x = self.non_linear(x)
-        x = self.conv_out(x)
+        
+        x = self.conv_out(x)    # (b, 16, t, L, L)
 
-        """The networks head. Extract the final Time slice!"""
-        x = x[:, :, -1, :, :]  # (b, 16, t, L, L) -> (b, 16, L, L)
+        """The networks head. Extract the final Time slice"""
+        x = x[:, :, -1, :, :]  
 
         x = torch.roll(x, (-1, -1), (2, 3))
         x = torch.permute(x, dims=(0, 2, 3, 1))  # (b, 16, l, l) -> (b, l, l, 16)
         x = torch.flip(x, [1, 2])
-        x = x.reshape(b, self.lattice_size, self.lattice_size, 4, 2, 2)  # (b, l, l, 4, 2, 2)
+        x = x.reshape(b, self.lattice_size, self.lattice_size, 4, 2, 2)  # (b, L, L, 4, 2, 2) -> Feed directly to 2D PoolingLayer!
         return x
 
     @staticmethod
