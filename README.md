@@ -18,7 +18,7 @@ python main.py --noise_model=capacity --L=5 --p=0.1 --epochs=100 --save_model
 
 **2. Phenomenological Noise** (Noisy measurements, perfect instantaneous gates)
 ```bash
-python main.py --noise_model=phenomenological --L=5 --p=0.01 --measurement_error_rate=0.01 --epochs=100 --loss_fn=ce --save_model
+python main.py --noise_model=phenomenological --L=7 --p=0.01 --measurement_error_rate=0.01 --epochs=250 --loss_fn=ce --save_model
 ```
 
 **3. Circuit-level Noise** (Full realistic quantum circuit simulation with CNOT hook errors)
