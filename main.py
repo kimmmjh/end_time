@@ -166,13 +166,11 @@ def main() -> None:
         logging.info("Attention Mechanism: Disabled (Pure CNN)")
 
     """Start training."""
-    # Temporarily attach format flag to data generator logic
     trainer.train(
         code=code,
         error_rate=args.p,
         noise_model=args.noise_model,
         measurement_error_rate=args.measurement_error_rate,
-        # In a real pipeline, pass format_3d explicitly down, handled dynamically in _data_generator
     )
 
 
