@@ -2,16 +2,8 @@
 torch
 numpy
 scipy
-scikit-learn
-einops
-
-# QEC & Simulation
-panqec
-stim
-ldpc
-
-# Configuration & Logging
-hydra-core
-wandb
-omegaconf
+matplotlib
 tqdm
+
+# QEC
+panqec
