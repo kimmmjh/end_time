@@ -214,7 +214,7 @@ class Trainer:
         loss = 0.0
         iterator = range(batches)
         if train:
-            iterator = tqdm(iterator, desc="Training")
+            iterator = tqdm(iterator, desc="Training", mininterval=100.0)
 
         for _ in iterator:
             X, y = data_generator.generate_batch(device=device)
