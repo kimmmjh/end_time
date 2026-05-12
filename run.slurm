@@ -7,7 +7,6 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --gpus-per-node=4
-#SBATCH --gpus-per-task=1
 
 module load python/3.10
 source $PSCRATCH/envs/nde/bin/activate
@@ -30,7 +29,7 @@ job_count=0
 for params in "${experiments[@]}"; do
     echo "Starting Experiment: $params"
 
-    srun -n 1 --exact -c 16 --mem=60G python "$currdir/main.py" $params > log_exp_${job_count}.txt 2>&1 &
+    srun -n 1 --exact -c 16 --mem=60G --gpus-per-task=1 python "$currdir/main.py" $params > log_exp_${job_count}.txt 2>&1 &
 
     sleep 2
 
