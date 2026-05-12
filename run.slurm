@@ -23,9 +23,7 @@ job_count=0
 
 for params in "${experiments[@]}"; do
     echo "Starting Experiment: $params"
-   
-    srun -n 1 --exact -c 16 --gpus-per-task=1 python main.py $params > logs/log_exp_${job_count}.txt 2>&1 &
-=======
+
     srun -n 1 --exact -c 16 --gpus-per-task=1 python main.py $params > log_exp_${job_count}.txt 2>&1 &
     
     ((job_count++))
