@@ -1,0 +1,231 @@
+Executed Command: python main.py --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=400 --batch_size=32 --batches=2048 --L=11 --channels 64 128 128 64 --depths 4 4 4 4
+Lattice size: 11, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 400
+Architecture - Channels: [64, 128, 128, 64], Depths: [4, 4, 4, 4]
+Attention Mechanism: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5
+==================
+Starting Epoch 0.
+Evaluating Model.
+[Epoch 0] Loss: 2.7737 | Accuracy: 0.0625 (±0.0428) | Time: 161.94s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 1.
+Evaluating Model.
+[Epoch 1] Loss: 2.7727 | Accuracy: 0.0312 (±0.0308) | Time: 156.59s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 2.
+Evaluating Model.
+[Epoch 2] Loss: 2.7726 | Accuracy: 0.0312 (±0.0308) | Time: 156.54s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 3.
+Evaluating Model.
+[Epoch 3] Loss: 2.7730 | Accuracy: 0.0625 (±0.0428) | Time: 156.64s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 4.
+Evaluating Model.
+[Epoch 4] Loss: 2.7727 | Accuracy: 0.0938 (±0.0515) | Time: 156.76s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 5.
+Evaluating Model.
+[Epoch 5] Loss: 2.7727 | Accuracy: 0.0938 (±0.0515) | Time: 156.50s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 6.
+Evaluating Model.
+[Epoch 6] Loss: 2.7727 | Accuracy: 0.0625 (±0.0428) | Time: 156.69s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 7.
+Evaluating Model.
+[Epoch 7] Loss: 2.7726 | Accuracy: 0.0312 (±0.0308) | Time: 156.62s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 8.
+Evaluating Model.
+[Epoch 8] Loss: 2.7726 | Accuracy: 0.0625 (±0.0428) | Time: 156.78s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 9.
+Evaluating Model.
+[Epoch 9] Loss: 2.7727 | Accuracy: 0.0312 (±0.0308) | Time: 156.77s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 10.
+Evaluating Model.
+[Epoch 10] Loss: 2.7726 | Accuracy: 0.0312 (±0.0308) | Time: 156.81s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 11.
+Evaluating Model.
+[Epoch 11] Loss: 2.7726 | Accuracy: 0.0312 (±0.0308) | Time: 156.72s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 12.
+Evaluating Model.
+[Epoch 12] Loss: 2.7731 | Accuracy: 0.0000 (±0.0000) | Time: 156.68s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 13.
+Evaluating Model.
+[Epoch 13] Loss: 2.7727 | Accuracy: 0.0938 (±0.0515) | Time: 156.53s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 14.
+Evaluating Model.
+[Epoch 14] Loss: 2.7730 | Accuracy: 0.0625 (±0.0428) | Time: 156.61s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 15.
+Evaluating Model.
+[Epoch 15] Loss: 2.7727 | Accuracy: 0.0625 (±0.0428) | Time: 156.57s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 16.
+Evaluating Model.
+[Epoch 16] Loss: 2.7727 | Accuracy: 0.0938 (±0.0515) | Time: 156.66s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 17.
+Evaluating Model.
+[Epoch 17] Loss: 2.7735 | Accuracy: 0.0000 (±0.0000) | Time: 156.49s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 18.
+Evaluating Model.
+[Epoch 18] Loss: 2.7726 | Accuracy: 0.0625 (±0.0428) | Time: 156.59s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 19.
+Evaluating Model.
+[Epoch 19] Loss: 2.7735 | Accuracy: 0.0625 (±0.0428) | Time: 156.80s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 20.
+Evaluating Model.
+[Epoch 20] Loss: 2.7732 | Accuracy: 0.0625 (±0.0428) | Time: 156.64s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 21.
+Evaluating Model.
+[Epoch 21] Loss: 2.7731 | Accuracy: 0.0000 (±0.0000) | Time: 156.74s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 22.
+Evaluating Model.
+[Epoch 22] Loss: 2.7731 | Accuracy: 0.0938 (±0.0515) | Time: 156.82s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 23.
+Evaluating Model.
+[Epoch 23] Loss: 2.7729 | Accuracy: 0.0625 (±0.0428) | Time: 156.84s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 24.
+Evaluating Model.
+[Epoch 24] Loss: 2.7729 | Accuracy: 0.0312 (±0.0308) | Time: 157.11s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 25.
+Evaluating Model.
+[Epoch 25] Loss: 2.7728 | Accuracy: 0.0938 (±0.0515) | Time: 156.58s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 26.
+Evaluating Model.
+[Epoch 26] Loss: 2.7728 | Accuracy: 0.0625 (±0.0428) | Time: 156.59s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 27.
+Evaluating Model.
+[Epoch 27] Loss: 2.7726 | Accuracy: 0.0938 (±0.0515) | Time: 156.69s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 28.
+Evaluating Model.
+[Epoch 28] Loss: 2.7728 | Accuracy: 0.0000 (±0.0000) | Time: 156.56s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 29.
+Evaluating Model.
+[Epoch 29] Loss: 2.7728 | Accuracy: 0.0625 (±0.0428) | Time: 156.61s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 30.
+Evaluating Model.
+[Epoch 30] Loss: 2.7727 | Accuracy: 0.0625 (±0.0428) | Time: 156.52s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 31.
+Evaluating Model.
+[Epoch 31] Loss: 2.7728 | Accuracy: 0.0312 (±0.0308) | Time: 156.59s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 32.
+Evaluating Model.
+[Epoch 32] Loss: 2.7727 | Accuracy: 0.0625 (±0.0428) | Time: 156.49s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 33.
+Evaluating Model.
+[Epoch 33] Loss: 2.7726 | Accuracy: 0.0625 (±0.0428) | Time: 156.54s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 34.
+Evaluating Model.
+[Epoch 34] Loss: 2.7726 | Accuracy: 0.0938 (±0.0515) | Time: 156.40s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 35.
+Evaluating Model.
+[Epoch 35] Loss: 2.7726 | Accuracy: 0.1250 (±0.0585) | Time: 156.43s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 36.
+Evaluating Model.
+[Epoch 36] Loss: 2.7730 | Accuracy: 0.0312 (±0.0308) | Time: 156.38s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 37.
+Evaluating Model.
+[Epoch 37] Loss: 2.7731 | Accuracy: 0.1250 (±0.0585) | Time: 156.50s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 38.
+Evaluating Model.
+[Epoch 38] Loss: 2.7728 | Accuracy: 0.0312 (±0.0308) | Time: 156.82s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 39.
+Evaluating Model.
+[Epoch 39] Loss: 2.7727 | Accuracy: 0.0000 (±0.0000) | Time: 156.70s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 40.
+Evaluating Model.
+[Epoch 40] Loss: 2.7727 | Accuracy: 0.0625 (±0.0428) | Time: 156.64s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 41.
+Evaluating Model.
+[Epoch 41] Loss: nan | Accuracy: 0.0938 (±0.0515) | Time: 157.00s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 42.
+Evaluating Model.
+[Epoch 42] Loss: nan | Accuracy: 0.1250 (±0.0585) | Time: 157.30s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 43.
+Evaluating Model.
+[Epoch 43] Loss: nan | Accuracy: 0.1875 (±0.0690) | Time: 157.34s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 44.
+Evaluating Model.
+[Epoch 44] Loss: nan | Accuracy: 0.0625 (±0.0428) | Time: 157.43s
+Saving plots to /global/u2/d/ds08152/end_time/outputs/2026-05-11/22-19-38
+==================
+Starting Epoch 45.

@@ -19,19 +19,17 @@ experiments=(
     "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=400 --batch_size=32 --batches=2048 --L=11 --channels 64 128 128 64 --depths 4 4 4 4"
 )
 
-job_count=0
+currdir=$PWD
+dirname="resdir_$SLURM_JOB_ID"
+mkdir -p $dirname
+cd $dirname
 
 for params in "${experiments[@]}"; do
     echo "Starting Experiment: $params"
 
-    srun -n 1 --exact -c 16 --gpus-per-task=1 python main.py $params > log_exp_${job_count}.txt 2>&1 &
-    
-    ((job_count++))
-    
-    if (( job_count % 4 == 0 )); then
-        wait
-    fi
+    srun -n 1 --exact -c 16 --mem=32GB --gpus-per-task=1 python "$currdir/main.py" $params > log_exp_${job_count}.txt 2>&1 &
 done
+cd -
 
 wait
 
