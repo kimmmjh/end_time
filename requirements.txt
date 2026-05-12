@@ -4,7 +4,7 @@ numpy
 scipy
 matplotlib
 tqdm
-sklearn
+scikit-learn
 
 # QEC
 panqec
