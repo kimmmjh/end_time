@@ -144,14 +144,16 @@ class Trainer:
             epoch_start = time.time()
 
             """Train Model"""
+            self.model.train()
             loss, _ = self._process_batches(data_generator, device, self._num_batches)
             epoch_time = time.time() - epoch_start
 
             """Evaluate model."""
             self._output("Evaluating Model.")
+            self.model.eval()
             with torch.no_grad():
                 _, (y_pred, y_true) = self._process_batches(
-                    data_generator, device, 1, train=False
+                    data_generator, device, 16, train=False
                 )
 
             """Record evaluation Metrics."""
@@ -216,6 +218,9 @@ class Trainer:
         if train:
             iterator = tqdm(iterator, desc="Training", mininterval=100.0)
 
+        all_y_pred = []
+        all_y = []
+
         for _ in iterator:
             X, y = data_generator.generate_batch(device=device)
             """Zero out the gradient for all optimizers."""
@@ -226,6 +231,10 @@ class Trainer:
             with torch.autocast("cuda"):
                 y_pred = self.model(X)
                 loss_c = self.criterion(y_pred, y)
+
+            if not train:
+                all_y_pred.append(y_pred)
+                all_y.append(y)
 
             if train:
                 """Record loss."""
@@ -247,6 +256,10 @@ class Trainer:
                 self.scaler.update()
                 for scheduler in self.schedulers:
                     scheduler.step()
+        
+        if not train:
+            return loss / batches, (torch.cat(all_y_pred), torch.cat(all_y))
+        
         return loss / batches, (y_pred, y)
 
     def save_model(
