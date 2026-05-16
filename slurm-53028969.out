@@ -1,0 +1,1 @@
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=5 --channels 64 64 64 --depths 3 3 3
