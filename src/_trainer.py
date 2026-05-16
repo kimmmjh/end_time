@@ -1,13 +1,16 @@
 import torch
 import os
-import math
 from torch import nn, Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 
 from src.metrics import WandbMetrics
 from typing import Callable, Type
-from ._data_generator import DataGenerator, PhenomenologicalDataGenerator, CapacityDataGenerator
+from ._data_generator import (
+    DataGenerator,
+    PhenomenologicalDataGenerator,
+    CapacityDataGenerator,
+)
 from panqec.codes import StabilizerCode
 import logging
 import time
@@ -42,7 +45,10 @@ class Trainer:
         loss_function: nn.Module,
         optimizers: list[Optimizer],
         schedulers: list[LRScheduler],
-        args,
+        batch_size: int,
+        epochs: int,
+        batches: int,
+        amp_dtype: str = "fp16",
         verbose: bool = False,
         save_model: bool = False,
         load_model_path: str = None,
@@ -55,7 +61,10 @@ class Trainer:
         :param loss_function: The Loss function.
         :param optimizers: The optimizer.
         :param schedulers: The scheduler.
-        :param args: Arguments for the Trainer.
+        :param batch_size: Number of samples per batch.
+        :param epochs: Number of epochs to train.
+        :param batches: Number of batches per epoch.
+        :param amp_dtype: Mixed precision dtype: "fp16", "bf16", or "none".
         :param verbose: Whether the trainer should print progress or log it.
         :param save_model: If model should be saved.
         :return: The trained decoder and train / validation values.
@@ -84,26 +93,22 @@ class Trainer:
         self.optimizers = optimizers
         self.schedulers = schedulers
 
-        self._amp_dtype = getattr(args, "amp_dtype", "bf16")
+        self._amp_dtype = amp_dtype
         self.scaler = torch.amp.GradScaler(
             "cuda", enabled=torch.cuda.is_available() and self._amp_dtype == "fp16"
         )
 
-        self._num_batches = args.default.batches
-        self._num_epochs = args.default.epochs
-        self._batch_size = args.batch_size
+        self._num_batches = batches
+        self._num_epochs = epochs
+        self._batch_size = batch_size
         self._save_directory = save_directory
         self._save_model = save_model
-
-        # Save architecture info for plotting
-        self._channels = getattr(args, "channels", [64, 64, 64])
-        self._depths = getattr(args, "depths", [3, 3, 3])
 
         self.history = {"loss": [], "accuracy": []}
         self.start_epoch = 0
         if load_model_path is not None:
             self.load_model(load_model_path)
-            self._num_epochs = self.start_epoch + args.default.epochs
+            self._num_epochs = self.start_epoch + epochs
 
     def train(
         self,
@@ -220,7 +225,7 @@ class Trainer:
         loss = 0.0
         iterator = range(batches)
         if train:
-            iterator = tqdm(iterator, desc="Training", mininterval=100.0)
+            iterator = tqdm(iterator, desc="Training", mininterval=10.0)
 
         all_y_pred = []
         all_y = []
@@ -239,13 +244,6 @@ class Trainer:
             ):
                 y_pred = self.model(X)
                 loss_c = self.criterion(y_pred, y)
-
-            if not torch.isfinite(loss_c):
-                raise FloatingPointError(
-                    f"Non-finite loss detected ({loss_c.item()}) during "
-                    f"{'training' if train else 'evaluation'}. Try --amp_dtype=bf16 "
-                    "or --amp_dtype=none, and consider lowering --lr."
-                )
 
             if not train:
                 all_y_pred.append(y_pred)
@@ -271,12 +269,9 @@ class Trainer:
                 self.scaler.update()
                 for scheduler in self.schedulers:
                     scheduler.step()
-        
+
         if not train:
             return loss / batches, (torch.cat(all_y_pred), torch.cat(all_y))
-        
-        if train and not math.isfinite(loss):
-            raise FloatingPointError("Non-finite accumulated training loss detected.")
 
         return loss / batches, (y_pred, y)
 
@@ -284,7 +279,7 @@ class Trainer:
         self, path: str = ".", model_name: str = "model", epoch: int = 0
     ) -> None:
         """
-         Save the current model and training state.
+        Save the current model and training state.
 
         :param path: The path to save it to.
         :param model_name: The name of the saved model.

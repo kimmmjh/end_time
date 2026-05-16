@@ -76,14 +76,13 @@ def main() -> None:
     parser.add_argument(
         "--amp_dtype",
         type=str,
-        default="bf16",
+        default="fp16",
         choices=["bf16", "fp16", "none"],
-        help="Mixed precision dtype. bf16 is recommended on Perlmutter A100 GPUs.",
+        help="Mixed precision dtype.",
     )
 
     args = parser.parse_args()
 
-    """Init variables for later use."""
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     """Initialize the stabilizer Code."""
@@ -136,26 +135,15 @@ def main() -> None:
     )
     os.makedirs(output_dir, exist_ok=True)
 
-    # Convert args to an object similar to Hydras to pass minimally to Trainer without refactoring Trainer just yet
-    class ArgsMock:
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-
-    trainer_args = ArgsMock(
-        batch_size=args.batch_size,
-        noise_model=args.noise_model,
-        channels=args.channels,
-        depths=args.depths,
-        amp_dtype=args.amp_dtype,
-    )
-    trainer_args.default = ArgsMock(epochs=args.epochs, batches=args.batches)
-
     trainer = Trainer(
         model=decoder,
         loss_function=criterion,
         optimizers=optimizers,
         schedulers=schedulers,
-        args=trainer_args,
+        batch_size=args.batch_size,
+        epochs=args.epochs,
+        batches=args.batches,
+        amp_dtype=args.amp_dtype,
         save_model=args.save_model,
         load_model_path=args.load_model,
         save_directory=output_dir,
@@ -173,10 +161,10 @@ def main() -> None:
     ):
         conv_in = network.conv_in
         logging.info(
-            f"Attention Mechanism: Enabled | Heads: {conv_in.number_heads} | Key Depths: {conv_in.key_depths} | Attn Channels: {conv_in.attention_channels}"
+            f"Attention: Enabled | Heads: {conv_in.number_heads} | Key Depths: {conv_in.key_depths} | Attn Channels: {conv_in.attention_channels}"
         )
     else:
-        logging.info("Attention Mechanism: Disabled (Pure CNN)")
+        logging.info("Attention: Disabled (Pure CNN)")
 
     """Start training."""
     trainer.train(

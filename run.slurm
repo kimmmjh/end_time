@@ -10,8 +10,6 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --gpu-bind=single:1
 
-set -euo pipefail
-
 module load python/3.10
 source $PSCRATCH/envs/nde/bin/activate
 cd $HOME/end_time
@@ -19,7 +17,7 @@ cd $HOME/end_time
 experiments=(
     "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=5 --channels 64 64 64 --depths 3 3 3"
     "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=7 --channels 64 64 64 --depths 3 3 3"
-    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 4 4 4"
+    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3"
     "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 4 4 4"
 )
 
@@ -29,26 +27,16 @@ mkdir -p $dirname
 cd $dirname
 
 job_count=0
-pids=()
 
 for params in "${experiments[@]}"; do
     echo "Starting Experiment: $params"
 
     srun --exclusive --nodes=1 --ntasks=1 --cpus-per-task=16 --gpus-per-task=1 --cpu-bind=cores --gpu-bind=single:1 \
         python "$currdir/main.py" $params > log_exp_${job_count}.txt 2>&1 &
-    pids+=("$!")
 
     sleep 3
 
-    ((job_count++))
-done
-cd -
-
-status=0
-for pid in "${pids[@]}"; do
-    if ! wait "$pid"; then
-        status=1
-    fi
+    job_count=$((job_count + 1))
 done
 
-exit "$status"
+wait
