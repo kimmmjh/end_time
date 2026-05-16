@@ -1,5 +1,6 @@
 import torch
 import os
+import math
 from torch import nn, Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
@@ -83,7 +84,10 @@ class Trainer:
         self.optimizers = optimizers
         self.schedulers = schedulers
 
-        self.scaler = torch.cuda.amp.GradScaler()
+        self._amp_dtype = getattr(args, "amp_dtype", "bf16")
+        self.scaler = torch.amp.GradScaler(
+            "cuda", enabled=torch.cuda.is_available() and self._amp_dtype == "fp16"
+        )
 
         self._num_batches = args.default.batches
         self._num_epochs = args.default.epochs
@@ -228,9 +232,20 @@ class Trainer:
                 optimizer.zero_grad()
 
             """Forward pass."""
-            with torch.autocast("cuda"):
+            amp_enabled = device.type == "cuda" and self._amp_dtype != "none"
+            amp_dtype = torch.bfloat16 if self._amp_dtype == "bf16" else torch.float16
+            with torch.autocast(
+                device_type=device.type, dtype=amp_dtype, enabled=amp_enabled
+            ):
                 y_pred = self.model(X)
                 loss_c = self.criterion(y_pred, y)
+
+            if not torch.isfinite(loss_c):
+                raise FloatingPointError(
+                    f"Non-finite loss detected ({loss_c.item()}) during "
+                    f"{'training' if train else 'evaluation'}. Try --amp_dtype=bf16 "
+                    "or --amp_dtype=none, and consider lowering --lr."
+                )
 
             if not train:
                 all_y_pred.append(y_pred)
@@ -260,6 +275,9 @@ class Trainer:
         if not train:
             return loss / batches, (torch.cat(all_y_pred), torch.cat(all_y))
         
+        if train and not math.isfinite(loss):
+            raise FloatingPointError("Non-finite accumulated training loss detected.")
+
         return loss / batches, (y_pred, y)
 
     def save_model(

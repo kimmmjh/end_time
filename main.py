@@ -73,6 +73,13 @@ def main() -> None:
         default=None,
         help="Learning rate (defaults: 1e-3 from scratch, 1e-4 fine-tuning).",
     )
+    parser.add_argument(
+        "--amp_dtype",
+        type=str,
+        default="bf16",
+        choices=["bf16", "fp16", "none"],
+        help="Mixed precision dtype. bf16 is recommended on Perlmutter A100 GPUs.",
+    )
 
     args = parser.parse_args()
 
@@ -134,7 +141,13 @@ def main() -> None:
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    trainer_args = ArgsMock(batch_size=args.batch_size, noise_model=args.noise_model)
+    trainer_args = ArgsMock(
+        batch_size=args.batch_size,
+        noise_model=args.noise_model,
+        channels=args.channels,
+        depths=args.depths,
+        amp_dtype=args.amp_dtype,
+    )
     trainer_args.default = ArgsMock(epochs=args.epochs, batches=args.batches)
 
     trainer = Trainer(
