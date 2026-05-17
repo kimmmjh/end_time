@@ -223,6 +223,8 @@ class Trainer:
         """
 
         loss = 0.0
+        finite_batches = 0
+        skipped_batches = 0
         iterator = range(batches)
         if train:
             iterator = tqdm(iterator, desc="Training", mininterval=10.0)
@@ -245,6 +247,14 @@ class Trainer:
                 y_pred = self.model(X)
                 loss_c = self.criterion(y_pred, y)
 
+            if train and not torch.isfinite(loss_c):
+                skipped_batches += 1
+                for optimizer in self.optimizers:
+                    optimizer.zero_grad(set_to_none=True)
+                for scheduler in self.schedulers:
+                    scheduler.step()
+                continue
+
             if not train:
                 all_y_pred.append(y_pred)
                 all_y.append(y)
@@ -252,6 +262,7 @@ class Trainer:
             if train:
                 """Record loss."""
                 loss += loss_c.item()
+                finite_batches += 1
 
                 """Backward pass."""
                 self.scaler.scale(loss_c).backward()
@@ -273,7 +284,13 @@ class Trainer:
         if not train:
             return loss / batches, (torch.cat(all_y_pred), torch.cat(all_y))
 
-        return loss / batches, (y_pred, y)
+        if skipped_batches:
+            self._output(f"Skipped {skipped_batches} non-finite training batches.")
+
+        if finite_batches == 0:
+            raise FloatingPointError("All training batches produced non-finite loss.")
+
+        return loss / finite_batches, (y_pred, y)
 
     def save_model(
         self, path: str = ".", model_name: str = "model", epoch: int = 0

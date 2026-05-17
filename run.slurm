@@ -15,10 +15,10 @@ source $PSCRATCH/envs/nde/bin/activate
 cd $HOME/end_time
 
 experiments=(
-    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=5 --channels 64 64 64 --depths 3 3 3"
-    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=7 --channels 64 64 64 --depths 3 3 3"
-    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3"
-    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 4 4 4"
+    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=128 --batches=512 --L=5 --channels 64 64 64 --depths 3 3 3"
+    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=128 --batches=512 --L=7 --channels 64 64 64 --depths 3 3 3"
+    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=400 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3"
+    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=400 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 4 4 4"
 )
 
 currdir=$PWD
@@ -31,7 +31,7 @@ job_count=0
 for params in "${experiments[@]}"; do
     echo "Starting Experiment: $params"
 
-    srun --exclusive --nodes=1 --ntasks=1 --cpus-per-task=16 --gpus-per-task=1 --cpu-bind=cores --gpu-bind=single:1 \
+    srun --exact --nodes=1 --ntasks=1 --cpus-per-task=16 --gpus-per-task=1 --mem=32G --cpu-bind=cores --gpu-bind=single:1 \
         python "$currdir/main.py" $params > log_exp_${job_count}.txt 2>&1 &
 
     sleep 3
