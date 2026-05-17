@@ -1,0 +1,5 @@
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=128 --batches=512 --L=5 --channels 64 64 64 --depths 3 3 3
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=128 --batches=512 --L=7 --channels 64 64 64 --depths 3 3 3
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=400 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=400 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 4 4 4
+[2026-05-17T08:37:26.095] error: *** JOB 53054259 ON nid003236 CANCELLED AT 2026-05-17T08:37:26 DUE TO TIME LIMIT ***
