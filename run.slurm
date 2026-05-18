@@ -2,7 +2,7 @@
 #SBATCH --job-name=end_time_test
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
-#SBATCH --time=04:00:00
+#SBATCH --time=06:00:00
 #SBATCH --constraint=gpu
 #SBATCH --nodes=1
 #SBATCH --gpus-per-node=4
@@ -15,7 +15,7 @@ source $PSCRATCH/envs/nde/bin/activate
 cd $HOME/end_time
 
 experiments=(
-    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=128 --batches=512 --L=7 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none"
+    "--noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none"
 )
 
 currdir=$PWD

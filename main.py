@@ -76,7 +76,7 @@ def main() -> None:
     parser.add_argument(
         "--amp_dtype",
         type=str,
-        default="fp16",
+        default="bf16",
         choices=["bf16", "fp16", "none"],
         help="Mixed precision dtype.",
     )
