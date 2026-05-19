@@ -1,0 +1,1504 @@
+Executed Command: python /global/homes/d/ds08152/end_time/main.py --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none
+Lattice size: 9, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 300
+Architecture - Channels: [64, 64, 64], Depths: [3, 3, 3]
+Attention: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5
+==================
+Starting Epoch 0.
+Evaluating Model.
+[Epoch 0] Loss: 2.7755 | Accuracy: 0.0762 (±0.0083) | Time: 57.42s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 1.
+Evaluating Model.
+[Epoch 1] Loss: 2.7713 | Accuracy: 0.0879 (±0.0088) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 2.
+Evaluating Model.
+[Epoch 2] Loss: 2.7716 | Accuracy: 0.0811 (±0.0085) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 3.
+Evaluating Model.
+[Epoch 3] Loss: 2.7709 | Accuracy: 0.0723 (±0.0081) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 4.
+Evaluating Model.
+[Epoch 4] Loss: 2.7709 | Accuracy: 0.0586 (±0.0073) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 5.
+Evaluating Model.
+[Epoch 5] Loss: 2.7707 | Accuracy: 0.0742 (±0.0082) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 6.
+Evaluating Model.
+[Epoch 6] Loss: 2.7711 | Accuracy: 0.0801 (±0.0085) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 7.
+Evaluating Model.
+[Epoch 7] Loss: 2.7710 | Accuracy: 0.0664 (±0.0078) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 8.
+Evaluating Model.
+[Epoch 8] Loss: 2.7707 | Accuracy: 0.0869 (±0.0088) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 9.
+Evaluating Model.
+[Epoch 9] Loss: 2.7716 | Accuracy: 0.0693 (±0.0079) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 10.
+Evaluating Model.
+[Epoch 10] Loss: 2.7711 | Accuracy: 0.0625 (±0.0076) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 11.
+Evaluating Model.
+[Epoch 11] Loss: 2.7709 | Accuracy: 0.0723 (±0.0081) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 12.
+Evaluating Model.
+[Epoch 12] Loss: 2.7709 | Accuracy: 0.0684 (±0.0079) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 13.
+Evaluating Model.
+[Epoch 13] Loss: 2.7708 | Accuracy: 0.0693 (±0.0079) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 14.
+Evaluating Model.
+[Epoch 14] Loss: 2.7709 | Accuracy: 0.0791 (±0.0084) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 15.
+Evaluating Model.
+[Epoch 15] Loss: 2.7710 | Accuracy: 0.0762 (±0.0083) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 16.
+Evaluating Model.
+[Epoch 16] Loss: 2.7707 | Accuracy: 0.0654 (±0.0077) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 17.
+Evaluating Model.
+[Epoch 17] Loss: 2.7710 | Accuracy: 0.0566 (±0.0072) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 18.
+Evaluating Model.
+[Epoch 18] Loss: 2.7714 | Accuracy: 0.0625 (±0.0076) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 19.
+Evaluating Model.
+[Epoch 19] Loss: 2.7719 | Accuracy: 0.0645 (±0.0077) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 20.
+Evaluating Model.
+[Epoch 20] Loss: 2.7706 | Accuracy: 0.0674 (±0.0078) | Time: 52.66s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 21.
+Evaluating Model.
+[Epoch 21] Loss: 2.7713 | Accuracy: 0.0781 (±0.0084) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 22.
+Evaluating Model.
+[Epoch 22] Loss: 2.7713 | Accuracy: 0.0732 (±0.0081) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 23.
+Evaluating Model.
+[Epoch 23] Loss: 2.7709 | Accuracy: 0.0684 (±0.0079) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 24.
+Evaluating Model.
+[Epoch 24] Loss: 2.7711 | Accuracy: 0.0693 (±0.0079) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 25.
+Evaluating Model.
+[Epoch 25] Loss: 2.7710 | Accuracy: 0.0527 (±0.0070) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 26.
+Evaluating Model.
+[Epoch 26] Loss: 2.7716 | Accuracy: 0.0811 (±0.0085) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 27.
+Evaluating Model.
+[Epoch 27] Loss: 2.7712 | Accuracy: 0.0625 (±0.0076) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 28.
+Evaluating Model.
+[Epoch 28] Loss: 2.7709 | Accuracy: 0.0684 (±0.0079) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 29.
+Evaluating Model.
+[Epoch 29] Loss: 2.7710 | Accuracy: 0.0771 (±0.0083) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 30.
+Evaluating Model.
+[Epoch 30] Loss: 2.7706 | Accuracy: 0.0674 (±0.0078) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 31.
+Evaluating Model.
+[Epoch 31] Loss: 2.7715 | Accuracy: 0.0664 (±0.0078) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 32.
+Evaluating Model.
+[Epoch 32] Loss: 2.7713 | Accuracy: 0.0645 (±0.0077) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 33.
+Evaluating Model.
+[Epoch 33] Loss: 2.7704 | Accuracy: 0.0801 (±0.0085) | Time: 52.66s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 34.
+Evaluating Model.
+[Epoch 34] Loss: 2.7710 | Accuracy: 0.0879 (±0.0088) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 35.
+Evaluating Model.
+[Epoch 35] Loss: 2.7713 | Accuracy: 0.0664 (±0.0078) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 36.
+Evaluating Model.
+[Epoch 36] Loss: 2.7706 | Accuracy: 0.0674 (±0.0078) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 37.
+Evaluating Model.
+[Epoch 37] Loss: 2.7708 | Accuracy: 0.0820 (±0.0086) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 38.
+Evaluating Model.
+[Epoch 38] Loss: 2.7709 | Accuracy: 0.0752 (±0.0082) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 39.
+Evaluating Model.
+[Epoch 39] Loss: 2.7711 | Accuracy: 0.0850 (±0.0087) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 40.
+Evaluating Model.
+[Epoch 40] Loss: 2.7713 | Accuracy: 0.0557 (±0.0072) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 41.
+Evaluating Model.
+[Epoch 41] Loss: 2.7710 | Accuracy: 0.0752 (±0.0082) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 42.
+Evaluating Model.
+[Epoch 42] Loss: 2.7712 | Accuracy: 0.0664 (±0.0078) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 43.
+Evaluating Model.
+[Epoch 43] Loss: 2.7710 | Accuracy: 0.0713 (±0.0080) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 44.
+Evaluating Model.
+[Epoch 44] Loss: 2.7714 | Accuracy: 0.0723 (±0.0081) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 45.
+Evaluating Model.
+[Epoch 45] Loss: 2.7706 | Accuracy: 0.0850 (±0.0087) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 46.
+Evaluating Model.
+[Epoch 46] Loss: 2.7713 | Accuracy: 0.0771 (±0.0083) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 47.
+Evaluating Model.
+[Epoch 47] Loss: 2.7715 | Accuracy: 0.0635 (±0.0076) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 48.
+Evaluating Model.
+[Epoch 48] Loss: 2.7713 | Accuracy: 0.0820 (±0.0086) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 49.
+Evaluating Model.
+[Epoch 49] Loss: 2.7710 | Accuracy: 0.0654 (±0.0077) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 50.
+Evaluating Model.
+[Epoch 50] Loss: 2.7707 | Accuracy: 0.0752 (±0.0082) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 51.
+Evaluating Model.
+[Epoch 51] Loss: 2.7721 | Accuracy: 0.0771 (±0.0083) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 52.
+Evaluating Model.
+[Epoch 52] Loss: 2.7715 | Accuracy: 0.0508 (±0.0069) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 53.
+Evaluating Model.
+[Epoch 53] Loss: 2.7715 | Accuracy: 0.0518 (±0.0069) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 54.
+Evaluating Model.
+[Epoch 54] Loss: 2.7712 | Accuracy: 0.0742 (±0.0082) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 55.
+Evaluating Model.
+[Epoch 55] Loss: 2.7712 | Accuracy: 0.0566 (±0.0072) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 56.
+Evaluating Model.
+[Epoch 56] Loss: 2.7710 | Accuracy: 0.0742 (±0.0082) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 57.
+Evaluating Model.
+[Epoch 57] Loss: 2.7713 | Accuracy: 0.0645 (±0.0077) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 58.
+Evaluating Model.
+[Epoch 58] Loss: 2.7712 | Accuracy: 0.0674 (±0.0078) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 59.
+Evaluating Model.
+[Epoch 59] Loss: 2.7711 | Accuracy: 0.0898 (±0.0089) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 60.
+Evaluating Model.
+[Epoch 60] Loss: 2.7712 | Accuracy: 0.0674 (±0.0078) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 61.
+Evaluating Model.
+[Epoch 61] Loss: 2.7713 | Accuracy: 0.0908 (±0.0090) | Time: 52.51s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 62.
+Evaluating Model.
+[Epoch 62] Loss: 2.7714 | Accuracy: 0.0674 (±0.0078) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 63.
+Evaluating Model.
+[Epoch 63] Loss: 2.7706 | Accuracy: 0.0615 (±0.0075) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 64.
+Evaluating Model.
+[Epoch 64] Loss: 2.7709 | Accuracy: 0.0596 (±0.0074) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 65.
+Evaluating Model.
+[Epoch 65] Loss: 2.7707 | Accuracy: 0.0781 (±0.0084) | Time: 52.50s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 66.
+Evaluating Model.
+[Epoch 66] Loss: 2.7710 | Accuracy: 0.0693 (±0.0079) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 67.
+Evaluating Model.
+[Epoch 67] Loss: 2.7711 | Accuracy: 0.0586 (±0.0073) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 68.
+Evaluating Model.
+[Epoch 68] Loss: 2.7712 | Accuracy: 0.0791 (±0.0084) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 69.
+Evaluating Model.
+[Epoch 69] Loss: 2.7708 | Accuracy: 0.0713 (±0.0080) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 70.
+Evaluating Model.
+[Epoch 70] Loss: 2.7709 | Accuracy: 0.0742 (±0.0082) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 71.
+Evaluating Model.
+[Epoch 71] Loss: 2.7711 | Accuracy: 0.0654 (±0.0077) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 72.
+Evaluating Model.
+[Epoch 72] Loss: 2.7711 | Accuracy: 0.0635 (±0.0076) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 73.
+Evaluating Model.
+[Epoch 73] Loss: 2.7710 | Accuracy: 0.0732 (±0.0081) | Time: 52.90s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 74.
+Evaluating Model.
+[Epoch 74] Loss: 2.7713 | Accuracy: 0.0713 (±0.0080) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 75.
+Evaluating Model.
+[Epoch 75] Loss: 2.7711 | Accuracy: 0.0674 (±0.0078) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 76.
+Evaluating Model.
+[Epoch 76] Loss: 2.7710 | Accuracy: 0.0684 (±0.0079) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 77.
+Evaluating Model.
+[Epoch 77] Loss: 2.7711 | Accuracy: 0.0674 (±0.0078) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 78.
+Evaluating Model.
+[Epoch 78] Loss: 2.7714 | Accuracy: 0.0576 (±0.0073) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 79.
+Evaluating Model.
+[Epoch 79] Loss: 2.7713 | Accuracy: 0.0742 (±0.0082) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 80.
+Evaluating Model.
+[Epoch 80] Loss: 2.7708 | Accuracy: 0.0801 (±0.0085) | Time: 52.51s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 81.
+Evaluating Model.
+[Epoch 81] Loss: 2.7711 | Accuracy: 0.0537 (±0.0070) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 82.
+Evaluating Model.
+[Epoch 82] Loss: 2.7712 | Accuracy: 0.0635 (±0.0076) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 83.
+Evaluating Model.
+[Epoch 83] Loss: 2.7706 | Accuracy: 0.0664 (±0.0078) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 84.
+Evaluating Model.
+[Epoch 84] Loss: 2.7714 | Accuracy: 0.0605 (±0.0075) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 85.
+Evaluating Model.
+[Epoch 85] Loss: 2.7709 | Accuracy: 0.0732 (±0.0081) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 86.
+Evaluating Model.
+[Epoch 86] Loss: 2.7709 | Accuracy: 0.0654 (±0.0077) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 87.
+Evaluating Model.
+[Epoch 87] Loss: 2.7708 | Accuracy: 0.0635 (±0.0076) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 88.
+Evaluating Model.
+[Epoch 88] Loss: 2.7709 | Accuracy: 0.0732 (±0.0081) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 89.
+Evaluating Model.
+[Epoch 89] Loss: 2.7712 | Accuracy: 0.0742 (±0.0082) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 90.
+Evaluating Model.
+[Epoch 90] Loss: 2.7712 | Accuracy: 0.0723 (±0.0081) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 91.
+Evaluating Model.
+[Epoch 91] Loss: 2.7715 | Accuracy: 0.0811 (±0.0085) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 92.
+Evaluating Model.
+[Epoch 92] Loss: 2.7708 | Accuracy: 0.0742 (±0.0082) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 93.
+Evaluating Model.
+[Epoch 93] Loss: 2.7709 | Accuracy: 0.0723 (±0.0081) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 94.
+Evaluating Model.
+[Epoch 94] Loss: 2.7708 | Accuracy: 0.0576 (±0.0073) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 95.
+Evaluating Model.
+[Epoch 95] Loss: 2.7714 | Accuracy: 0.0566 (±0.0072) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 96.
+Evaluating Model.
+[Epoch 96] Loss: 2.7712 | Accuracy: 0.0645 (±0.0077) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 97.
+Evaluating Model.
+[Epoch 97] Loss: 2.7711 | Accuracy: 0.0566 (±0.0072) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 98.
+Evaluating Model.
+[Epoch 98] Loss: 2.7703 | Accuracy: 0.0811 (±0.0085) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 99.
+Evaluating Model.
+[Epoch 99] Loss: 2.7711 | Accuracy: 0.0518 (±0.0069) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 100.
+Evaluating Model.
+[Epoch 100] Loss: 2.7709 | Accuracy: 0.0811 (±0.0085) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 101.
+Evaluating Model.
+[Epoch 101] Loss: 2.7710 | Accuracy: 0.0674 (±0.0078) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 102.
+Evaluating Model.
+[Epoch 102] Loss: 2.7710 | Accuracy: 0.0537 (±0.0070) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 103.
+Evaluating Model.
+[Epoch 103] Loss: 2.7707 | Accuracy: 0.0762 (±0.0083) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 104.
+Evaluating Model.
+[Epoch 104] Loss: 2.7708 | Accuracy: 0.0703 (±0.0080) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 105.
+Evaluating Model.
+[Epoch 105] Loss: 2.7706 | Accuracy: 0.0801 (±0.0085) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 106.
+Evaluating Model.
+[Epoch 106] Loss: 2.7706 | Accuracy: 0.0693 (±0.0079) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 107.
+Evaluating Model.
+[Epoch 107] Loss: 2.7708 | Accuracy: 0.0596 (±0.0074) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 108.
+Evaluating Model.
+[Epoch 108] Loss: 2.7709 | Accuracy: 0.0811 (±0.0085) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 109.
+Evaluating Model.
+[Epoch 109] Loss: 2.7710 | Accuracy: 0.0723 (±0.0081) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 110.
+Evaluating Model.
+[Epoch 110] Loss: 2.7710 | Accuracy: 0.0752 (±0.0082) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 111.
+Evaluating Model.
+[Epoch 111] Loss: 2.7712 | Accuracy: 0.0596 (±0.0074) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 112.
+Evaluating Model.
+[Epoch 112] Loss: 2.7707 | Accuracy: 0.0693 (±0.0079) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 113.
+Evaluating Model.
+[Epoch 113] Loss: 2.7707 | Accuracy: 0.0645 (±0.0077) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 114.
+Evaluating Model.
+[Epoch 114] Loss: 2.7709 | Accuracy: 0.0684 (±0.0079) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 115.
+Evaluating Model.
+[Epoch 115] Loss: 2.7709 | Accuracy: 0.0703 (±0.0080) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 116.
+Evaluating Model.
+[Epoch 116] Loss: 2.7706 | Accuracy: 0.0566 (±0.0072) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 117.
+Evaluating Model.
+[Epoch 117] Loss: 2.7707 | Accuracy: 0.0830 (±0.0086) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 118.
+Evaluating Model.
+[Epoch 118] Loss: 2.7709 | Accuracy: 0.0820 (±0.0086) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 119.
+Evaluating Model.
+[Epoch 119] Loss: 2.7705 | Accuracy: 0.0693 (±0.0079) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 120.
+Evaluating Model.
+[Epoch 120] Loss: 2.7708 | Accuracy: 0.0635 (±0.0076) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 121.
+Evaluating Model.
+[Epoch 121] Loss: 2.7711 | Accuracy: 0.0781 (±0.0084) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 122.
+Evaluating Model.
+[Epoch 122] Loss: 2.7708 | Accuracy: 0.0762 (±0.0083) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 123.
+Evaluating Model.
+[Epoch 123] Loss: 2.7709 | Accuracy: 0.0713 (±0.0080) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 124.
+Evaluating Model.
+[Epoch 124] Loss: 2.7707 | Accuracy: 0.0771 (±0.0083) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 125.
+Evaluating Model.
+[Epoch 125] Loss: 2.7709 | Accuracy: 0.0830 (±0.0086) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 126.
+Evaluating Model.
+[Epoch 126] Loss: 2.7704 | Accuracy: 0.0801 (±0.0085) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 127.
+Evaluating Model.
+[Epoch 127] Loss: 2.7704 | Accuracy: 0.0547 (±0.0071) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 128.
+Evaluating Model.
+[Epoch 128] Loss: 2.7708 | Accuracy: 0.0557 (±0.0072) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 129.
+Evaluating Model.
+[Epoch 129] Loss: 2.7710 | Accuracy: 0.0654 (±0.0077) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 130.
+Evaluating Model.
+[Epoch 130] Loss: 2.7709 | Accuracy: 0.0840 (±0.0087) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 131.
+Evaluating Model.
+[Epoch 131] Loss: 2.7706 | Accuracy: 0.0781 (±0.0084) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 132.
+Evaluating Model.
+[Epoch 132] Loss: 2.7709 | Accuracy: 0.0635 (±0.0076) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 133.
+Evaluating Model.
+[Epoch 133] Loss: 2.7709 | Accuracy: 0.0820 (±0.0086) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 134.
+Evaluating Model.
+[Epoch 134] Loss: 2.7708 | Accuracy: 0.0654 (±0.0077) | Time: 52.42s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 135.
+Evaluating Model.
+[Epoch 135] Loss: 2.7704 | Accuracy: 0.0693 (±0.0079) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 136.
+Evaluating Model.
+[Epoch 136] Loss: 2.7709 | Accuracy: 0.0693 (±0.0079) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 137.
+Evaluating Model.
+[Epoch 137] Loss: 2.7710 | Accuracy: 0.0674 (±0.0078) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 138.
+Evaluating Model.
+[Epoch 138] Loss: 2.7704 | Accuracy: 0.0674 (±0.0078) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 139.
+Evaluating Model.
+[Epoch 139] Loss: 2.7708 | Accuracy: 0.0635 (±0.0076) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 140.
+Evaluating Model.
+[Epoch 140] Loss: 2.7703 | Accuracy: 0.0586 (±0.0073) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 141.
+Evaluating Model.
+[Epoch 141] Loss: 2.7711 | Accuracy: 0.0762 (±0.0083) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 142.
+Evaluating Model.
+[Epoch 142] Loss: 2.7708 | Accuracy: 0.0654 (±0.0077) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 143.
+Evaluating Model.
+[Epoch 143] Loss: 2.7700 | Accuracy: 0.0664 (±0.0078) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 144.
+Evaluating Model.
+[Epoch 144] Loss: 2.7708 | Accuracy: 0.0732 (±0.0081) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 145.
+Evaluating Model.
+[Epoch 145] Loss: 2.7703 | Accuracy: 0.0684 (±0.0079) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 146.
+Evaluating Model.
+[Epoch 146] Loss: 2.7706 | Accuracy: 0.0850 (±0.0087) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 147.
+Evaluating Model.
+[Epoch 147] Loss: 2.7700 | Accuracy: 0.0684 (±0.0079) | Time: 52.65s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 148.
+Evaluating Model.
+[Epoch 148] Loss: 2.7704 | Accuracy: 0.0625 (±0.0076) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 149.
+Evaluating Model.
+[Epoch 149] Loss: 2.7706 | Accuracy: 0.0674 (±0.0078) | Time: 52.51s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 150.
+Evaluating Model.
+[Epoch 150] Loss: 2.7703 | Accuracy: 0.0664 (±0.0078) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 151.
+Evaluating Model.
+[Epoch 151] Loss: 2.7702 | Accuracy: 0.0713 (±0.0080) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 152.
+Evaluating Model.
+[Epoch 152] Loss: 2.7701 | Accuracy: 0.0889 (±0.0089) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 153.
+Evaluating Model.
+[Epoch 153] Loss: 2.7702 | Accuracy: 0.0684 (±0.0079) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 154.
+Evaluating Model.
+[Epoch 154] Loss: 2.7700 | Accuracy: 0.0732 (±0.0081) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 155.
+Evaluating Model.
+[Epoch 155] Loss: 2.7697 | Accuracy: 0.0713 (±0.0080) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 156.
+Evaluating Model.
+[Epoch 156] Loss: 2.7702 | Accuracy: 0.0742 (±0.0082) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 157.
+Evaluating Model.
+[Epoch 157] Loss: 2.7696 | Accuracy: 0.0713 (±0.0080) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 158.
+Evaluating Model.
+[Epoch 158] Loss: 2.7694 | Accuracy: 0.0654 (±0.0077) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 159.
+Evaluating Model.
+[Epoch 159] Loss: 2.7699 | Accuracy: 0.0732 (±0.0081) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 160.
+Evaluating Model.
+[Epoch 160] Loss: 2.7699 | Accuracy: 0.0811 (±0.0085) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 161.
+Evaluating Model.
+[Epoch 161] Loss: 2.7695 | Accuracy: 0.0723 (±0.0081) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 162.
+Evaluating Model.
+[Epoch 162] Loss: 2.7694 | Accuracy: 0.0557 (±0.0072) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 163.
+Evaluating Model.
+[Epoch 163] Loss: 2.7696 | Accuracy: 0.0713 (±0.0080) | Time: 52.51s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 164.
+Evaluating Model.
+[Epoch 164] Loss: 2.7693 | Accuracy: 0.0762 (±0.0083) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 165.
+Evaluating Model.
+[Epoch 165] Loss: 2.7696 | Accuracy: 0.0703 (±0.0080) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 166.
+Evaluating Model.
+[Epoch 166] Loss: 2.7692 | Accuracy: 0.0664 (±0.0078) | Time: 52.52s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 167.
+Evaluating Model.
+[Epoch 167] Loss: 2.7680 | Accuracy: 0.0801 (±0.0085) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 168.
+Evaluating Model.
+[Epoch 168] Loss: 2.7683 | Accuracy: 0.0645 (±0.0077) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 169.
+Evaluating Model.
+[Epoch 169] Loss: 2.7669 | Accuracy: 0.0742 (±0.0082) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 170.
+Evaluating Model.
+[Epoch 170] Loss: 2.7671 | Accuracy: 0.0986 (±0.0093) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 171.
+Evaluating Model.
+[Epoch 171] Loss: 2.7663 | Accuracy: 0.0615 (±0.0075) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 172.
+Evaluating Model.
+[Epoch 172] Loss: 2.7653 | Accuracy: 0.0791 (±0.0084) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 173.
+Evaluating Model.
+[Epoch 173] Loss: 2.7630 | Accuracy: 0.0791 (±0.0084) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 174.
+Evaluating Model.
+[Epoch 174] Loss: 2.7576 | Accuracy: 0.0801 (±0.0085) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 175.
+Evaluating Model.
+[Epoch 175] Loss: 2.7482 | Accuracy: 0.0791 (±0.0084) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 176.
+Evaluating Model.
+[Epoch 176] Loss: 2.7443 | Accuracy: 0.0713 (±0.0080) | Time: 52.53s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 177.
+Evaluating Model.
+[Epoch 177] Loss: 2.7427 | Accuracy: 0.0723 (±0.0081) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 178.
+Evaluating Model.
+[Epoch 178] Loss: 2.7427 | Accuracy: 0.0752 (±0.0082) | Time: 52.55s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 179.
+Evaluating Model.
+[Epoch 179] Loss: 2.7415 | Accuracy: 0.0645 (±0.0077) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 180.
+Evaluating Model.
+[Epoch 180] Loss: 2.7412 | Accuracy: 0.0693 (±0.0079) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 181.
+Evaluating Model.
+[Epoch 181] Loss: 2.7419 | Accuracy: 0.0693 (±0.0079) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 182.
+Evaluating Model.
+[Epoch 182] Loss: 2.7417 | Accuracy: 0.0693 (±0.0079) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 183.
+Evaluating Model.
+[Epoch 183] Loss: 2.7403 | Accuracy: 0.0703 (±0.0080) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 184.
+Evaluating Model.
+[Epoch 184] Loss: 2.7380 | Accuracy: 0.0664 (±0.0078) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 185.
+Evaluating Model.
+[Epoch 185] Loss: 2.7390 | Accuracy: 0.0684 (±0.0079) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 186.
+Evaluating Model.
+[Epoch 186] Loss: 2.7390 | Accuracy: 0.0674 (±0.0078) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 187.
+Evaluating Model.
+[Epoch 187] Loss: 2.7371 | Accuracy: 0.0684 (±0.0079) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 188.
+Evaluating Model.
+[Epoch 188] Loss: 2.7370 | Accuracy: 0.0801 (±0.0085) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 189.
+Evaluating Model.
+[Epoch 189] Loss: 2.7374 | Accuracy: 0.0908 (±0.0090) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 190.
+Evaluating Model.
+[Epoch 190] Loss: 2.7361 | Accuracy: 0.0723 (±0.0081) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 191.
+Evaluating Model.
+[Epoch 191] Loss: 2.7342 | Accuracy: 0.0723 (±0.0081) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 192.
+Evaluating Model.
+[Epoch 192] Loss: 2.7329 | Accuracy: 0.0693 (±0.0079) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 193.
+Evaluating Model.
+[Epoch 193] Loss: 2.7329 | Accuracy: 0.0625 (±0.0076) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 194.
+Evaluating Model.
+[Epoch 194] Loss: 2.7321 | Accuracy: 0.0928 (±0.0091) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 195.
+Evaluating Model.
+[Epoch 195] Loss: 2.7321 | Accuracy: 0.0752 (±0.0082) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 196.
+Evaluating Model.
+[Epoch 196] Loss: 2.7309 | Accuracy: 0.0752 (±0.0082) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 197.
+Evaluating Model.
+[Epoch 197] Loss: 2.7308 | Accuracy: 0.0732 (±0.0081) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 198.
+Evaluating Model.
+[Epoch 198] Loss: 2.7300 | Accuracy: 0.0693 (±0.0079) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 199.
+Evaluating Model.
+[Epoch 199] Loss: 2.7296 | Accuracy: 0.0840 (±0.0087) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 200.
+Evaluating Model.
+[Epoch 200] Loss: 2.7272 | Accuracy: 0.0723 (±0.0081) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 201.
+Evaluating Model.
+[Epoch 201] Loss: 2.7281 | Accuracy: 0.0713 (±0.0080) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 202.
+Evaluating Model.
+[Epoch 202] Loss: 2.7281 | Accuracy: 0.0576 (±0.0073) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 203.
+Evaluating Model.
+[Epoch 203] Loss: 2.7283 | Accuracy: 0.0742 (±0.0082) | Time: 52.57s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 204.
+Evaluating Model.
+[Epoch 204] Loss: 2.7281 | Accuracy: 0.0723 (±0.0081) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 205.
+Evaluating Model.
+[Epoch 205] Loss: 2.7272 | Accuracy: 0.0684 (±0.0079) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 206.
+Evaluating Model.
+[Epoch 206] Loss: 2.7282 | Accuracy: 0.0664 (±0.0078) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 207.
+Evaluating Model.
+[Epoch 207] Loss: 2.7279 | Accuracy: 0.0840 (±0.0087) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 208.
+Evaluating Model.
+[Epoch 208] Loss: 2.7256 | Accuracy: 0.0684 (±0.0079) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 209.
+Evaluating Model.
+[Epoch 209] Loss: 2.7271 | Accuracy: 0.0713 (±0.0080) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 210.
+Evaluating Model.
+[Epoch 210] Loss: 2.7269 | Accuracy: 0.0713 (±0.0080) | Time: 52.65s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 211.
+Evaluating Model.
+[Epoch 211] Loss: 2.7267 | Accuracy: 0.0811 (±0.0085) | Time: 52.54s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 212.
+Evaluating Model.
+[Epoch 212] Loss: 2.7247 | Accuracy: 0.0869 (±0.0088) | Time: 52.56s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 213.
+Evaluating Model.
+[Epoch 213] Loss: 2.7250 | Accuracy: 0.0771 (±0.0083) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 214.
+Evaluating Model.
+[Epoch 214] Loss: 2.7248 | Accuracy: 0.0635 (±0.0076) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 215.
+Evaluating Model.
+[Epoch 215] Loss: 2.7237 | Accuracy: 0.0557 (±0.0072) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 216.
+Evaluating Model.
+[Epoch 216] Loss: 2.7244 | Accuracy: 0.0830 (±0.0086) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 217.
+Evaluating Model.
+[Epoch 217] Loss: 2.7247 | Accuracy: 0.0723 (±0.0081) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 218.
+Evaluating Model.
+[Epoch 218] Loss: 2.7236 | Accuracy: 0.0732 (±0.0081) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 219.
+Evaluating Model.
+[Epoch 219] Loss: 2.7244 | Accuracy: 0.0791 (±0.0084) | Time: 52.91s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 220.
+Evaluating Model.
+[Epoch 220] Loss: 2.7224 | Accuracy: 0.0752 (±0.0082) | Time: 52.58s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 221.
+Evaluating Model.
+[Epoch 221] Loss: 2.7232 | Accuracy: 0.0742 (±0.0082) | Time: 52.71s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 222.
+Evaluating Model.
+[Epoch 222] Loss: 2.7238 | Accuracy: 0.0869 (±0.0088) | Time: 52.65s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 223.
+Evaluating Model.
+[Epoch 223] Loss: 2.7233 | Accuracy: 0.0723 (±0.0081) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 224.
+Evaluating Model.
+[Epoch 224] Loss: 2.7214 | Accuracy: 0.0762 (±0.0083) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 225.
+Evaluating Model.
+[Epoch 225] Loss: 2.7220 | Accuracy: 0.0879 (±0.0088) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 226.
+Evaluating Model.
+[Epoch 226] Loss: 2.7205 | Accuracy: 0.0869 (±0.0088) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 227.
+Evaluating Model.
+[Epoch 227] Loss: 2.7213 | Accuracy: 0.0742 (±0.0082) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 228.
+Evaluating Model.
+[Epoch 228] Loss: 2.7204 | Accuracy: 0.0850 (±0.0087) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 229.
+Evaluating Model.
+[Epoch 229] Loss: 2.7218 | Accuracy: 0.0752 (±0.0082) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 230.
+Evaluating Model.
+[Epoch 230] Loss: 2.7198 | Accuracy: 0.0781 (±0.0084) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 231.
+Evaluating Model.
+[Epoch 231] Loss: 2.7201 | Accuracy: 0.0771 (±0.0083) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 232.
+Evaluating Model.
+[Epoch 232] Loss: 2.7184 | Accuracy: 0.0850 (±0.0087) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 233.
+Evaluating Model.
+[Epoch 233] Loss: 2.7208 | Accuracy: 0.0752 (±0.0082) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 234.
+Evaluating Model.
+[Epoch 234] Loss: 2.7195 | Accuracy: 0.0771 (±0.0083) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 235.
+Evaluating Model.
+[Epoch 235] Loss: 2.7203 | Accuracy: 0.0791 (±0.0084) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 236.
+Evaluating Model.
+[Epoch 236] Loss: 2.7173 | Accuracy: 0.0850 (±0.0087) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 237.
+Evaluating Model.
+[Epoch 237] Loss: 2.7173 | Accuracy: 0.0674 (±0.0078) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 238.
+Evaluating Model.
+[Epoch 238] Loss: 2.7198 | Accuracy: 0.0791 (±0.0084) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 239.
+Evaluating Model.
+[Epoch 239] Loss: 2.7178 | Accuracy: 0.0762 (±0.0083) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 240.
+Evaluating Model.
+[Epoch 240] Loss: 2.7183 | Accuracy: 0.0820 (±0.0086) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 241.
+Evaluating Model.
+[Epoch 241] Loss: 2.7173 | Accuracy: 0.0762 (±0.0083) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 242.
+Evaluating Model.
+[Epoch 242] Loss: 2.7174 | Accuracy: 0.0977 (±0.0093) | Time: 52.60s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 243.
+Evaluating Model.
+[Epoch 243] Loss: 2.7161 | Accuracy: 0.0830 (±0.0086) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 244.
+Evaluating Model.
+[Epoch 244] Loss: 2.7171 | Accuracy: 0.0859 (±0.0088) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 245.
+Evaluating Model.
+[Epoch 245] Loss: 2.7179 | Accuracy: 0.0801 (±0.0085) | Time: 52.63s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 246.
+Evaluating Model.
+[Epoch 246] Loss: 2.7157 | Accuracy: 0.0820 (±0.0086) | Time: 52.71s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 247.
+Evaluating Model.
+[Epoch 247] Loss: 2.7147 | Accuracy: 0.0781 (±0.0084) | Time: 52.61s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 248.
+Evaluating Model.
+[Epoch 248] Loss: 2.7139 | Accuracy: 0.0850 (±0.0087) | Time: 52.59s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 249.
+Evaluating Model.
+[Epoch 249] Loss: 2.7152 | Accuracy: 0.0811 (±0.0085) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 250.
+Evaluating Model.
+[Epoch 250] Loss: 2.7119 | Accuracy: 0.0820 (±0.0086) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 251.
+Evaluating Model.
+[Epoch 251] Loss: 2.7121 | Accuracy: 0.0684 (±0.0079) | Time: 52.62s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 252.
+Evaluating Model.
+[Epoch 252] Loss: 2.7125 | Accuracy: 0.0889 (±0.0089) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 253.
+Evaluating Model.
+[Epoch 253] Loss: 2.7108 | Accuracy: 0.0771 (±0.0083) | Time: 52.65s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 254.
+Evaluating Model.
+[Epoch 254] Loss: 2.7114 | Accuracy: 0.0801 (±0.0085) | Time: 52.64s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 255.
+Evaluating Model.
+[Epoch 255] Loss: 2.7102 | Accuracy: 0.0801 (±0.0085) | Time: 52.66s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 256.
+Evaluating Model.
+[Epoch 256] Loss: 2.7095 | Accuracy: 0.0840 (±0.0087) | Time: 52.65s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 257.
+Evaluating Model.
+[Epoch 257] Loss: 2.7072 | Accuracy: 0.0781 (±0.0084) | Time: 52.66s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 258.
+Evaluating Model.
+[Epoch 258] Loss: 2.7062 | Accuracy: 0.0742 (±0.0082) | Time: 52.69s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 259.
+Evaluating Model.
+[Epoch 259] Loss: 2.7073 | Accuracy: 0.0938 (±0.0091) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 260.
+Evaluating Model.
+[Epoch 260] Loss: 2.7068 | Accuracy: 0.0850 (±0.0087) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 261.
+Evaluating Model.
+[Epoch 261] Loss: 2.7059 | Accuracy: 0.0869 (±0.0088) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 262.
+Evaluating Model.
+[Epoch 262] Loss: 2.7056 | Accuracy: 0.0703 (±0.0080) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 263.
+Evaluating Model.
+[Epoch 263] Loss: 2.7058 | Accuracy: 0.0684 (±0.0079) | Time: 52.65s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 264.
+Evaluating Model.
+[Epoch 264] Loss: 2.7022 | Accuracy: 0.0908 (±0.0090) | Time: 52.66s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 265.
+Evaluating Model.
+[Epoch 265] Loss: 2.7026 | Accuracy: 0.0908 (±0.0090) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 266.
+Evaluating Model.
+[Epoch 266] Loss: 2.7017 | Accuracy: 0.0771 (±0.0083) | Time: 52.69s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 267.
+Evaluating Model.
+[Epoch 267] Loss: 2.7015 | Accuracy: 0.0791 (±0.0084) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 268.
+Evaluating Model.
+[Epoch 268] Loss: 2.7008 | Accuracy: 0.0684 (±0.0079) | Time: 52.69s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 269.
+Evaluating Model.
+[Epoch 269] Loss: 2.7032 | Accuracy: 0.0664 (±0.0078) | Time: 52.69s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 270.
+Evaluating Model.
+[Epoch 270] Loss: 2.7031 | Accuracy: 0.0918 (±0.0090) | Time: 52.71s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 271.
+Evaluating Model.
+[Epoch 271] Loss: 2.6999 | Accuracy: 0.0732 (±0.0081) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 272.
+Evaluating Model.
+[Epoch 272] Loss: 2.6998 | Accuracy: 0.0918 (±0.0090) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 273.
+Evaluating Model.
+[Epoch 273] Loss: 2.6977 | Accuracy: 0.0820 (±0.0086) | Time: 52.71s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 274.
+Evaluating Model.
+[Epoch 274] Loss: 2.6996 | Accuracy: 0.0850 (±0.0087) | Time: 52.69s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 275.
+Evaluating Model.
+[Epoch 275] Loss: 2.6999 | Accuracy: 0.0713 (±0.0080) | Time: 52.69s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 276.
+Evaluating Model.
+[Epoch 276] Loss: 2.7009 | Accuracy: 0.0879 (±0.0088) | Time: 52.69s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 277.
+Evaluating Model.
+[Epoch 277] Loss: 2.6959 | Accuracy: 0.0771 (±0.0083) | Time: 52.70s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 278.
+Evaluating Model.
+[Epoch 278] Loss: 2.6982 | Accuracy: 0.0762 (±0.0083) | Time: 52.70s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 279.
+Evaluating Model.
+[Epoch 279] Loss: 2.6985 | Accuracy: 0.0713 (±0.0080) | Time: 52.71s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 280.
+Evaluating Model.
+[Epoch 280] Loss: 2.6979 | Accuracy: 0.0869 (±0.0088) | Time: 52.70s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 281.
+Evaluating Model.
+[Epoch 281] Loss: 2.6972 | Accuracy: 0.0742 (±0.0082) | Time: 52.74s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 282.
+Evaluating Model.
+[Epoch 282] Loss: 2.6987 | Accuracy: 0.0723 (±0.0081) | Time: 52.69s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 283.
+Evaluating Model.
+[Epoch 283] Loss: 2.6978 | Accuracy: 0.1016 (±0.0094) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 284.
+Evaluating Model.
+[Epoch 284] Loss: 2.6987 | Accuracy: 0.0879 (±0.0088) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 285.
+Evaluating Model.
+[Epoch 285] Loss: 2.6978 | Accuracy: 0.0820 (±0.0086) | Time: 52.66s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 286.
+Evaluating Model.
+[Epoch 286] Loss: 2.6998 | Accuracy: 0.0732 (±0.0081) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 287.
+Evaluating Model.
+[Epoch 287] Loss: 2.6977 | Accuracy: 0.0664 (±0.0078) | Time: 52.65s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 288.
+Evaluating Model.
+[Epoch 288] Loss: 2.6992 | Accuracy: 0.0732 (±0.0081) | Time: 52.66s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 289.
+Evaluating Model.
+[Epoch 289] Loss: 2.6969 | Accuracy: 0.0771 (±0.0083) | Time: 52.66s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 290.
+Evaluating Model.
+[Epoch 290] Loss: 2.6977 | Accuracy: 0.0801 (±0.0085) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 291.
+Evaluating Model.
+[Epoch 291] Loss: 2.6971 | Accuracy: 0.0820 (±0.0086) | Time: 52.70s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 292.
+Evaluating Model.
+[Epoch 292] Loss: 2.6968 | Accuracy: 0.0928 (±0.0091) | Time: 52.79s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 293.
+Evaluating Model.
+[Epoch 293] Loss: 2.6993 | Accuracy: 0.0889 (±0.0089) | Time: 52.67s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 294.
+Evaluating Model.
+[Epoch 294] Loss: 2.6970 | Accuracy: 0.0840 (±0.0087) | Time: 52.72s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 295.
+Evaluating Model.
+[Epoch 295] Loss: 2.6981 | Accuracy: 0.0801 (±0.0085) | Time: 52.80s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 296.
+Evaluating Model.
+[Epoch 296] Loss: 2.6957 | Accuracy: 0.0850 (±0.0087) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 297.
+Evaluating Model.
+[Epoch 297] Loss: 2.6965 | Accuracy: 0.0664 (±0.0078) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 298.
+Evaluating Model.
+[Epoch 298] Loss: 2.6957 | Accuracy: 0.0771 (±0.0083) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
+==================
+Starting Epoch 299.
+Evaluating Model.
+[Epoch 299] Loss: 2.6984 | Accuracy: 0.0869 (±0.0088) | Time: 52.68s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53107074/outputs/2026-05-18/13-16-01
