@@ -1,0 +1,5 @@
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none
+Starting Experiment: --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none
+[2026-05-19T06:48:53.030] error: *** JOB 53158199 ON nid003584 CANCELLED AT 2026-05-19T06:48:53 DUE to SIGNAL Terminated ***

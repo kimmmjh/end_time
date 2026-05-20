@@ -1,0 +1,26 @@
+Executed Command: python /global/homes/d/ds08152/end_time/main.py --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none
+Lattice size: 9, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 300
+Architecture - Channels: [64, 64, 64], Depths: [3, 3, 3]
+Attention: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5
+==================
+Starting Epoch 0.
+Evaluating Model.
+[Epoch 0] Loss: 2.7760 | Accuracy: 0.0537 (±0.0070) | Time: 57.93s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53158884/outputs/2026-05-18/23-51-46
+==================
+Starting Epoch 1.
+Evaluating Model.
+[Epoch 1] Loss: 2.7714 | Accuracy: 0.0801 (±0.0085) | Time: 52.83s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53158884/outputs/2026-05-18/23-51-46
+==================
+Starting Epoch 2.
+Evaluating Model.
+[Epoch 2] Loss: 2.7711 | Accuracy: 0.0771 (±0.0083) | Time: 52.84s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53158884/outputs/2026-05-18/23-51-46
+==================
+Starting Epoch 3.
+Evaluating Model.
+[Epoch 3] Loss: 2.7716 | Accuracy: 0.0693 (±0.0079) | Time: 52.92s
+Saving plots to /global/u2/d/ds08152/end_time/resdir_53158884/outputs/2026-05-18/23-51-46
+==================
+Starting Epoch 4.
