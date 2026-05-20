@@ -1,21 +1,0 @@
-2026-05-18 23:46:22,615 - Start Training
-Executed Command: python /global/homes/d/ds08152/end_time/main.py --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3 --amp_dtype=none
-Lattice size: 9, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 300
-Architecture - Channels: [64, 64, 64], Depths: [3, 3, 3]
-Attention: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5
-==================
-Starting Epoch 0.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:   8%|▊         | 87/1024 [00:10<01:47,  8.70it/s]Training:  28%|██▊       | 282/1024 [00:20<00:49, 15.03it/s]Training:  47%|████▋     | 477/1024 [00:30<00:32, 17.05it/s]Training:  66%|██████▌   | 672/1024 [00:40<00:19, 18.01it/s]Training:  85%|████████▍ | 867/1024 [00:50<00:08, 18.53it/s]Training: 100%|██████████| 1024/1024 [00:58<00:00, 17.61it/s]
-Evaluating Model.
-[Epoch 0] Loss: 2.7756 | Accuracy: 0.0752 (±0.0082) | Time: 58.15s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53158199/outputs/2026-05-18/23-46-22
-==================
-Starting Epoch 1.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  19%|█▉        | 195/1024 [00:10<00:42, 19.41it/s]Training:  38%|███▊      | 390/1024 [00:20<00:32, 19.39it/s]Training:  57%|█████▋    | 584/1024 [00:30<00:22, 19.37it/s]Training:  76%|███████▌  | 778/1024 [00:40<00:12, 19.35it/s]Training:  95%|█████████▍| 972/1024 [00:50<00:02, 19.36it/s]Training: 100%|██████████| 1024/1024 [00:52<00:00, 19.37it/s]
-Evaluating Model.
-[Epoch 1] Loss: 2.7715 | Accuracy: 0.0684 (±0.0079) | Time: 52.88s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53158199/outputs/2026-05-18/23-46-22
-==================
-Starting Epoch 2.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  19%|█▉        | 194/1024 [00:10<00:42, 19.34it/s]Training:  38%|███▊      | 388/1024 [00:20<00:32, 19.32it/s]Training:  57%|█████▋    | 582/1024 [00:30<00:22, 19.32it/s][2026-05-19T06:48:53.029] error: *** STEP 53158199.0 ON nid003584 CANCELLED AT 2026-05-19T06:48:53 DUE to SIGNAL Terminated ***
-srun: Job step aborted: Waiting up to 32 seconds for job step to finish.

@@ -1,602 +1,0 @@
-srun: Job 53065141 step creation temporarily disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Job 53065141 step creation still disabled, retrying (Requested nodes are busy)
-srun: Step created for StepId=53065141.1
-2026-05-17 10:50:30,511 - Start Training
-Executed Command: python /global/homes/d/ds08152/end_time/main.py --noise_model=phenomenological --measurement_error_rate=0.01 --p=0.01 --loss_fn=ce --epochs=400 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 3 3 3
-Lattice size: 9, Error rate: 0.01, Noise Model: phenomenological, Measurement Error: 0.01, Epochs: 400
-Architecture - Channels: [64, 64, 64], Depths: [3, 3, 3]
-Attention: Enabled | Heads: 5 | Key Depths: 25 | Attn Channels: 5
-==================
-Starting Epoch 0.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  17%|█▋        | 170/1024 [00:10<00:50, 16.96it/s]Training:  37%|███▋      | 381/1024 [00:20<00:33, 19.35it/s]Training:  58%|█████▊    | 592/1024 [00:30<00:21, 20.09it/s]Training:  78%|███████▊  | 802/1024 [00:40<00:10, 20.44it/s]Training:  99%|█████████▉| 1013/1024 [00:50<00:00, 20.65it/s]Training: 100%|██████████| 1024/1024 [00:50<00:00, 20.20it/s]
-Evaluating Model.
-[Epoch 0] Loss: 2.7743 | Accuracy: 0.0732 (±0.0081) | Time: 50.70s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 1.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.90it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.88it/s]Training:  61%|██████▏   | 628/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 838/1024 [00:40<00:08, 20.90it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.90it/s]
-Evaluating Model.
-[Epoch 1] Loss: 2.7713 | Accuracy: 0.0674 (±0.0078) | Time: 48.99s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 2.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.90it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.88it/s]Training:  82%|████████▏ | 838/1024 [00:40<00:08, 20.88it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.89it/s]
-Evaluating Model.
-[Epoch 2] Loss: 2.7711 | Accuracy: 0.0674 (±0.0078) | Time: 49.03s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 3.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.89it/s]Training:  41%|████      | 419/1024 [00:20<00:28, 20.91it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 839/1024 [00:40<00:08, 20.89it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.90it/s]
-Evaluating Model.
-[Epoch 3] Loss: 2.7709 | Accuracy: 0.0703 (±0.0080) | Time: 48.99s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 4.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.88it/s]Training:  41%|████      | 419/1024 [00:20<00:28, 20.89it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 839/1024 [00:40<00:08, 20.89it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.89it/s]
-Evaluating Model.
-[Epoch 4] Loss: 2.7713 | Accuracy: 0.0732 (±0.0081) | Time: 49.02s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 5.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.88it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.87it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.88it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.88it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.88it/s]
-Evaluating Model.
-[Epoch 5] Loss: 2.7710 | Accuracy: 0.0566 (±0.0072) | Time: 49.05s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 6.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.83it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.85it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.84it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.85it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.86it/s]
-Evaluating Model.
-[Epoch 6] Loss: 2.7709 | Accuracy: 0.0625 (±0.0076) | Time: 49.08s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 7.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.99it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.89it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 838/1024 [00:40<00:08, 20.90it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.90it/s]
-Evaluating Model.
-[Epoch 7] Loss: 2.7707 | Accuracy: 0.0723 (±0.0081) | Time: 49.00s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 8.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.87it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.88it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.88it/s]Training:  82%|████████▏ | 837/1024 [00:40<00:08, 20.89it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.89it/s]
-Evaluating Model.
-[Epoch 8] Loss: 2.7712 | Accuracy: 0.0605 (±0.0075) | Time: 49.01s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 9.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.90it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.92it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.91it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.90it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.89it/s]
-Evaluating Model.
-[Epoch 9] Loss: 2.7714 | Accuracy: 0.0732 (±0.0081) | Time: 49.01s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 10.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.82it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.83it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.83it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.83it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.82it/s]
-Evaluating Model.
-[Epoch 10] Loss: 2.7707 | Accuracy: 0.0801 (±0.0085) | Time: 49.18s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 11.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.87it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.86it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.84it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.73it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.77it/s]
-Evaluating Model.
-[Epoch 11] Loss: 2.7714 | Accuracy: 0.0703 (±0.0080) | Time: 49.29s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 12.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.81it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.82it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.83it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.83it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.84it/s]
-Evaluating Model.
-[Epoch 12] Loss: 2.7711 | Accuracy: 0.0732 (±0.0081) | Time: 49.14s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 13.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.88it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.83it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.83it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.84it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.84it/s]
-Evaluating Model.
-[Epoch 13] Loss: 2.7711 | Accuracy: 0.0820 (±0.0086) | Time: 49.14s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 14.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 208/1024 [00:10<00:39, 20.74it/s]Training:  41%|████      | 416/1024 [00:20<00:29, 20.76it/s]Training:  61%|██████    | 624/1024 [00:30<00:19, 20.77it/s]Training:  81%|████████▏ | 832/1024 [00:40<00:09, 20.77it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.78it/s]
-Evaluating Model.
-[Epoch 14] Loss: 2.7708 | Accuracy: 0.0547 (±0.0071) | Time: 49.29s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 15.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.83it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.82it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.83it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.83it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.83it/s]
-Evaluating Model.
-[Epoch 15] Loss: 2.7710 | Accuracy: 0.0850 (±0.0087) | Time: 49.16s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 16.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.85it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.84it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.85it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.85it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.85it/s]
-Evaluating Model.
-[Epoch 16] Loss: 2.7711 | Accuracy: 0.0791 (±0.0084) | Time: 49.13s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 17.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.86it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.87it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.87it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.87it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.86it/s]
-Evaluating Model.
-[Epoch 17] Loss: 2.7708 | Accuracy: 0.0596 (±0.0074) | Time: 49.08s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 18.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 208/1024 [00:10<00:39, 20.80it/s]Training:  41%|████      | 417/1024 [00:20<00:29, 20.80it/s]Training:  61%|██████    | 626/1024 [00:30<00:19, 20.80it/s]Training:  82%|████████▏ | 835/1024 [00:40<00:09, 20.81it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.81it/s]
-Evaluating Model.
-[Epoch 18] Loss: 2.7708 | Accuracy: 0.0762 (±0.0083) | Time: 49.20s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 19.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.84it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.82it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.82it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.82it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.82it/s]
-Evaluating Model.
-[Epoch 19] Loss: 2.7708 | Accuracy: 0.0723 (±0.0081) | Time: 49.18s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 20.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.83it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.83it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.82it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.83it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.83it/s]
-Evaluating Model.
-[Epoch 20] Loss: 2.7711 | Accuracy: 0.0928 (±0.0091) | Time: 49.15s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 21.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.86it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.87it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.87it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.85it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.86it/s]
-Evaluating Model.
-[Epoch 21] Loss: 2.7710 | Accuracy: 0.0703 (±0.0080) | Time: 49.09s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 22.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.81it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.80it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.81it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.80it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.79it/s]
-Evaluating Model.
-[Epoch 22] Loss: 2.7711 | Accuracy: 0.0547 (±0.0071) | Time: 49.25s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 23.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.82it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.82it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.77it/s]Training:  82%|████████▏ | 835/1024 [00:40<00:09, 20.71it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.76it/s]
-Evaluating Model.
-[Epoch 23] Loss: 2.7708 | Accuracy: 0.0713 (±0.0080) | Time: 49.33s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 24.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.83it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.85it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.86it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.87it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.86it/s]
-Evaluating Model.
-[Epoch 24] Loss: 2.7717 | Accuracy: 0.0703 (±0.0080) | Time: 49.09s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 25.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.86it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.84it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.85it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.84it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.85it/s]
-Evaluating Model.
-[Epoch 25] Loss: 2.7710 | Accuracy: 0.0869 (±0.0088) | Time: 49.12s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 26.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.81it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.80it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.80it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.81it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.81it/s]
-Evaluating Model.
-[Epoch 26] Loss: 2.7711 | Accuracy: 0.0859 (±0.0088) | Time: 49.20s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 27.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.83it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.84it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.84it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.83it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.84it/s]
-Evaluating Model.
-[Epoch 27] Loss: 2.7727 | Accuracy: 0.0615 (±0.0075) | Time: 49.15s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 28.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.85it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.86it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.87it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.87it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.86it/s]
-Evaluating Model.
-[Epoch 28] Loss: 2.7711 | Accuracy: 0.0732 (±0.0081) | Time: 49.08s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 29.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.92it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.90it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.89it/s]Training:  82%|████████▏ | 838/1024 [00:40<00:08, 20.87it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.87it/s]
-Evaluating Model.
-[Epoch 29] Loss: 2.7710 | Accuracy: 0.0547 (±0.0071) | Time: 49.06s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 30.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 208/1024 [00:10<00:39, 20.77it/s]Training:  41%|████      | 417/1024 [00:20<00:29, 20.81it/s]Training:  61%|██████    | 626/1024 [00:30<00:19, 20.82it/s]Training:  82%|████████▏ | 835/1024 [00:40<00:09, 20.81it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.81it/s]
-Evaluating Model.
-[Epoch 30] Loss: 2.7709 | Accuracy: 0.0830 (±0.0086) | Time: 49.21s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 31.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.87it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.84it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.84it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.85it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.84it/s]
-Evaluating Model.
-[Epoch 31] Loss: 2.7714 | Accuracy: 0.0723 (±0.0081) | Time: 49.13s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 32.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.84it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.85it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.85it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.85it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.85it/s]
-Evaluating Model.
-[Epoch 32] Loss: 2.7715 | Accuracy: 0.0723 (±0.0081) | Time: 49.12s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 33.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.85it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.86it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.86it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.86it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.86it/s]
-Evaluating Model.
-[Epoch 33] Loss: 2.7714 | Accuracy: 0.0635 (±0.0076) | Time: 49.10s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 34.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.87it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.84it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.83it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.84it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.80it/s]
-Evaluating Model.
-[Epoch 34] Loss: 2.7710 | Accuracy: 0.0732 (±0.0081) | Time: 49.23s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 35.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 208/1024 [00:10<00:39, 20.72it/s]Training:  41%|████      | 417/1024 [00:20<00:29, 20.80it/s]Training:  61%|██████    | 626/1024 [00:30<00:19, 20.79it/s]Training:  82%|████████▏ | 835/1024 [00:40<00:09, 20.81it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.81it/s]
-Evaluating Model.
-[Epoch 35] Loss: 2.7711 | Accuracy: 0.0596 (±0.0074) | Time: 49.21s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 36.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:38, 20.90it/s]Training:  41%|████      | 419/1024 [00:20<00:28, 20.92it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 838/1024 [00:40<00:08, 20.90it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.90it/s]
-Evaluating Model.
-[Epoch 36] Loss: 2.7711 | Accuracy: 0.0713 (±0.0080) | Time: 48.99s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 37.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.92it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.90it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 839/1024 [00:40<00:08, 20.91it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.91it/s]
-Evaluating Model.
-[Epoch 37] Loss: 2.7711 | Accuracy: 0.0801 (±0.0085) | Time: 48.98s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 38.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.90it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 838/1024 [00:40<00:08, 20.89it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.89it/s]
-Evaluating Model.
-[Epoch 38] Loss: 2.7710 | Accuracy: 0.0635 (±0.0076) | Time: 49.03s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 39.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.90it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.92it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.93it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.92it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.92it/s]
-Evaluating Model.
-[Epoch 39] Loss: 2.7706 | Accuracy: 0.0645 (±0.0077) | Time: 48.95s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 40.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.92it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.93it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.93it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.92it/s]
-Evaluating Model.
-[Epoch 40] Loss: 2.7719 | Accuracy: 0.0781 (±0.0084) | Time: 48.95s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 41.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:38, 20.90it/s]Training:  41%|████      | 419/1024 [00:20<00:28, 20.94it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.94it/s]Training:  82%|████████▏ | 839/1024 [00:40<00:08, 20.94it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.93it/s]
-Evaluating Model.
-[Epoch 41] Loss: 2.7716 | Accuracy: 0.0713 (±0.0080) | Time: 48.92s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 42.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.86it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.87it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.86it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.87it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.87it/s]
-Evaluating Model.
-[Epoch 42] Loss: 2.7718 | Accuracy: 0.0742 (±0.0082) | Time: 49.07s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 43.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.92it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.92it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.92it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.93it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.93it/s]
-Evaluating Model.
-[Epoch 43] Loss: 2.7712 | Accuracy: 0.0762 (±0.0083) | Time: 48.92s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 44.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.94it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.93it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.93it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.93it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.93it/s]
-Evaluating Model.
-[Epoch 44] Loss: 2.7712 | Accuracy: 0.0693 (±0.0079) | Time: 48.93s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 45.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.91it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.92it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.91it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.91it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.91it/s]
-Evaluating Model.
-[Epoch 45] Loss: 2.7712 | Accuracy: 0.0586 (±0.0073) | Time: 48.97s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 46.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.82it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.85it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.82it/s]Training:  82%|████████▏ | 835/1024 [00:40<00:09, 20.73it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.79it/s]
-Evaluating Model.
-[Epoch 46] Loss: 2.7712 | Accuracy: 0.0586 (±0.0073) | Time: 49.27s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 47.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.90it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.90it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.89it/s]Training:  82%|████████▏ | 837/1024 [00:40<00:08, 20.91it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.91it/s]
-Evaluating Model.
-[Epoch 47] Loss: 2.7709 | Accuracy: 0.0645 (±0.0077) | Time: 48.98s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 48.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.90it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.89it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.91it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.92it/s]
-Evaluating Model.
-[Epoch 48] Loss: 2.7712 | Accuracy: 0.0713 (±0.0080) | Time: 48.94s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 49.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.93it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.94it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.94it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.94it/s]
-Evaluating Model.
-[Epoch 49] Loss: 2.7710 | Accuracy: 0.0732 (±0.0081) | Time: 48.91s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 50.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.94it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.93it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.92it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.91it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.92it/s]
-Evaluating Model.
-[Epoch 50] Loss: 2.7711 | Accuracy: 0.0664 (±0.0078) | Time: 48.95s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 51.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.91it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.90it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.92it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.91it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.91it/s]
-Evaluating Model.
-[Epoch 51] Loss: 2.7711 | Accuracy: 0.0723 (±0.0081) | Time: 48.97s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 52.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.96it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.97it/s]Training:  82%|████████▏ | 841/1024 [00:40<00:08, 21.00it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.99it/s]
-Evaluating Model.
-[Epoch 52] Loss: 2.7713 | Accuracy: 0.0684 (±0.0079) | Time: 48.79s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 53.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 211/1024 [00:10<00:38, 21.02it/s]Training:  21%|██        | 211/1024 [00:20<00:38, 21.02it/s]Training:  41%|████      | 422/1024 [00:20<00:28, 21.03it/s]Training:  62%|██████▏   | 633/1024 [00:30<00:18, 21.04it/s]Training:  82%|████████▏ | 844/1024 [00:40<00:08, 21.03it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 21.03it/s]
-Evaluating Model.
-[Epoch 53] Loss: 2.7708 | Accuracy: 0.0645 (±0.0077) | Time: 48.69s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 54.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.99it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.96it/s]Training:  62%|██████▏   | 631/1024 [00:30<00:18, 20.99it/s]Training:  82%|████████▏ | 842/1024 [00:40<00:08, 20.98it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.97it/s]
-Evaluating Model.
-[Epoch 54] Loss: 2.7710 | Accuracy: 0.0654 (±0.0077) | Time: 48.83s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 55.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.94it/s]Training:  41%|████      | 421/1024 [00:20<00:28, 20.98it/s]Training:  62%|██████▏   | 633/1024 [00:30<00:18, 21.07it/s]Training:  83%|████████▎ | 845/1024 [00:40<00:08, 21.05it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 21.03it/s]
-Skipped 4 non-finite training batches.
-Evaluating Model.
-[Epoch 55] Loss: 2.7760 | Accuracy: 0.1934 (±0.0123) | Time: 48.70s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 56.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.97it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.97it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.96it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.98it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.99it/s]
-Evaluating Model.
-[Epoch 56] Loss: 2.7732 | Accuracy: 0.2256 (±0.0131) | Time: 48.79s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 57.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 211/1024 [00:10<00:38, 21.04it/s]Training:  41%|████      | 422/1024 [00:20<00:28, 21.01it/s]Training:  62%|██████▏   | 633/1024 [00:30<00:18, 21.03it/s]Training:  82%|████████▏ | 844/1024 [00:40<00:08, 21.03it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 21.02it/s]
-Evaluating Model.
-[Epoch 57] Loss: 2.7711 | Accuracy: 0.1992 (±0.0125) | Time: 48.71s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 58.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.90it/s]Training:  41%|████      | 419/1024 [00:20<00:28, 20.90it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.89it/s]Training:  82%|████████▏ | 838/1024 [00:40<00:08, 20.84it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.82it/s]
-Evaluating Model.
-[Epoch 58] Loss: 2.7711 | Accuracy: 0.2031 (±0.0126) | Time: 49.18s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 59.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.86it/s]Training:  41%|████      | 419/1024 [00:20<00:28, 20.89it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 839/1024 [00:40<00:08, 20.90it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.90it/s]
-Evaluating Model.
-[Epoch 59] Loss: 2.7708 | Accuracy: 0.1973 (±0.0124) | Time: 48.99s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 60.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.89it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.91it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.89it/s]
-Evaluating Model.
-[Epoch 60] Loss: 2.7711 | Accuracy: 0.2109 (±0.0127) | Time: 49.01s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 61.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.94it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.91it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.92it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.92it/s]
-Evaluating Model.
-[Epoch 61] Loss: 2.7718 | Accuracy: 0.1982 (±0.0125) | Time: 48.95s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 62.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:39, 20.80it/s]Training:  41%|████      | 418/1024 [00:20<00:29, 20.83it/s]Training:  61%|██████    | 627/1024 [00:30<00:19, 20.84it/s]Training:  82%|████████▏ | 836/1024 [00:40<00:09, 20.84it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.84it/s]
-Evaluating Model.
-[Epoch 62] Loss: 2.7710 | Accuracy: 0.1934 (±0.0123) | Time: 49.15s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 63.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.91it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.91it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.92it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.92it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.91it/s]
-Evaluating Model.
-[Epoch 63] Loss: 2.7716 | Accuracy: 0.2021 (±0.0126) | Time: 48.97s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 64.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.94it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.96it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.95it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.94it/s]
-Evaluating Model.
-[Epoch 64] Loss: 2.7710 | Accuracy: 0.2021 (±0.0126) | Time: 48.90s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 65.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.94it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.93it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.94it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.93it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.93it/s]
-Evaluating Model.
-[Epoch 65] Loss: 2.7712 | Accuracy: 0.2051 (±0.0126) | Time: 48.92s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 66.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.90it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.90it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.90it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.89it/s]Training: 100%|██████████| 1024/1024 [00:49<00:00, 20.90it/s]
-Evaluating Model.
-[Epoch 66] Loss: 2.7708 | Accuracy: 0.2100 (±0.0127) | Time: 49.00s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 67.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.95it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.90it/s]Training:  61%|██████▏   | 629/1024 [00:30<00:18, 20.89it/s]Training:  82%|████████▏ | 839/1024 [00:40<00:08, 20.90it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.91it/s]
-Evaluating Model.
-[Epoch 67] Loss: 2.7711 | Accuracy: 0.2031 (±0.0126) | Time: 48.97s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 68.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.93it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.94it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.92it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.92it/s]
-Evaluating Model.
-[Epoch 68] Loss: 2.7712 | Accuracy: 0.1934 (±0.0123) | Time: 48.94s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 69.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 210/1024 [00:10<00:38, 20.93it/s]Training:  41%|████      | 420/1024 [00:20<00:28, 20.93it/s]Training:  62%|██████▏   | 630/1024 [00:30<00:18, 20.95it/s]Training:  82%|████████▏ | 840/1024 [00:40<00:08, 20.95it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 20.94it/s]
-Evaluating Model.
-[Epoch 69] Loss: 2.7710 | Accuracy: 0.1758 (±0.0119) | Time: 48.89s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 70.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  20%|██        | 209/1024 [00:10<00:38, 20.90it/s]Training:  41%|████      | 421/1024 [00:20<00:28, 21.03it/s]Training:  62%|██████▏   | 633/1024 [00:30<00:18, 20.89it/s]Training:  83%|████████▎ | 846/1024 [00:40<00:08, 21.01it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 21.01it/s]
-Skipped 17 non-finite training batches.
-Evaluating Model.
-[Epoch 70] Loss: 2.7712 | Accuracy: 0.2080 (±0.0127) | Time: 48.73s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 71.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 214/1024 [00:10<00:37, 21.34it/s]Training:  42%|████▏     | 428/1024 [00:20<00:28, 21.19it/s]Training:  62%|██████▏   | 639/1024 [00:30<00:18, 21.09it/s]Training:  83%|████████▎ | 851/1024 [00:40<00:08, 21.10it/s]Training: 100%|██████████| 1024/1024 [00:48<00:00, 21.12it/s]
-Skipped 18 non-finite training batches.
-Evaluating Model.
-[Epoch 71] Loss: 2.7711 | Accuracy: 0.1934 (±0.0123) | Time: 48.50s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 72.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  21%|██        | 213/1024 [00:10<00:38, 21.22it/s]Training:  42%|████▏     | 428/1024 [00:20<00:27, 21.36it/s]Training:  64%|██████▎   | 651/1024 [00:30<00:17, 21.77it/s]Training:  85%|████████▌ | 874/1024 [00:40<00:06, 21.94it/s]Training: 100%|██████████| 1024/1024 [00:46<00:00, 22.24it/s]
-Skipped 114 non-finite training batches.
-Evaluating Model.
-[Epoch 72] Loss: 2.7706 | Accuracy: 0.2080 (±0.0127) | Time: 46.05s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 73.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  24%|██▍       | 244/1024 [00:10<00:32, 24.30it/s]Training:  48%|████▊     | 488/1024 [00:21<00:23, 22.55it/s]Training:  70%|███████   | 717/1024 [00:31<00:13, 22.67it/s]Training:  92%|█████████▏| 946/1024 [00:41<00:03, 22.54it/s]Training: 100%|██████████| 1024/1024 [00:44<00:00, 22.80it/s]
-Skipped 152 non-finite training batches.
-Evaluating Model.
-[Epoch 73] Loss: 2.7722 | Accuracy: 0.2080 (±0.0127) | Time: 44.92s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 74.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  23%|██▎       | 231/1024 [00:10<00:34, 23.07it/s]Training:  45%|████▌     | 462/1024 [00:20<00:24, 22.73it/s]Training:  68%|██████▊   | 692/1024 [00:30<00:14, 22.85it/s]Training:  95%|█████████▌| 973/1024 [00:40<00:02, 24.88it/s]Training: 100%|██████████| 1024/1024 [00:42<00:00, 24.32it/s]
-Skipped 261 non-finite training batches.
-Evaluating Model.
-[Epoch 74] Loss: 2.7713 | Accuracy: 0.1855 (±0.0121) | Time: 42.10s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 75.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  28%|██▊       | 284/1024 [00:10<00:26, 28.40it/s]Training:  56%|█████▌    | 571/1024 [00:20<00:15, 28.56it/s]Training:  84%|████████▍ | 858/1024 [00:30<00:05, 28.35it/s]Training: 100%|██████████| 1024/1024 [00:35<00:00, 28.63it/s]
-Skipped 512 non-finite training batches.
-Evaluating Model.
-[Epoch 75] Loss: 2.7708 | Accuracy: 0.1807 (±0.0120) | Time: 35.77s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 76.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  27%|██▋       | 279/1024 [00:10<00:26, 27.85it/s]Training:  63%|██████▎   | 643/1024 [00:20<00:11, 32.84it/s]Training: 100%|██████████| 1024/1024 [00:29<00:00, 34.16it/s]
-Skipped 735 non-finite training batches.
-Evaluating Model.
-[Epoch 76] Loss: 2.7714 | Accuracy: 0.1953 (±0.0124) | Time: 29.97s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 77.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  27%|██▋       | 275/1024 [00:10<00:27, 27.42it/s]Training:  55%|█████▍    | 562/1024 [00:20<00:16, 28.10it/s]Training:  88%|████████▊ | 904/1024 [00:30<00:03, 30.86it/s]Training: 100%|██████████| 1024/1024 [00:33<00:00, 30.64it/s]
-Skipped 598 non-finite training batches.
-Evaluating Model.
-[Epoch 77] Loss: 2.7716 | Accuracy: 0.2256 (±0.0131) | Time: 33.43s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 78.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  33%|███▎      | 340/1024 [00:10<00:20, 33.98it/s]Training:  70%|███████   | 717/1024 [00:20<00:08, 36.14it/s]Training: 100%|██████████| 1024/1024 [00:28<00:00, 35.34it/s]
-Skipped 773 non-finite training batches.
-Evaluating Model.
-[Epoch 78] Loss: 2.7711 | Accuracy: 0.1953 (±0.0124) | Time: 28.98s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 79.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  34%|███▍      | 346/1024 [00:10<00:19, 34.59it/s]Training:  68%|██████▊   | 692/1024 [00:20<00:10, 32.96it/s]Training: 100%|██████████| 1024/1024 [00:30<00:00, 33.94it/s]
-Skipped 725 non-finite training batches.
-Evaluating Model.
-[Epoch 79] Loss: 2.7711 | Accuracy: 0.2031 (±0.0126) | Time: 30.17s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 80.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  39%|███▉      | 403/1024 [00:10<00:15, 40.28it/s]Training:  79%|███████▊  | 806/1024 [00:21<00:05, 37.97it/s]Training: 100%|██████████| 1024/1024 [00:27<00:00, 36.99it/s]
-Skipped 844 non-finite training batches.
-Evaluating Model.
-[Epoch 80] Loss: 2.7715 | Accuracy: 0.2080 (±0.0127) | Time: 27.69s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 81.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  30%|██▉       | 304/1024 [00:10<00:23, 30.34it/s]Training:  59%|█████▉    | 608/1024 [00:20<00:13, 29.75it/s]Training:  90%|█████████ | 926/1024 [00:30<00:03, 30.67it/s]Training: 100%|██████████| 1024/1024 [00:32<00:00, 31.14it/s]
-Skipped 624 non-finite training batches.
-Evaluating Model.
-[Epoch 81] Loss: 2.7708 | Accuracy: 0.2158 (±0.0129) | Time: 32.88s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 82.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  43%|████▎     | 439/1024 [00:10<00:13, 43.85it/s]Training:  86%|████████▌ | 878/1024 [00:20<00:03, 42.31it/s]Training: 100%|██████████| 1024/1024 [00:25<00:00, 40.90it/s]
-Skipped 931 non-finite training batches.
-Evaluating Model.
-[Epoch 82] Loss: 2.7703 | Accuracy: 0.1953 (±0.0124) | Time: 25.04s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 83.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  37%|███▋      | 375/1024 [00:10<00:17, 37.49it/s]Training:  81%|████████▏ | 832/1024 [00:20<00:04, 42.24it/s]Training: 100%|██████████| 1024/1024 [00:24<00:00, 42.25it/s]
-Skipped 954 non-finite training batches.
-Evaluating Model.
-[Epoch 83] Loss: 2.7714 | Accuracy: 0.1934 (±0.0123) | Time: 24.24s
-Saving plots to /global/u2/d/ds08152/end_time/resdir_53065141/outputs/2026-05-17/10-50-30
-==================
-Starting Epoch 84.
-Training:   0%|          | 0/1024 [00:00<?, ?it/s]Training:  45%|████▍     | 458/1024 [00:10<00:12, 45.78it/s]Training:  89%|████████▉ | 916/1024 [00:20<00:02, 45.67it/s]Training: 100%|██████████| 1024/1024 [00:22<00:00, 45.69it/s]
-Skipped 1024 non-finite training batches.
-Traceback (most recent call last):
-  File "/global/homes/d/ds08152/end_time/main.py", line 180, in <module>
-    main()
-  File "/global/homes/d/ds08152/end_time/main.py", line 170, in main
-    trainer.train(
-  File "/global/u2/d/ds08152/end_time/src/_trainer.py", line 157, in train
-    loss, _ = self._process_batches(data_generator, device, self._num_batches)
-  File "/global/u2/d/ds08152/end_time/src/_trainer.py", line 291, in _process_batches
-    raise FloatingPointError("All training batches produced non-finite loss.")
-FloatingPointError: All training batches produced non-finite loss.
-srun: error: nid002528: task 0: Exited with exit code 1
-srun: Terminating StepId=53065141.1
