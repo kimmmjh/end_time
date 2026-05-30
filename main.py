@@ -3,6 +3,7 @@ import torch
 import logging
 import argparse
 import datetime
+import re
 
 from torch import nn
 from models import Decoder
@@ -127,13 +128,31 @@ def main() -> None:
     logging.info("Start Training")
 
     curr_time = datetime.datetime.now()
+    run_slug = re.sub(
+        r"[^A-Za-z0-9_.-]+",
+        "_",
+        f"L{args.L}_ch{'-'.join(map(str, args.channels))}_d{'-'.join(map(str, args.depths))}",
+    )
     output_dir = os.path.join(
         os.getcwd(),
         "outputs",
         curr_time.strftime("%Y-%m-%d"),
-        curr_time.strftime("%H-%M-%S"),
+        f"{curr_time.strftime('%H-%M-%S-%f')}_{run_slug}",
     )
     os.makedirs(output_dir, exist_ok=True)
+
+    if (
+        hasattr(network, "conv_in")
+        and network.conv_in.__class__.__name__ == "AConvCircular3D"
+    ):
+        conv_in = network.conv_in
+        attention = (
+            f"enabled heads={conv_in.number_heads}, "
+            f"key_depths={conv_in.key_depths}, "
+            f"attn_channels={conv_in.attention_channels}"
+        )
+    else:
+        attention = "disabled"
 
     trainer = Trainer(
         model=decoder,
@@ -144,6 +163,10 @@ def main() -> None:
         epochs=args.epochs,
         batches=args.batches,
         amp_dtype=args.amp_dtype,
+        lattice_size=args.L,
+        channels=args.channels,
+        depths=args.depths,
+        attention=attention,
         save_model=args.save_model,
         load_model_path=args.load_model,
         save_directory=output_dir,
@@ -155,11 +178,7 @@ def main() -> None:
     logging.info(f"Architecture - Channels: {args.channels}, Depths: {args.depths}")
 
     # Check if network is using Attention
-    if (
-        hasattr(network, "conv_in")
-        and network.conv_in.__class__.__name__ == "AConvCircular3D"
-    ):
-        conv_in = network.conv_in
+    if attention != "disabled":
         logging.info(
             f"Attention: Enabled | Heads: {conv_in.number_heads} | Key Depths: {conv_in.key_depths} | Attn Channels: {conv_in.attention_channels}"
         )

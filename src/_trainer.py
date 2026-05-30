@@ -49,6 +49,10 @@ class Trainer:
         epochs: int,
         batches: int,
         amp_dtype: str = "fp16",
+        lattice_size: int | None = None,
+        channels: list[int] | None = None,
+        depths: list[int] | None = None,
+        attention: str | None = None,
         verbose: bool = False,
         save_model: bool = False,
         load_model_path: str = None,
@@ -65,6 +69,10 @@ class Trainer:
         :param epochs: Number of epochs to train.
         :param batches: Number of batches per epoch.
         :param amp_dtype: Mixed precision dtype: "fp16", "bf16", or "none".
+        :param lattice_size: Lattice size used for the code.
+        :param channels: Model channel widths per stage.
+        :param depths: Model residual-block depths per stage.
+        :param attention: Attention setting summary.
         :param verbose: Whether the trainer should print progress or log it.
         :param save_model: If model should be saved.
         :return: The trained decoder and train / validation values.
@@ -103,6 +111,12 @@ class Trainer:
         self._batch_size = batch_size
         self._save_directory = save_directory
         self._save_model = save_model
+        self._plot_metadata = self._format_plot_metadata(
+            lattice_size=lattice_size,
+            channels=channels,
+            depths=depths,
+            attention=attention,
+        )
 
         self.history = {"loss": [], "accuracy": []}
         self.start_epoch = 0
@@ -192,6 +206,8 @@ class Trainer:
                 f" | q={measurement_error_rate}" if noise_model != "capacity" else ""
             )
             info_str = f"Noise: {noise_model} | p={error_rate}{q_str}"
+            if self._plot_metadata:
+                info_str = f"{info_str}\n{self._plot_metadata}"
 
             self.save_plots(path=self._save_directory, info_str=info_str)
 
@@ -291,6 +307,25 @@ class Trainer:
             raise FloatingPointError("All training batches produced non-finite loss.")
 
         return loss / finite_batches, (y_pred, y)
+
+    @staticmethod
+    def _format_plot_metadata(
+        *,
+        lattice_size: int | None,
+        channels: list[int] | None,
+        depths: list[int] | None,
+        attention: str | None,
+    ) -> str:
+        parts = []
+        if lattice_size is not None:
+            parts.append(f"L={lattice_size}")
+        if channels is not None:
+            parts.append(f"channels={channels}")
+        if depths is not None:
+            parts.append(f"depths={depths}")
+        if attention is not None:
+            parts.append(f"attention={attention}")
+        return " | ".join(parts)
 
     def save_model(
         self, path: str = ".", model_name: str = "model", epoch: int = 0
