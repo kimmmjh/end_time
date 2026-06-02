@@ -14,10 +14,10 @@ source $PSCRATCH/envs/nde/bin/activate
 cd $HOME/end_time
 
 experiments=(
-    "--noise_model=phenomenological --measurement_error_rate=0.005 --p=0.005 --loss_fn=weighted_ce --epochs=500 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 5 5 5 --lr=0.0003 --amp_dtype=none"
-    "--noise_model=phenomenological --measurement_error_rate=0.005 --p=0.005 --loss_fn=weighted_ce --epochs=500 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 5 5 5 --lr=0.0001 --amp_dtype=none"
-    "--noise_model=phenomenological --measurement_error_rate=0.005 --p=0.005 --loss_fn=weighted_ce --epochs=500 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 3 3 3 --lr=0.0003 --amp_dtype=none"
-    "--noise_model=phenomenological --measurement_error_rate=0.005 --p=0.005 --loss_fn=weighted_ce --epochs=500 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 3 3 3 --lr=0.0001 --amp_dtype=none"
+    "--noise_model=phenomenological --measurement_error_rate=0.005 --p=0.005 --loss_fn=ce --epochs=500 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 5 5 5 --lr=0.0003 --amp_dtype=none"
+    "--noise_model=phenomenological --measurement_error_rate=0.005 --p=0.005 --loss_fn=ce --epochs=500 --batch_size=64 --batches=1024 --L=9 --channels 64 64 64 --depths 5 5 5 --lr=0.0001 --amp_dtype=none"
+    "--noise_model=phenomenological --measurement_error_rate=0.005 --p=0.005 --loss_fn=ce --epochs=500 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 3 3 3 --lr=0.0003 --amp_dtype=none"
+    "--noise_model=phenomenological --measurement_error_rate=0.005 --p=0.005 --loss_fn=ce --epochs=500 --batch_size=64 --batches=1024 --L=9 --channels 64 128 128 --depths 3 3 3 --lr=0.0001 --amp_dtype=none"
 )
 
 currdir=$PWD
