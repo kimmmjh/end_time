@@ -57,3 +57,14 @@ class bits count probability
    14 1110    1641 0.025040
    15 1111     851 0.012985
 majority_class=0 majority_baseline=0.200211 entropy_bits=3.6675 max_entropy_bits=4.0000
+
+
+
+
+run	        setting	                            last acc	best acc
+log_exp_0	lr=0.0003, batch 64, batches 1024	0.1836	    0.2227
+log_exp_1	lr=0.0001, batch 64, batches 1024	0.1855	    0.2207
+log_exp_2	lr=0.0003, batch 128, batches 1024	0.1831	    0.2134
+log_exp_3	lr=0.0003, batch 64, batches 2048	0.2061	    0.2168
+
+
