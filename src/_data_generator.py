@@ -258,12 +258,15 @@ class PhenomenologicalDataGenerator(DataGenerator):
             syndrome_error = (np.random.rand(repetitions, num_stabilisers) < q).astype(
                 np.uint8
             )
-            syndrome_error[:, -1] = (
-                0  # Perfect measurements in last round to ensure even parity
-            )
+            syndrome_error[-1, :] = 0  # Perfect measurement in the final round.
             noisy_syndrome = (syndrome + syndrome_error) % 2
+
+            detection_events = np.empty_like(noisy_syndrome)
+            detection_events[0] = noisy_syndrome[0]
+            detection_events[1:] = noisy_syndrome[1:] ^ noisy_syndrome[:-1]
+
             logical_error = (self.logicals @ noise_total.T).T % 2
-            detectors.append(noisy_syndrome)
+            detectors.append(detection_events)
             observables.append(logical_error)
 
         detectors = np.array(detectors)
