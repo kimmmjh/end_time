@@ -9,6 +9,7 @@ __pycache__/
 # Experiment results
 outputs/
 resdir_*/
+past_results/
 
 # IDEs
 .idea/

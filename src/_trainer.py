@@ -48,6 +48,7 @@ class Trainer:
         batch_size: int,
         epochs: int,
         batches: int,
+        eval_batches: int = 16,
         amp_dtype: str = "fp16",
         lattice_size: int | None = None,
         channels: list[int] | None = None,
@@ -68,6 +69,7 @@ class Trainer:
         :param batch_size: Number of samples per batch.
         :param epochs: Number of epochs to train.
         :param batches: Number of batches per epoch.
+        :param eval_batches: Number of batches used for evaluation each epoch.
         :param amp_dtype: Mixed precision dtype: "fp16", "bf16", or "none".
         :param lattice_size: Lattice size used for the code.
         :param channels: Model channel widths per stage.
@@ -107,6 +109,7 @@ class Trainer:
         )
 
         self._num_batches = batches
+        self._eval_batches = eval_batches
         self._num_epochs = epochs
         self._batch_size = batch_size
         self._save_directory = save_directory
@@ -176,7 +179,7 @@ class Trainer:
             self.model.eval()
             with torch.no_grad():
                 _, (y_pred, y_true) = self._process_batches(
-                    data_generator, device, 16, train=False
+                    data_generator, device, self._eval_batches, train=False
                 )
 
             """Record evaluation Metrics."""
@@ -192,6 +195,7 @@ class Trainer:
                 f"Loss: {metrics.loss:.4f} | "
                 f"Accuracy: {metrics.accuracy:.4f} "
                 f"(±{metrics.accuracy_std:.4f}) | "
+                f"Eval Samples: {self._eval_batches * self._batch_size} | "
                 f"Time: {metrics.epoch_duration:.2f}s"
             )
             self._output(log_message)

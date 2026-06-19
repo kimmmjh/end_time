@@ -40,6 +40,12 @@ def main() -> None:
     parser.add_argument(
         "--batches", type=int, default=128, help="Number of batches per epoch."
     )
+    parser.add_argument(
+        "--eval_batches",
+        type=int,
+        default=16,
+        help="Number of batches used for evaluation each epoch.",
+    )
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size.")
     parser.add_argument(
         "--loss_fn",
@@ -131,7 +137,11 @@ def main() -> None:
     run_slug = re.sub(
         r"[^A-Za-z0-9_.-]+",
         "_",
-        f"L{args.L}_ch{'-'.join(map(str, args.channels))}_d{'-'.join(map(str, args.depths))}",
+        (
+            f"L{args.L}_p{args.p:g}_q{args.measurement_error_rate:g}_lr{lr:g}_"
+            f"bs{args.batch_size}_b{args.batches}_eb{args.eval_batches}_"
+            f"ch{'-'.join(map(str, args.channels))}_d{'-'.join(map(str, args.depths))}"
+        ),
     )
     output_dir = os.path.join(
         os.getcwd(),
@@ -162,6 +172,7 @@ def main() -> None:
         batch_size=args.batch_size,
         epochs=args.epochs,
         batches=args.batches,
+        eval_batches=args.eval_batches,
         amp_dtype=args.amp_dtype,
         lattice_size=args.L,
         channels=args.channels,
@@ -174,6 +185,9 @@ def main() -> None:
 
     logging.info(
         f"Lattice size: {args.L}, Error rate: {args.p}, Noise Model: {args.noise_model}, Measurement Error: {args.measurement_error_rate}, Epochs: {args.epochs}"
+    )
+    logging.info(
+        f"Batch size: {args.batch_size}, Training batches: {args.batches}, Evaluation batches: {args.eval_batches}"
     )
     logging.info(f"Architecture - Channels: {args.channels}, Depths: {args.depths}")
 
