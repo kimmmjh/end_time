@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=end_L9_noise
+#SBATCH --job-name=threshold_L11
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -14,10 +14,10 @@ source $PSCRATCH/envs/nde/bin/activate
 cd $HOME/end_time
 
 experiments=(
-    "--noise_model=phenomenological --measurement_error_rate=0.015 --p=0.015 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --eval_batches=256 --L=9 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none"
-    "--noise_model=phenomenological --measurement_error_rate=0.02 --p=0.02 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --eval_batches=256 --L=9 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none"
-    "--noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --eval_batches=256 --L=9 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none"
-    "--noise_model=phenomenological --measurement_error_rate=0.02 --p=0.02 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --eval_batches=256 --L=9 --channels 64 128 128 --depths 3 3 3 --lr=0.0003 --amp_dtype=none"
+    "--noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=64 --batches=512 --eval_batches=256 --L=11 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
+    "--noise_model=phenomenological --measurement_error_rate=0.04 --p=0.04 --loss_fn=ce --epochs=300 --batch_size=64 --batches=512 --eval_batches=256 --L=11 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
+    "--noise_model=phenomenological --measurement_error_rate=0.05 --p=0.05 --loss_fn=ce --epochs=300 --batch_size=64 --batches=512 --eval_batches=256 --L=11 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
+    "--noise_model=phenomenological --measurement_error_rate=0.06 --p=0.06 --loss_fn=ce --epochs=300 --batch_size=64 --batches=512 --eval_batches=256 --L=11 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
 )
 
 currdir=$PWD
