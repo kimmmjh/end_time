@@ -10,6 +10,8 @@ __pycache__/
 outputs/
 resdir_*/
 past_results/
+threshold_*.png
+threshold_*.csv
 
 # IDEs
 .idea/

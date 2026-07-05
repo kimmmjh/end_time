@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plot logical failure rate versus physical error rate from training logs."""
+"""Plot logical error rate versus physical error rate from training logs."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-
 
 COMMAND_RE = re.compile(r"Executed Command: (.*)")
 METRIC_RE = re.compile(
@@ -235,7 +234,7 @@ def main() -> None:
         plt.errorbar(xs, ys, yerr=yerr, marker="o", capsize=3, label=label)
 
     plt.xlabel("Physical error rate p")
-    plt.ylabel("Logical failure rate (1 - accuracy)")
+    plt.ylabel("Logical error rate (1 - accuracy)")
     plt.title(args.title)
     if not args.linear:
         plt.yscale("log")
