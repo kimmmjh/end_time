@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=threshold_L15
+#SBATCH --job-name=threshold_L13_L15
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -14,9 +14,9 @@ source $PSCRATCH/envs/nde/bin/activate
 cd $HOME/end_time
 
 experiments=(
-    "--noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=16 --batches=2048 --eval_batches=1024 --L=15 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
-    "--noise_model=phenomenological --measurement_error_rate=0.04 --p=0.04 --loss_fn=ce --epochs=300 --batch_size=16 --batches=2048 --eval_batches=1024 --L=15 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
-    "--noise_model=phenomenological --measurement_error_rate=0.05 --p=0.05 --loss_fn=ce --epochs=300 --batch_size=16 --batches=2048 --eval_batches=1024 --L=15 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
+    "--noise_model=phenomenological --measurement_error_rate=0.02 --p=0.02 --loss_fn=ce --epochs=300 --batch_size=32 --batches=1024 --eval_batches=512 --L=13 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
+    "--noise_model=phenomenological --measurement_error_rate=0.015 --p=0.015 --loss_fn=ce --epochs=300 --batch_size=16 --batches=2048 --eval_batches=1024 --L=15 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
+    "--noise_model=phenomenological --measurement_error_rate=0.02 --p=0.02 --loss_fn=ce --epochs=300 --batch_size=16 --batches=2048 --eval_batches=1024 --L=15 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
     "--noise_model=phenomenological --measurement_error_rate=0.06 --p=0.06 --loss_fn=ce --epochs=300 --batch_size=16 --batches=2048 --eval_batches=1024 --L=15 --channels 64 64 64 --depths 3 3 3 --lr=0.0003 --amp_dtype=none --save_model"
 )
 
