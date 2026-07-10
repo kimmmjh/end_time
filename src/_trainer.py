@@ -10,6 +10,7 @@ from ._data_generator import (
     DataGenerator,
     PhenomenologicalDataGenerator,
     CapacityDataGenerator,
+    CircuitLevelDataGenerator,
 )
 from panqec.codes import StabilizerCode
 import logging
@@ -49,6 +50,7 @@ class Trainer:
         epochs: int,
         batches: int,
         eval_batches: int = 16,
+        final_eval_batches: int | None = None,
         amp_dtype: str = "fp16",
         lattice_size: int | None = None,
         channels: list[int] | None = None,
@@ -70,6 +72,7 @@ class Trainer:
         :param epochs: Number of epochs to train.
         :param batches: Number of batches per epoch.
         :param eval_batches: Number of batches used for evaluation each epoch.
+        :param final_eval_batches: Optional larger final-epoch evaluation.
         :param amp_dtype: Mixed precision dtype: "fp16", "bf16", or "none".
         :param lattice_size: Lattice size used for the code.
         :param channels: Model channel widths per stage.
@@ -110,6 +113,9 @@ class Trainer:
 
         self._num_batches = batches
         self._eval_batches = eval_batches
+        self._final_eval_batches = (
+            eval_batches if final_eval_batches is None else final_eval_batches
+        )
         self._num_epochs = epochs
         self._batch_size = batch_size
         self._save_directory = save_directory
@@ -134,6 +140,8 @@ class Trainer:
         error_rate: float,
         noise_model: str = "capacity",
         measurement_error_rate: float = 0.0,
+        rounds: int | None = None,
+        seed: int | None = None,
     ) -> None:
         """
         Train the neural decoder on dynamically generated data.
@@ -153,15 +161,30 @@ class Trainer:
                 error_rate=error_rate,
                 batch_size=self._batch_size,
                 measurement_error_rate=measurement_error_rate,
+                seed=seed,
             )
-        else:
+        elif noise_model == "phenomenological":
             data_generator = PhenomenologicalDataGenerator(
                 code=code,
                 verbose=False,
                 error_rate=error_rate,
                 batch_size=self._batch_size,
                 measurement_error_rate=measurement_error_rate,
+                rounds=rounds,
+                seed=seed,
             )
+        elif noise_model == "circuit":
+            data_generator = CircuitLevelDataGenerator(
+                code=code,
+                verbose=False,
+                error_rate=error_rate,
+                batch_size=self._batch_size,
+                measurement_error_rate=measurement_error_rate,
+                rounds=rounds,
+                seed=seed,
+            )
+        else:
+            raise ValueError(f"Unknown noise model: {noise_model!r}.")
 
         """Start Training."""
         for epoch in range(self.start_epoch, self._num_epochs):
@@ -177,9 +200,14 @@ class Trainer:
             """Evaluate model."""
             self._output("Evaluating Model.")
             self.model.eval()
+            eval_batches = (
+                self._final_eval_batches
+                if epoch == self._num_epochs - 1
+                else self._eval_batches
+            )
             with torch.no_grad():
                 _, (y_pred, y_true) = self._process_batches(
-                    data_generator, device, self._eval_batches, train=False
+                    data_generator, device, eval_batches, train=False
                 )
 
             """Record evaluation Metrics."""
@@ -195,7 +223,7 @@ class Trainer:
                 f"Loss: {metrics.loss:.4f} | "
                 f"Accuracy: {metrics.accuracy:.4f} "
                 f"(±{metrics.accuracy_std:.4f}) | "
-                f"Eval Samples: {self._eval_batches * self._batch_size} | "
+                f"Eval Samples: {eval_batches * self._batch_size} | "
                 f"Time: {metrics.epoch_duration:.2f}s"
             )
             self._output(log_message)
@@ -209,7 +237,10 @@ class Trainer:
             q_str = (
                 f" | q={measurement_error_rate}" if noise_model != "capacity" else ""
             )
-            info_str = f"Noise: {noise_model} | p={error_rate}{q_str}"
+            rounds_str = f" | rounds={data_generator.rounds}"
+            info_str = (
+                f"Noise: {noise_model} | p={error_rate}{q_str}{rounds_str}"
+            )
             if self._plot_metadata:
                 info_str = f"{info_str}\n{self._plot_metadata}"
 

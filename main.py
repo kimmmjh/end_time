@@ -4,6 +4,7 @@ import logging
 import argparse
 import datetime
 import re
+import numpy as np
 
 from torch import nn
 from models import Decoder
@@ -35,6 +36,18 @@ def main() -> None:
         help="Measurement error rate [0,1).",
     )
     parser.add_argument(
+        "--rounds",
+        type=int,
+        default=None,
+        help="Syndrome rounds (defaults to L).",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed, including the Stim circuit sampler.",
+    )
+    parser.add_argument(
         "--epochs", type=int, default=100, help="Number of training epochs."
     )
     parser.add_argument(
@@ -45,6 +58,15 @@ def main() -> None:
         type=int,
         default=16,
         help="Number of batches used for evaluation each epoch.",
+    )
+    parser.add_argument(
+        "--final_eval_batches",
+        type=int,
+        default=None,
+        help=(
+            "Number of batches used for the final evaluation. Defaults to "
+            "--eval_batches; set this higher for a lower-variance threshold point."
+        ),
     )
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size.")
     parser.add_argument(
@@ -89,6 +111,21 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+    rounds = args.L if args.rounds is None else args.rounds
+    if rounds < 1:
+        parser.error("--rounds must be positive.")
+    if not 0.0 <= args.p <= 1.0:
+        parser.error("--p must be in [0, 1].")
+    if not 0.0 <= args.measurement_error_rate <= 1.0:
+        parser.error("--measurement_error_rate must be in [0, 1].")
+    if args.eval_batches < 1:
+        parser.error("--eval_batches must be positive.")
+    if args.final_eval_batches is not None and args.final_eval_batches < 1:
+        parser.error("--final_eval_batches must be positive.")
+
+    if args.seed is not None:
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -138,8 +175,10 @@ def main() -> None:
         r"[^A-Za-z0-9_.-]+",
         "_",
         (
-            f"L{args.L}_p{args.p:g}_q{args.measurement_error_rate:g}_lr{lr:g}_"
+            f"{args.noise_model}_L{args.L}_r{rounds}_p{args.p:g}_"
+            f"q{args.measurement_error_rate:g}_lr{lr:g}_"
             f"bs{args.batch_size}_b{args.batches}_eb{args.eval_batches}_"
+            f"feb{args.final_eval_batches or args.eval_batches}_"
             f"ch{'-'.join(map(str, args.channels))}_d{'-'.join(map(str, args.depths))}"
         ),
     )
@@ -173,6 +212,7 @@ def main() -> None:
         epochs=args.epochs,
         batches=args.batches,
         eval_batches=args.eval_batches,
+        final_eval_batches=args.final_eval_batches,
         amp_dtype=args.amp_dtype,
         lattice_size=args.L,
         channels=args.channels,
@@ -184,10 +224,20 @@ def main() -> None:
     )
 
     logging.info(
-        f"Lattice size: {args.L}, Error rate: {args.p}, Noise Model: {args.noise_model}, Measurement Error: {args.measurement_error_rate}, Epochs: {args.epochs}"
+        f"Lattice size: {args.L}, Rounds: {rounds}, Error rate: {args.p}, "
+        f"Noise Model: {args.noise_model}, Measurement Error: "
+        f"{args.measurement_error_rate}, Epochs: {args.epochs}"
     )
     logging.info(
-        f"Batch size: {args.batch_size}, Training batches: {args.batches}, Evaluation batches: {args.eval_batches}"
+        f"Batch size: {args.batch_size}, Training batches: {args.batches}, "
+        f"Evaluation batches: {args.eval_batches}, Final evaluation batches: "
+        f"{args.final_eval_batches or args.eval_batches}"
+    )
+    logging.info(
+        f"Samples - training per epoch: {args.batch_size * args.batches}, "
+        f"evaluation per epoch: {args.batch_size * args.eval_batches}, "
+        f"final evaluation: "
+        f"{args.batch_size * (args.final_eval_batches or args.eval_batches)}"
     )
     logging.info(f"Architecture - Channels: {args.channels}, Depths: {args.depths}")
 
@@ -205,6 +255,8 @@ def main() -> None:
         error_rate=args.p,
         noise_model=args.noise_model,
         measurement_error_rate=args.measurement_error_rate,
+        rounds=rounds,
+        seed=args.seed,
     )
 
 

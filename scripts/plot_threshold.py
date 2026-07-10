@@ -32,6 +32,7 @@ class Record:
     q: float
     channels: str
     depths: str
+    decoder: str
 
 
 def parse_args() -> argparse.Namespace:
@@ -49,9 +50,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--group",
-        choices=["L", "L_arch"],
-        default="L",
-        help="Group curves only by L, or split by L plus architecture.",
+        choices=["L", "L_arch", "L_decoder", "L_arch_decoder"],
+        default="L_arch_decoder",
+        help=(
+            "Curve grouping. The default keeps neural architectures and "
+            "PyMatching results separate."
+        ),
     )
     parser.add_argument(
         "--linear",
@@ -60,7 +64,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--title",
-        default="Threshold Scan",
+        default="Threshold Plot",
         help="Plot title.",
     )
     return parser.parse_args()
@@ -80,20 +84,21 @@ def multi_flag(command: str, name: str, next_name: str) -> str:
     return "-".join(match.group(1).split())
 
 
-def discover_logs(paths: list[Path]) -> list[Path]:
-    logs: set[Path] = set()
+def discover_inputs(paths: list[Path]) -> list[Path]:
+    inputs: set[Path] = set()
     for path in paths:
         if path.is_file():
-            logs.add(path)
+            inputs.add(path)
             continue
 
         found = list(path.rglob("log_exp_*.txt"))
         if found:
-            logs.update(found)
+            inputs.update(found)
         else:
-            logs.update(path.rglob("training_log.txt"))
+            inputs.update(path.rglob("training_log.txt"))
+        inputs.update(path.rglob("pymatching*.csv"))
 
-    return sorted(logs)
+    return sorted(inputs)
 
 
 def parse_log(path: Path, metric: str) -> Record | None:
@@ -124,6 +129,9 @@ def parse_log(path: Path, metric: str) -> Record | None:
     q = float(flag(command, "measurement_error_rate", str(p)))
     channels = multi_flag(command, "channels", "depths")
     depths = multi_flag(command, "depths", "lr")
+    decoder = flag(command, "decoder")
+    if decoder is None:
+        decoder = "pymatching" if "pymatching_threshold.py" in command else "neural"
 
     return Record(
         source=path,
@@ -136,13 +144,75 @@ def parse_log(path: Path, metric: str) -> Record | None:
         q=q,
         channels=channels,
         depths=depths,
+        decoder=decoder,
     )
 
 
+def parse_csv(path: Path) -> list[Record]:
+    records = []
+    with path.open(newline="") as handle:
+        reader = csv.DictReader(handle)
+        fields = set(reader.fieldnames or [])
+        if not {"p", "accuracy"}.issubset(fields) or not (
+            "L" in fields or "label" in fields
+        ):
+            return records
+        for row in reader:
+            p = float(row["p"])
+            samples_text = row.get("eval_samples") or row.get("shots")
+            label = row.get("label") or ""
+            if row.get("L"):
+                L = int(row["L"])
+            else:
+                lattice_match = re.search(r"\bL=(\d+)", label)
+                if lattice_match is None:
+                    continue
+                L = int(lattice_match.group(1))
+            decoder = row.get("decoder") or ""
+            if not decoder:
+                decoder = "pymatching" if label.startswith("PyMatching ") else "neural"
+            records.append(
+                Record(
+                    source=path,
+                    epoch=int(row.get("epoch") or 0),
+                    loss=float(row.get("loss") or "nan"),
+                    accuracy=float(row["accuracy"]),
+                    eval_samples=int(samples_text) if samples_text else None,
+                    L=L,
+                    p=p,
+                    q=float(row.get("q") or p),
+                    channels=row.get("channels") or "n/a",
+                    depths=row.get("depths") or "n/a",
+                    decoder=decoder.lower(),
+                )
+            )
+    return records
+
+
+def parse_input(path: Path, metric: str) -> list[Record]:
+    if path.suffix.lower() == ".csv":
+        return parse_csv(path)
+    record = parse_log(path, metric)
+    return [] if record is None else [record]
+
+
+def decoder_name(decoder: str) -> str:
+    names = {"neural": "NN", "pymatching": "PyMatching"}
+    return names.get(decoder.lower(), decoder)
+
+
 def label_for(record: Record, group: str) -> str:
-    if group == "L_arch":
-        return f"L={record.L} ch={record.channels} d={record.depths}"
-    return f"L={record.L}"
+    include_arch = (
+        group in {"L_arch", "L_arch_decoder"}
+        and record.decoder.lower() != "pymatching"
+    )
+    if include_arch:
+        label = f"L={record.L} ch={record.channels} d={record.depths}"
+    else:
+        label = f"L={record.L}"
+    if group in {"L_decoder", "L_arch_decoder"}:
+        return f"{decoder_name(record.decoder)} {label}"
+    return label
 
 
 def aggregate(records: list[Record], group: str):
@@ -153,10 +223,12 @@ def aggregate(records: list[Record], group: str):
     curves = defaultdict(list)
     rows = []
     for (label, p), items in buckets.items():
-        samples = [item.eval_samples for item in items if item.eval_samples]
-        if samples:
-            total = sum(samples)
-            correct = sum(round(item.accuracy * item.eval_samples) for item in items)
+        sampled_items = [item for item in items if item.eval_samples]
+        if len(sampled_items) == len(items):
+            total = sum(item.eval_samples for item in sampled_items)
+            correct = sum(
+                round(item.accuracy * item.eval_samples) for item in sampled_items
+            )
             accuracy = correct / total
             eval_samples = total
         else:
@@ -173,6 +245,22 @@ def aggregate(records: list[Record], group: str):
 
         point = {
             "label": label,
+            "L": items[0].L if all(item.L == items[0].L for item in items) else None,
+            "decoder": (
+                items[0].decoder
+                if all(item.decoder == items[0].decoder for item in items)
+                else "mixed"
+            ),
+            "channels": (
+                items[0].channels
+                if all(item.channels == items[0].channels for item in items)
+                else "mixed"
+            ),
+            "depths": (
+                items[0].depths
+                if all(item.depths == items[0].depths for item in items)
+                else "mixed"
+            ),
             "p": p,
             "failure": failure,
             "failure_for_plot": failure_for_plot,
@@ -196,6 +284,10 @@ def write_csv(path: Path, rows: list[dict]) -> None:
             handle,
             fieldnames=[
                 "label",
+                "decoder",
+                "L",
+                "channels",
+                "depths",
                 "p",
                 "failure",
                 "accuracy",
@@ -208,6 +300,10 @@ def write_csv(path: Path, rows: list[dict]) -> None:
             writer.writerow(
                 {
                     "label": row["label"],
+                    "decoder": row["decoder"],
+                    "L": row["L"],
+                    "channels": row["channels"],
+                    "depths": row["depths"],
                     "p": row["p"],
                     "failure": row["failure"],
                     "accuracy": row["accuracy"],
@@ -219,19 +315,63 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 
 def main() -> None:
     args = parse_args()
-    logs = discover_logs(args.paths)
-    records = [record for path in logs if (record := parse_log(path, args.metric))]
+    inputs = discover_inputs(args.paths)
+    records = [
+        record
+        for path in inputs
+        for record in parse_input(path, args.metric)
+    ]
     if not records:
-        raise SystemExit("No parseable training logs found.")
+        raise SystemExit("No parseable training logs or PyMatching CSV files found.")
 
     curves, rows = aggregate(records, args.group)
 
     plt.figure(figsize=(8, 5))
+    lattice_sizes = sorted(
+        {point["L"] for points in curves.values() for point in points if point["L"]}
+    )
+    color_map = plt.get_cmap("tab10")
+    colors = {
+        L: color_map(index % color_map.N) for index, L in enumerate(lattice_sizes)
+    }
+    neural_architectures = sorted(
+        {
+            (point["channels"], point["depths"])
+            for points in curves.values()
+            for point in points
+            if point["decoder"].lower() == "neural"
+        }
+    )
+    neural_styles = [
+        ("-", "o"),
+        ("-.", "^"),
+        (":", "D"),
+    ]
+    architecture_styles = {
+        architecture: neural_styles[index % len(neural_styles)]
+        for index, architecture in enumerate(neural_architectures)
+    }
     for label, points in curves.items():
         xs = [point["p"] for point in points]
         ys = [point["failure_for_plot"] for point in points]
         yerr = [point["yerr"] for point in points]
-        plt.errorbar(xs, ys, yerr=yerr, marker="o", capsize=3, label=label)
+        decoder = points[0]["decoder"].lower()
+        is_pymatching = decoder == "pymatching"
+        linestyle, marker = (
+            ("--", "s")
+            if is_pymatching
+            else architecture_styles[(points[0]["channels"], points[0]["depths"])]
+        )
+        plt.errorbar(
+            xs,
+            ys,
+            yerr=yerr,
+            color=colors.get(points[0]["L"]),
+            linestyle=linestyle,
+            marker=marker,
+            capsize=3,
+            label=label,
+        )
 
     plt.xlabel("Physical error rate p")
     plt.ylabel("Logical error rate (1 - accuracy)")

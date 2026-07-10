@@ -14,7 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src._data_generator import CapacityDataGenerator, PhenomenologicalDataGenerator
+from src._data_generator import (
+    CapacityDataGenerator,
+    CircuitLevelDataGenerator,
+    PhenomenologicalDataGenerator,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,9 +35,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--noise_model",
-        choices=["phenomenological", "capacity"],
+        choices=["capacity", "phenomenological", "circuit"],
         default="phenomenological",
     )
+    parser.add_argument("--rounds", type=int, default=None)
     parser.add_argument("--samples", type=int, default=65536)
     parser.add_argument("--batch_size", type=int, default=4096)
     parser.add_argument("--seed", type=int, default=None)
@@ -47,14 +52,22 @@ def make_generator(args: argparse.Namespace, code: Toric2DCode, batch_size: int)
             error_rate=args.p,
             batch_size=batch_size,
             verbose=False,
+            seed=args.seed,
         )
 
-    return PhenomenologicalDataGenerator(
+    generator_class = (
+        CircuitLevelDataGenerator
+        if args.noise_model == "circuit"
+        else PhenomenologicalDataGenerator
+    )
+    return generator_class(
         code=code,
         error_rate=args.p,
         batch_size=batch_size,
         verbose=False,
         measurement_error_rate=args.measurement_error_rate,
+        rounds=args.rounds,
+        seed=args.seed,
     )
 
 
@@ -64,10 +77,11 @@ def sample_counts(args: argparse.Namespace, L: int) -> np.ndarray:
     counts = np.zeros(num_classes, dtype=np.int64)
     remaining = args.samples
     device = torch.device("cpu")
+    generator = make_generator(args, code, min(args.batch_size, remaining))
 
     while remaining > 0:
         batch_size = min(args.batch_size, remaining)
-        generator = make_generator(args, code, batch_size)
+        generator.batch_size = batch_size
         _, labels = generator.generate_batch(device)
         counts += np.bincount(labels.cpu().numpy(), minlength=num_classes)
         remaining -= batch_size

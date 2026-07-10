@@ -1,5 +1,3 @@
-import code
-
 import torch
 from torch import Tensor
 from panqec.codes import StabilizerCode
@@ -7,6 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 from typing import Callable
 from scipy.sparse import csr_matrix, vstack
+from .stim_utils import generate_toric_memory_circuit
 
 
 class DataGenerator:
@@ -37,6 +36,8 @@ class DataGenerator:
         one_hot: bool = False,
         verbose: bool = True,
         measurement_error_rate: float = 0.0,
+        rounds: int | None = None,
+        seed: int | None = None,
     ) -> None:
         """
         Initialize the Dataset.
@@ -56,6 +57,17 @@ class DataGenerator:
         self._categorical_classification = categorical_classification
         self._one_hot = one_hot
         self._measurement_error_rate = measurement_error_rate
+        self.rounds = code.size[0] if rounds is None else rounds
+        self.seed = seed
+        if self.rounds < 1:
+            raise ValueError(f"rounds must be positive, got {self.rounds}.")
+        if not 0.0 <= error_rate <= 1.0:
+            raise ValueError(f"error_rate must be in [0, 1], got {error_rate}.")
+        if not 0.0 <= measurement_error_rate <= 1.0:
+            raise ValueError(
+                "measurement_error_rate must be in [0, 1], got "
+                f"{measurement_error_rate}."
+            )
 
         self.d = len(code.size)
         self.L = code.size[0]
@@ -153,6 +165,8 @@ class CapacityDataGenerator(DataGenerator):
         verbose=True,
         noise_model="capacity",
         measurement_error_rate=0,
+        rounds=None,
+        seed=None,
     ):
         super().__init__(
             code=code,
@@ -162,6 +176,8 @@ class CapacityDataGenerator(DataGenerator):
             one_hot=one_hot,
             verbose=verbose,
             measurement_error_rate=measurement_error_rate,
+            rounds=rounds,
+            seed=seed,
         )
 
     def _generate_sample(self):
@@ -183,9 +199,10 @@ class CapacityDataGenerator(DataGenerator):
         errors_x = np.isin(errors, ["X", "Y"]).astype(np.uint8)
         errors_z = np.isin(errors, ["Z", "Y"]).astype(np.uint8)
 
-        # Concatenate X and Z error profiles for the H matrix interaction
+        # PanQEC matrices use BSF [X|Z], so commutation is evaluated by
+        # multiplying the symplectic dual [error_Z|error_X].
         noise_new = np.concatenate(
-            (errors_x, errors_z), axis=2
+            (errors_z, errors_x), axis=2
         )  # Shape: (b, 1, 2*num_qubits)
         noise_total = noise_new[:, 0, :]  # Shape: (b, 2*num_qubits)
 
@@ -219,6 +236,8 @@ class PhenomenologicalDataGenerator(DataGenerator):
         one_hot: bool = False,
         verbose: bool = True,
         measurement_error_rate: float = 0.0,
+        rounds: int | None = None,
+        seed: int | None = None,
     ) -> None:
         self.noise_model = "phenomenological"
 
@@ -230,11 +249,13 @@ class PhenomenologicalDataGenerator(DataGenerator):
             one_hot=one_hot,
             verbose=verbose,
             measurement_error_rate=measurement_error_rate,
+            rounds=rounds,
+            seed=seed,
         )
 
     def _generate_sample(self):
         num_qubits = self.n
-        repetitions = self.L
+        repetitions = self.rounds
         p = self.error_rate
         q = self._measurement_error_rate
         H = self.stabilizers
@@ -251,7 +272,8 @@ class PhenomenologicalDataGenerator(DataGenerator):
             errors_x = (np.isin(errors, ["X", "Y"])).astype(np.uint8)
             errors_z = (np.isin(errors, ["Z", "Y"])).astype(np.uint8)
 
-            noise_new = np.concat((errors_x, errors_z), axis=1)
+            # Symplectic dual of the Pauli error in PanQEC BSF convention.
+            noise_new = np.concatenate((errors_z, errors_x), axis=1)
             noise_cumulative = (np.cumsum(noise_new, 0) % 2).astype(np.uint8)
             noise_total = noise_cumulative[-1, :]
             syndrome = (H @ noise_cumulative.T).T % 2
@@ -279,68 +301,75 @@ class PhenomenologicalDataGenerator(DataGenerator):
         return np.array(detectors), np.array(observables), None
 
 
-"""
+class CircuitLevelDataGenerator(DataGenerator):
+    """Batch sampler for ancilla-based circuit-level toric-code noise."""
 
-        if self.noise_model in ["circuit", "phenomenological"]:
-            # Initialize Stim Circuits and Samplers
-            generator = (
-                generate_stim_circuit
-                if self.noise_model == "circuit"
-                else generate_phenomenological_circuit
+    def __init__(
+        self,
+        code: StabilizerCode,
+        error_rate: float,
+        batch_size: int,
+        categorical_classification: bool = True,
+        one_hot: bool = False,
+        verbose: bool = True,
+        measurement_error_rate: float = 0.0,
+        rounds: int | None = None,
+        seed: int | None = None,
+    ) -> None:
+        self.noise_model = "circuit"
+        super().__init__(
+            code=code,
+            error_rate=error_rate,
+            batch_size=batch_size,
+            categorical_classification=categorical_classification,
+            one_hot=one_hot,
+            verbose=verbose,
+            measurement_error_rate=measurement_error_rate,
+            rounds=rounds,
+            seed=seed,
+        )
+        self.num_stabilizers = self.stabilizers.shape[0]
+        self.circuit = generate_toric_memory_circuit(
+            code,
+            rounds=self.rounds,
+            gate_error_rate=self.error_rate,
+            measurement_error_rate=self._measurement_error_rate,
+        )
+        self.sampler = self.circuit.compile_detector_sampler(seed=self.seed)
+
+    def _generate_sample(self):
+        self._verbose_print("\tSampling Stim circuit")
+        # This is the number of shots in one generated batch. Trainer calls
+        # generate_batch() `batches` times per training epoch, so the total is
+        # batch_size * batches (and batch_size * eval_batches for evaluation).
+        detectors, logical_errors = self.sampler.sample(
+            shots=self.batch_size,
+            separate_observables=True,
+        )
+        expected_detectors = self.rounds * self.num_stabilizers
+        expected_observables = self.logicals.shape[0]
+        if detectors.shape != (self.batch_size, expected_detectors):
+            raise RuntimeError(
+                "Unexpected Stim detector shape: "
+                f"{detectors.shape}, expected "
+                f"{(self.batch_size, expected_detectors)}."
+            )
+        if logical_errors.shape != (self.batch_size, expected_observables):
+            raise RuntimeError(
+                "Unexpected Stim observable shape: "
+                f"{logical_errors.shape}, expected "
+                f"{(self.batch_size, expected_observables)}."
             )
 
-            self.circuit_z = generator(
-                code,
-                rounds=self.L,
-                p=self.error_rate,
-                q=self._measurement_error_rate,
-                basis="Z",
-            )
-            self.sampler_z = self.circuit_z.compile_detector_sampler()
+        syndrome_matrices = detectors.reshape(
+            self.batch_size,
+            self.rounds,
+            2,
+            self.num_stabilizers // 2,
+        ).transpose(0, 2, 1, 3)
 
-            self.circuit_x = generator(
-                code,
-                rounds=self.L,
-                p=self.error_rate,
-                q=self._measurement_error_rate,
-                basis="X",
-            )
-            self.sampler_x = self.circuit_x.compile_detector_sampler()
-
-
-            # Stim-based generation with mixed basis
-            # Z-basis samples (Observes Logical Z, Errors X)
-            dets_z, obs_z = self.sampler_z.sample(
-                shots=self.batch_size, separate_observables=True
-            )
-
-            # X-basis samples (Observes Logical X, Errors Z)
-            dets_x, obs_x = self.sampler_x.sample(
-                shots=self.batch_size, separate_observables=True
-            )
-
-            # Pad to match total logicals (usually 4)
-            num_logicals = self.logicals.shape[0]
-
-            if obs_z.shape[1] < num_logicals:
-                obs_z = np.pad(
-                    obs_z, ((0, 0), (0, num_logicals - obs_z.shape[1])), "constant"
-                )
-
-            if obs_x.shape[1] < num_logicals:
-                obs_x = np.pad(
-                    obs_x, ((0, 0), (0, num_logicals - obs_x.shape[1])), "constant"
-                )
-
-                # Combine
-                detectors.append(np.stack((dets_z, dets_x), axis=0))
-                observables.append(np.stack((obs_z, obs_x), axis=0))
-
-            # Format syndromes
-            detectors = np.array(detectors)
-            syndrome_matrices = detectors
-
-            # Format logical errors
-            logical_errors = np.array(observables).astype(np.uint8)
-
-"""
+        return (
+            syndrome_matrices.astype(np.uint8, copy=False),
+            logical_errors.astype(np.uint8, copy=False),
+            None,
+        )

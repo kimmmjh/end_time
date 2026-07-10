@@ -56,18 +56,29 @@ class TransformedEND3D(nn.Module):
         self.apply(custom_init)  # Initialize layer weights
 
     def forward(self, x: Tensor) -> Tensor:
+        if x.ndim != 4:
+            raise ValueError(
+                "Expected syndrome shape (batch, 2, rounds, L^2), "
+                f"got {tuple(x.shape)}."
+            )
         b, c, t, v = x.shape
-        x = x.reshape(b, 2, t, self.lattice_size, self.lattice_size)    # Shape: (b, 2, t, L, L)
-        
+        if c != 2 or v != self.lattice_size**2:
+            raise ValueError(
+                "Expected syndrome shape (batch, 2, rounds, L^2) with "
+                f"L={self.lattice_size}, got {tuple(x.shape)}."
+            )
+        x = x.reshape(
+            b, c, t, self.lattice_size, self.lattice_size
+        )  # Shape: (b, 2, t, L, L)
 
         """The network body."""
         x = self.conv_in(x)
-        
+
         x = self.blocks(x)
 
         x = self.batch_norm(x)
         x = self.non_linear(x)
-        
+
         x = self.conv_out(x)    # (b, 16, t, L, L)
 
         """The networks head. Extract the final Time slice"""
