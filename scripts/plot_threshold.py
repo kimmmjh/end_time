@@ -237,11 +237,34 @@ def aggregate(records: list[Record], group: str):
 
         failure = 1.0 - accuracy
         if eval_samples:
-            failure_for_plot = max(failure, 0.5 / eval_samples)
-            yerr = math.sqrt(max(failure * (1.0 - failure), 0.0) / eval_samples)
+            # One-standard-deviation Wilson interval. Unlike a symmetric
+            # normal error bar, this remains non-negative for zero/rare
+            # failures and therefore behaves properly on a logarithmic axis.
+            half_count = 0.5 / eval_samples
+            failure_for_plot = max(failure, half_count)
+            denominator = 1.0 + 1.0 / eval_samples
+            interval_center = (failure + 0.5 / eval_samples) / denominator
+            interval_half_width = (
+                math.sqrt(
+                    max(failure * (1.0 - failure), 0.0) / eval_samples
+                    + 0.25 / eval_samples**2
+                )
+                / denominator
+            )
+            interval_low = max(
+                interval_center - interval_half_width,
+                half_count,
+            )
+            interval_high = max(
+                interval_center + interval_half_width,
+                failure_for_plot,
+            )
+            yerr_low = max(failure_for_plot - interval_low, 0.0)
+            yerr_high = max(interval_high - failure_for_plot, 0.0)
         else:
             failure_for_plot = max(failure, 1e-12)
-            yerr = 0.0
+            yerr_low = 0.0
+            yerr_high = 0.0
 
         point = {
             "label": label,
@@ -267,7 +290,8 @@ def aggregate(records: list[Record], group: str):
             "accuracy": accuracy,
             "eval_samples": eval_samples,
             "num_runs": len(items),
-            "yerr": yerr,
+            "yerr_low": yerr_low,
+            "yerr_high": yerr_high,
         }
         curves[label].append(point)
         rows.append(point)
@@ -354,7 +378,10 @@ def main() -> None:
     for label, points in curves.items():
         xs = [point["p"] for point in points]
         ys = [point["failure_for_plot"] for point in points]
-        yerr = [point["yerr"] for point in points]
+        yerr = [
+            [point["yerr_low"] for point in points],
+            [point["yerr_high"] for point in points],
+        ]
         decoder = points[0]["decoder"].lower()
         is_pymatching = decoder == "pymatching"
         linestyle, marker = (
