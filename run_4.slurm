@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=threshold_large_p030
+#SBATCH --job-name=threshold_gru_p030
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -15,10 +15,10 @@ cd $HOME/end_time
 
 # The p=0.03 points for all four code distances.
 experiments=(
-    "--noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --eval_batches=256 --L=9 --channels 96 96 96 --depths 4 4 4 --lr=0.0003 --amp_dtype=none --save_model"
-    "--noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --eval_batches=256 --L=11 --channels 96 96 96 --depths 4 4 4 --lr=0.0003 --amp_dtype=none --save_model"
-    "--noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=32 --batches=1024 --eval_batches=512 --L=13 --channels 96 96 96 --depths 4 4 4 --lr=0.0003 --amp_dtype=none --save_model"
-    "--noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=16 --batches=2048 --eval_batches=1024 --L=15 --channels 96 96 96 --depths 4 4 4 --lr=0.0003 --amp_dtype=none --save_model"
+    "--architecture=convgru --gru_channels=96 --gru_layers=2 --gru_kernel_size=3 --noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --eval_batches=256 --L=9 --channels 96 96 96 --depths 4 4 4 --lr=0.0003 --amp_dtype=none --save_model"
+    "--architecture=convgru --gru_channels=96 --gru_layers=2 --gru_kernel_size=3 --noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=64 --batches=1024 --eval_batches=256 --L=11 --channels 96 96 96 --depths 4 4 4 --lr=0.0003 --amp_dtype=none --save_model"
+    "--architecture=convgru --gru_channels=96 --gru_layers=2 --gru_kernel_size=3 --noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=32 --batches=1024 --eval_batches=512 --L=13 --channels 96 96 96 --depths 4 4 4 --lr=0.0003 --amp_dtype=none --save_model"
+    "--architecture=convgru --gru_channels=96 --gru_layers=2 --gru_kernel_size=3 --noise_model=phenomenological --measurement_error_rate=0.03 --p=0.03 --loss_fn=ce --epochs=300 --batch_size=16 --batches=2048 --eval_batches=1024 --L=15 --channels 96 96 96 --depths 4 4 4 --lr=0.0003 --amp_dtype=none --save_model"
 )
 
 currdir=$PWD

@@ -7,7 +7,7 @@ import re
 import numpy as np
 
 from torch import nn
-from models import Decoder
+from models import Decoder, RecurrentEND2D
 from models.loss_functions import DynamicCELoss
 from models._the_end_3d import TransformedEND3D
 from models.pooling_layers import TranslationalEquivariantPooling2D
@@ -40,6 +40,17 @@ def main() -> None:
         type=int,
         default=None,
         help="Syndrome rounds (defaults to L).",
+    )
+    parser.add_argument(
+        "--architecture",
+        type=str,
+        default="cnn3d",
+        choices=["cnn3d", "convgru"],
+        help=(
+            "Temporal architecture. cnn3d treats time as a third spatial axis; "
+            "convgru applies a shared equivariant 2D CNN to each round and "
+            "recurrently accumulates the rounds."
+        ),
     )
     parser.add_argument(
         "--seed",
@@ -91,6 +102,27 @@ def main() -> None:
         help="Number of layers per block.",
     )
     parser.add_argument(
+        "--gru_channels",
+        type=int,
+        default=None,
+        help=(
+            "ConvGRU hidden width for --architecture=convgru. "
+            "Defaults to the last value in --channels."
+        ),
+    )
+    parser.add_argument(
+        "--gru_layers",
+        type=int,
+        default=1,
+        help="Number of stacked ConvGRU layers.",
+    )
+    parser.add_argument(
+        "--gru_kernel_size",
+        type=int,
+        default=3,
+        help="Spatial kernel size used by ConvGRU gates.",
+    )
+    parser.add_argument(
         "--save_model", action="store_true", help="Save the trained model."
     )
     parser.add_argument(
@@ -122,6 +154,18 @@ def main() -> None:
         parser.error("--eval_batches must be positive.")
     if args.final_eval_batches is not None and args.final_eval_batches < 1:
         parser.error("--final_eval_batches must be positive.")
+    if not args.channels or len(args.channels) != len(args.depths):
+        parser.error("--channels and --depths must be non-empty and have equal length.")
+    if any(channel < 1 for channel in args.channels):
+        parser.error("--channels values must be positive.")
+    if any(depth < 1 for depth in args.depths):
+        parser.error("--depths values must be positive.")
+    if args.gru_channels is not None and args.gru_channels < 1:
+        parser.error("--gru_channels must be positive.")
+    if args.gru_layers < 1:
+        parser.error("--gru_layers must be positive.")
+    if args.gru_kernel_size < 1:
+        parser.error("--gru_kernel_size must be positive.")
 
     if args.seed is not None:
         np.random.seed(args.seed)
@@ -135,15 +179,25 @@ def main() -> None:
     """Make Decoder Model."""
     pooling = TranslationalEquivariantPooling2D(args.L)
 
-    # Instantiate the 3D Neural Network
-    # in_channels is always 2 (X and Z) because Time is treated as a spatial dimension
+    # in_channels is always 2 for the vertex/face detector sectors.
     in_channels = 2
-    network = TransformedEND3D(
-        channels=args.channels,
-        depths=args.depths,
-        lattice_size=args.L,
-        in_channels=in_channels,
-    )
+    if args.architecture == "convgru":
+        network = RecurrentEND2D(
+            channels=args.channels,
+            depths=args.depths,
+            lattice_size=args.L,
+            in_channels=in_channels,
+            gru_channels=args.gru_channels,
+            gru_layers=args.gru_layers,
+            gru_kernel_size=args.gru_kernel_size,
+        )
+    else:
+        network = TransformedEND3D(
+            channels=args.channels,
+            depths=args.depths,
+            lattice_size=args.L,
+            in_channels=in_channels,
+        )
 
     decoder = Decoder(network=network, pooling=pooling, ensemble=None)
     decoder.to(device)
@@ -175,11 +229,17 @@ def main() -> None:
         r"[^A-Za-z0-9_.-]+",
         "_",
         (
-            f"{args.noise_model}_L{args.L}_r{rounds}_p{args.p:g}_"
+            f"{args.noise_model}_{args.architecture}_L{args.L}_r{rounds}_p{args.p:g}_"
             f"q{args.measurement_error_rate:g}_lr{lr:g}_"
             f"bs{args.batch_size}_b{args.batches}_eb{args.eval_batches}_"
             f"feb{args.final_eval_batches or args.eval_batches}_"
             f"ch{'-'.join(map(str, args.channels))}_d{'-'.join(map(str, args.depths))}"
+            + (
+                f"_gru{args.gru_channels or args.channels[-1]}x{args.gru_layers}"
+                f"_gk{args.gru_kernel_size}"
+                if args.architecture == "convgru"
+                else ""
+            )
         ),
     )
     output_dir = os.path.join(
@@ -217,6 +277,13 @@ def main() -> None:
         lattice_size=args.L,
         channels=args.channels,
         depths=args.depths,
+        architecture=args.architecture,
+        recurrent=(
+            f"ConvGRU channels={args.gru_channels or args.channels[-1]}, "
+            f"layers={args.gru_layers}, kernel={args.gru_kernel_size}"
+            if args.architecture == "convgru"
+            else None
+        ),
         attention=attention,
         save_model=args.save_model,
         load_model_path=args.load_model,
@@ -239,10 +306,20 @@ def main() -> None:
         f"final evaluation: "
         f"{args.batch_size * (args.final_eval_batches or args.eval_batches)}"
     )
-    logging.info(f"Architecture - Channels: {args.channels}, Depths: {args.depths}")
+    logging.info(
+        f"Architecture - Type: {args.architecture}, Channels: {args.channels}, "
+        f"Depths: {args.depths}"
+    )
 
     # Check if network is using Attention
-    if attention != "disabled":
+    if args.architecture == "convgru":
+        logging.info(
+            "Temporal model: ConvGRU | "
+            f"Hidden channels: {args.gru_channels or args.channels[-1]} | "
+            f"Layers: {args.gru_layers} | Kernel: {args.gru_kernel_size}"
+        )
+        logging.info("Attention: Disabled (shared 2D circular CNN encoder)")
+    elif attention != "disabled":
         logging.info(
             f"Attention: Enabled | Heads: {conv_in.number_heads} | Key Depths: {conv_in.key_depths} | Attn Channels: {conv_in.attention_channels}"
         )

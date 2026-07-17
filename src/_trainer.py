@@ -55,6 +55,8 @@ class Trainer:
         lattice_size: int | None = None,
         channels: list[int] | None = None,
         depths: list[int] | None = None,
+        architecture: str | None = None,
+        recurrent: str | None = None,
         attention: str | None = None,
         verbose: bool = False,
         save_model: bool = False,
@@ -77,6 +79,8 @@ class Trainer:
         :param lattice_size: Lattice size used for the code.
         :param channels: Model channel widths per stage.
         :param depths: Model residual-block depths per stage.
+        :param architecture: Temporal model family.
+        :param recurrent: Recurrent-model setting summary.
         :param attention: Attention setting summary.
         :param verbose: Whether the trainer should print progress or log it.
         :param save_model: If model should be saved.
@@ -124,6 +128,8 @@ class Trainer:
             lattice_size=lattice_size,
             channels=channels,
             depths=depths,
+            architecture=architecture,
+            recurrent=recurrent,
             attention=attention,
         )
 
@@ -349,6 +355,8 @@ class Trainer:
         lattice_size: int | None,
         channels: list[int] | None,
         depths: list[int] | None,
+        architecture: str | None,
+        recurrent: str | None,
         attention: str | None,
     ) -> str:
         parts = []
@@ -358,6 +366,10 @@ class Trainer:
             parts.append(f"channels={channels}")
         if depths is not None:
             parts.append(f"depths={depths}")
+        if architecture is not None:
+            parts.append(f"architecture={architecture}")
+        if recurrent is not None:
+            parts.append(recurrent)
         if attention is not None:
             parts.append(f"attention={attention}")
         return " | ".join(parts)

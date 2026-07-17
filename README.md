@@ -25,6 +25,48 @@ face-check detection events. The last dimension uses PanQEC's stabilizer
 index order and reshapes directly to `(L, L)` inside `TransformedEND3D`.
 `rounds` defaults to `L`, but can be changed with `--rounds`.
 
+## Temporal architectures
+
+The default model remains the original space-time CNN:
+
+```bash
+python main.py --architecture=cnn3d --noise_model=phenomenological \
+  --L=7 --rounds=7 --p=0.01 --measurement_error_rate=0.01
+```
+
+The recurrent decoder processes each measurement round with the same circular
+2D CNN and carries a spatial hidden state between rounds with ConvGRU:
+
+```text
+(B, 2, T, L^2)
+      |
+shared equivariant 2D CNN, independently for each round
+      |
+(B, T, C, L, L)
+      |
+stacked ConvGRU with circular convolutions
+      |
+final spatial hidden state -> existing equivariant logical pooling
+```
+
+Enable it with:
+
+```bash
+python main.py --architecture=convgru --noise_model=phenomenological \
+  --L=7 --rounds=7 --p=0.01 --measurement_error_rate=0.01 \
+  --channels 64 64 64 --depths 3 3 3 \
+  --gru_channels 64 --gru_layers 2 --gru_kernel_size 3
+```
+
+`--channels` and `--depths` configure the per-round 2D encoder.
+`--gru_channels` defaults to the encoder's last channel width, and
+`--gru_layers` defaults to one. The same option works with circuit-level data:
+
+```bash
+python main.py --architecture=convgru --noise_model=circuit \
+  --L=5 --rounds=5 --p=0.004 --measurement_error_rate=0.004
+```
+
 For the toric code, each sample has four logical commutation bits in
 `[logical X_0, logical X_1, logical Z_0, logical Z_1]` order. Training
 converts these bits to one of 16 classes.

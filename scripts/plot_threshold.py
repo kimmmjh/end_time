@@ -30,6 +30,7 @@ class Record:
     L: int
     p: float
     q: float
+    architecture: str
     channels: str
     depths: str
     decoder: str
@@ -75,12 +76,12 @@ def flag(command: str, name: str, default: str | None = None) -> str | None:
     return match.group(1) if match else default
 
 
-def multi_flag(command: str, name: str, next_name: str) -> str:
+def multi_flag(command: str, name: str, default: str) -> str:
     match = re.search(
-        rf"--{re.escape(name)}\s+(.+?)\s+--{re.escape(next_name)}", command
+        rf"--{re.escape(name)}(?:=|\s+)(.+?)(?=\s+--|$)", command
     )
     if not match:
-        return "unknown"
+        return default
     return "-".join(match.group(1).split())
 
 
@@ -127,11 +128,21 @@ def parse_log(path: Path, metric: str) -> Record | None:
     L = int(flag(command, "L", "0"))
     p = float(flag(command, "p", "nan"))
     q = float(flag(command, "measurement_error_rate", str(p)))
-    channels = multi_flag(command, "channels", "depths")
-    depths = multi_flag(command, "depths", "lr")
+    channels = multi_flag(command, "channels", "64-64-64")
+    depths = multi_flag(command, "depths", "3-3-3")
     decoder = flag(command, "decoder")
     if decoder is None:
         decoder = "pymatching" if "pymatching_threshold.py" in command else "neural"
+    architecture = flag(command, "architecture")
+    if architecture is None:
+        architecture = "n/a" if decoder == "pymatching" else "cnn3d"
+    elif architecture == "convgru":
+        gru_channels = flag(command, "gru_channels", channels.split("-")[-1])
+        gru_layers = flag(command, "gru_layers", "1")
+        gru_kernel_size = flag(command, "gru_kernel_size", "3")
+        architecture = (
+            f"convgru-gc{gru_channels}-gl{gru_layers}-gk{gru_kernel_size}"
+        )
 
     return Record(
         source=path,
@@ -142,6 +153,7 @@ def parse_log(path: Path, metric: str) -> Record | None:
         L=L,
         p=p,
         q=q,
+        architecture=architecture,
         channels=channels,
         depths=depths,
         decoder=decoder,
@@ -181,6 +193,10 @@ def parse_csv(path: Path) -> list[Record]:
                     L=L,
                     p=p,
                     q=float(row.get("q") or p),
+                    architecture=(
+                        row.get("architecture")
+                        or ("n/a" if decoder.lower() == "pymatching" else "cnn3d")
+                    ),
                     channels=row.get("channels") or "n/a",
                     depths=row.get("depths") or "n/a",
                     decoder=decoder.lower(),
@@ -207,7 +223,15 @@ def label_for(record: Record, group: str) -> str:
         and record.decoder.lower() != "pymatching"
     )
     if include_arch:
-        label = f"L={record.L} ch={record.channels} d={record.depths}"
+        architecture = (
+            f" arch={record.architecture}"
+            if record.architecture not in {"", "cnn3d", "n/a"}
+            else ""
+        )
+        label = (
+            f"L={record.L}{architecture} "
+            f"ch={record.channels} d={record.depths}"
+        )
     else:
         label = f"L={record.L}"
     if group in {"L_decoder", "L_arch_decoder"}:
@@ -274,6 +298,11 @@ def aggregate(records: list[Record], group: str):
                 if all(item.decoder == items[0].decoder for item in items)
                 else "mixed"
             ),
+            "architecture": (
+                items[0].architecture
+                if all(item.architecture == items[0].architecture for item in items)
+                else "mixed"
+            ),
             "channels": (
                 items[0].channels
                 if all(item.channels == items[0].channels for item in items)
@@ -310,6 +339,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
                 "label",
                 "decoder",
                 "L",
+                "architecture",
                 "channels",
                 "depths",
                 "p",
@@ -326,6 +356,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
                     "label": row["label"],
                     "decoder": row["decoder"],
                     "L": row["L"],
+                    "architecture": row["architecture"],
                     "channels": row["channels"],
                     "depths": row["depths"],
                     "p": row["p"],
@@ -360,7 +391,7 @@ def main() -> None:
     }
     neural_architectures = sorted(
         {
-            (point["channels"], point["depths"])
+            (point["architecture"], point["channels"], point["depths"])
             for points in curves.values()
             for point in points
             if point["decoder"].lower() == "neural"
@@ -387,7 +418,13 @@ def main() -> None:
         linestyle, marker = (
             ("--", "s")
             if is_pymatching
-            else architecture_styles[(points[0]["channels"], points[0]["depths"])]
+            else architecture_styles[
+                (
+                    points[0]["architecture"],
+                    points[0]["channels"],
+                    points[0]["depths"],
+                )
+            ]
         )
         plt.errorbar(
             xs,
