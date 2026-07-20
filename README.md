@@ -119,7 +119,23 @@ The archive contains:
 
 ## Resume training
 
+`--epochs` is interpreted as the number of additional epochs. Resume restores
+the model weights, optimizer moments, completed epoch, and loss/accuracy
+history. Because a completed OneCycleLR cannot be extended consistently, the
+additional phase starts a new OneCycleLR cycle using the requested `--lr`.
+The new output directory contains plots spanning both the original and resumed
+epochs, with the resume boundary marked by a dashed line.
+
 ```bash
-python main.py --noise_model=circuit --L=5 --epochs=100 \
-  --load_model=outputs/path/to/model.pt
+python main.py --architecture=convgru --noise_model=phenomenological \
+  --L=11 --p=0.03 --measurement_error_rate=0.03 --epochs=300 \
+  --channels 96 96 96 --depths 4 4 4 \
+  --gru_channels=96 --gru_layers=2 --lr=0.0003 --save_model \
+  --load_model=/absolute/path/to/model.pt
+```
+
+For the L=11, p=0.03 Perlmutter continuation job in this repository:
+
+```bash
+sbatch resume_L11_p030.slurm /absolute/path/to/model.pt
 ```

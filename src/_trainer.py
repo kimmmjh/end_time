@@ -15,6 +15,7 @@ from ._data_generator import (
 from panqec.codes import StabilizerCode
 import logging
 import time
+import textwrap
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -133,7 +134,8 @@ class Trainer:
             attention=attention,
         )
 
-        self.history = {"loss": [], "accuracy": []}
+        self.history = {"epoch": [], "loss": [], "accuracy": []}
+        self.resume_epochs: list[int] = []
         self.start_epoch = 0
         if load_model_path is not None:
             self.load_model(load_model_path)
@@ -236,6 +238,7 @@ class Trainer:
             # wandb.log(metrics.__dict__)
 
             # Update history and save plots
+            self.history["epoch"].append(epoch + 1)
             self.history["loss"].append(float(metrics.loss))
             self.history["accuracy"].append(float(metrics.accuracy))
 
@@ -401,7 +404,9 @@ class Trainer:
             "model_state_dict": model_state,
             "optimizer_states": optim_states,
             "scheduler_states": sched_states,
+            "scaler_state_dict": self.scaler.state_dict(),
             "history": self.history,
+            "resume_epochs": self.resume_epochs,
         }
 
         torch.save(checkpoint, f"{path}/{model_name}.pt")
@@ -416,10 +421,10 @@ class Trainer:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         checkpoint = torch.load(path, map_location=device)
 
-        # 1. Restore Model
+        # Restore model weights.
         try:
             self.model.load_state_dict(checkpoint["model_state_dict"])
-        except RuntimeError as e:
+        except RuntimeError:
             # Try to handle 'module.' prefix mismatch
             state_dict = checkpoint["model_state_dict"]
             new_state_dict = {}
@@ -428,7 +433,75 @@ class Trainer:
                 new_state_dict[name] = v
             self.model.load_state_dict(new_state_dict)
 
-        self._output(f"Successfully loaded model weights for fine-tuning/resuming.")
+        # Restore Adam/optimizer moments while retaining the freshly configured
+        # hyperparameters (especially the LR values installed by the new
+        # OneCycleLR cycle).
+        optimizer_states = checkpoint.get("optimizer_states")
+        if optimizer_states is not None:
+            if len(optimizer_states) != len(self.optimizers):
+                raise ValueError(
+                    "Checkpoint optimizer count does not match the current run: "
+                    f"{len(optimizer_states)} != {len(self.optimizers)}."
+                )
+            for optimizer, state in zip(self.optimizers, optimizer_states):
+                fresh_settings = [
+                    {key: value for key, value in group.items() if key != "params"}
+                    for group in optimizer.param_groups
+                ]
+                optimizer.load_state_dict(state)
+                if len(fresh_settings) != len(optimizer.param_groups):
+                    raise ValueError(
+                        "Checkpoint optimizer parameter-group count does not "
+                        "match the current run."
+                    )
+                for group, settings in zip(optimizer.param_groups, fresh_settings):
+                    group.update(settings)
+            self._output("Restored optimizer state from checkpoint.")
+        else:
+            self._output("Checkpoint has no optimizer state; using a fresh optimizer.")
+
+        scaler_state = checkpoint.get("scaler_state_dict")
+        if scaler_state:
+            self.scaler.load_state_dict(scaler_state)
+
+        checkpoint_history = checkpoint.get("history") or {}
+        losses = list(checkpoint_history.get("loss") or [])
+        accuracies = list(checkpoint_history.get("accuracy") or [])
+        if len(losses) != len(accuracies):
+            raise ValueError(
+                "Checkpoint history is inconsistent: loss and accuracy lengths differ."
+            )
+        history_epochs = list(checkpoint_history.get("epoch") or [])
+        if not history_epochs:
+            history_epochs = list(range(1, len(losses) + 1))
+        if len(history_epochs) != len(losses):
+            raise ValueError(
+                "Checkpoint history is inconsistent: epoch and metric lengths differ."
+            )
+        self.history = {
+            "epoch": history_epochs,
+            "loss": losses,
+            "accuracy": accuracies,
+        }
+
+        self.start_epoch = int(checkpoint.get("epoch", len(losses)))
+        if self.start_epoch < 0:
+            raise ValueError(f"Invalid checkpoint epoch: {self.start_epoch}.")
+        self.resume_epochs = [
+            int(epoch) for epoch in checkpoint.get("resume_epochs", [])
+        ]
+        if self.start_epoch > 0 and self.start_epoch not in self.resume_epochs:
+            self.resume_epochs.append(self.start_epoch)
+
+        self._output(
+            f"Resuming after epoch {self.start_epoch} with "
+            f"{len(losses)} historical plot points."
+        )
+        if checkpoint.get("scheduler_states"):
+            self._output(
+                "Starting a new learning-rate schedule for the additional epochs; "
+                "the completed OneCycleLR state is not reused."
+            )
 
     def save_plots(self, path: str = ".", info_str: str = "") -> None:
         """
@@ -437,28 +510,55 @@ class Trainer:
         :param info_str: Additional context for the plot titles.
         """
         self._output(f"Saving plots to {path}")
-        epochs = range(1, len(self.history["loss"]) + 1)
+        epochs = self.history.get("epoch") or list(
+            range(1, len(self.history["loss"]) + 1)
+        )
 
-        title_suffix = f"\n({info_str})" if info_str else ""
+        wrapped_info = "\n".join(
+            wrapped_line
+            for line in info_str.splitlines()
+            for wrapped_line in textwrap.wrap(
+                line,
+                width=100,
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
+        )
+        title_suffix = f"\n({wrapped_info})" if wrapped_info else ""
 
         # Plot Loss
-        plt.figure(figsize=(10, 5))
+        plt.figure(figsize=(12, 6))
         plt.plot(epochs, self.history["loss"], label="Loss")
+        self._plot_resume_markers()
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title(f"Training Loss{title_suffix}")
+        plt.title(f"Training Loss{title_suffix}", fontsize=11)
         plt.legend()
         plt.grid(True)
+        plt.tight_layout()
         plt.savefig(f"{path}/loss_curve.png")
         plt.close()
 
         # Plot Accuracy
-        plt.figure(figsize=(10, 5))
+        plt.figure(figsize=(12, 6))
         plt.plot(epochs, self.history["accuracy"], label="Accuracy", color="orange")
+        self._plot_resume_markers()
         plt.xlabel("Epoch")
         plt.ylabel("Accuracy")
-        plt.title(f"Training Accuracy{title_suffix}")
+        plt.title(f"Training Accuracy{title_suffix}", fontsize=11)
         plt.legend()
         plt.grid(True)
+        plt.tight_layout()
         plt.savefig(f"{path}/accuracy_curve.png")
         plt.close()
+
+    def _plot_resume_markers(self) -> None:
+        """Mark boundaries between checkpointed and newly added epochs."""
+        for index, completed_epochs in enumerate(self.resume_epochs):
+            plt.axvline(
+                completed_epochs + 0.5,
+                color="gray",
+                linestyle="--",
+                alpha=0.65,
+                label="Resume" if index == 0 else None,
+            )

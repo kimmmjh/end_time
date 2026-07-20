@@ -126,13 +126,19 @@ def main() -> None:
         "--save_model", action="store_true", help="Save the trained model."
     )
     parser.add_argument(
-        "--load_model", type=str, default=None, help="Path to load model."
+        "--load_model",
+        type=str,
+        default=None,
+        help=(
+            "Checkpoint to resume. Restores model, optimizer, epoch, and plot "
+            "history; --epochs specifies how many additional epochs to run."
+        ),
     )
     parser.add_argument(
         "--lr",
         type=float,
         default=None,
-        help="Learning rate (defaults: 1e-3 from scratch, 1e-4 fine-tuning).",
+        help="Maximum learning rate (defaults: 1e-3 fresh, 1e-4 resumed).",
     )
     parser.add_argument(
         "--amp_dtype",
@@ -240,6 +246,7 @@ def main() -> None:
                 if args.architecture == "convgru"
                 else ""
             )
+            + ("_resume" if args.load_model else "")
         ),
     )
     output_dir = os.path.join(
@@ -293,7 +300,8 @@ def main() -> None:
     logging.info(
         f"Lattice size: {args.L}, Rounds: {rounds}, Error rate: {args.p}, "
         f"Noise Model: {args.noise_model}, Measurement Error: "
-        f"{args.measurement_error_rate}, Epochs: {args.epochs}"
+        f"{args.measurement_error_rate}, "
+        f"{'Additional epochs' if args.load_model else 'Epochs'}: {args.epochs}"
     )
     logging.info(
         f"Batch size: {args.batch_size}, Training batches: {args.batches}, "

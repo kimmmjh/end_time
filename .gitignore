@@ -12,6 +12,7 @@ resdir_*/
 past_results/
 threshold_*.png
 threshold_*.csv
+tests/
 
 # IDEs
 .idea/
