@@ -17,3 +17,5 @@ tests/
 # IDEs
 .idea/
 .vscode/
+
+.sh
