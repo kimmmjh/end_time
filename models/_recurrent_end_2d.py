@@ -77,7 +77,13 @@ class RecurrentEND2D(nn.Module):
             bias=True,
         )
 
-    def forward(self, x: Tensor) -> Tensor:
+    def _local_class_logits(self, x: Tensor) -> Tensor:
+        """Return one 16-class logit vector at every lattice position.
+
+        Keeping the shared encoder in one method lets the absolute-logical END
+        head and the matching-residual head use exactly the same spatial and
+        temporal feature extractor.
+        """
         if x.ndim != 4:
             raise ValueError(
                 "Expected syndrome shape (batch, 2, rounds, L^2), "
@@ -111,8 +117,11 @@ class RecurrentEND2D(nn.Module):
         _, hidden_states = self.recurrent(x)
         x = hidden_states[-1]
         x = self.non_linear(self.batch_norm(x))
-        x = self.conv_out(x)
+        return self.conv_out(x)
 
+    def forward(self, x: Tensor) -> Tensor:
+        batch = x.shape[0]
+        x = self._local_class_logits(x)
         # Match the existing END head expected by TranslationalEquivariantPooling2D.
         x = torch.roll(x, (-1, -1), (2, 3))
         x = x.permute(0, 2, 3, 1)
@@ -146,3 +155,22 @@ class RecurrentEND2D(nn.Module):
             for _ in range(depth - 1)
         )
         return nn.Sequential(*layers)
+
+
+class RecurrentResidualEND2D(RecurrentEND2D):
+    """Translation-invariant logical-residual classifier.
+
+    A matching residual is the homology class of a closed cycle: translating
+    the detector pattern and the matching correction together must not change
+    that class.  The circular CNN and ConvGRU produce an equivariant spatial
+    logit map, and global spatial averaging turns it into an invariant
+    ``(batch, 16)`` prediction.
+
+    This differs intentionally from :class:`RecurrentEND2D`, whose output still
+    requires the syndrome-dependent END pooling used for *absolute* logical
+    labels.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        local_logits = self._local_class_logits(x)
+        return local_logits.mean(dim=(2, 3))

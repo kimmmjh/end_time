@@ -135,6 +135,7 @@ class Trainer:
         )
 
         self.history = {"epoch": [], "loss": [], "accuracy": []}
+        self._last_baseline_accuracy: float | None = None
         self.resume_epochs: list[int] = []
         self.start_epoch = 0
         if load_model_path is not None:
@@ -234,6 +235,10 @@ class Trainer:
                 f"Eval Samples: {eval_batches * self._batch_size} | "
                 f"Time: {metrics.epoch_duration:.2f}s"
             )
+            if self._last_baseline_accuracy is not None:
+                log_message += (
+                    f" | MWPM Accuracy: {self._last_baseline_accuracy:.4f}"
+                )
             self._output(log_message)
             # wandb.log(metrics.__dict__)
 
@@ -291,6 +296,7 @@ class Trainer:
 
         all_y_pred = []
         all_y = []
+        all_baseline_classes = []
 
         for _ in iterator:
             X, y = data_generator.generate_batch(device=device)
@@ -305,7 +311,14 @@ class Trainer:
                 device_type=device.type, dtype=amp_dtype, enabled=amp_enabled
             ):
                 y_pred = self.model(X)
-                loss_c = self.criterion(y_pred, y)
+                loss_input, loss_target = y_pred, y
+                loss_adapter = getattr(self.model, "loss_inputs", None)
+                if callable(loss_adapter):
+                    # Hybrid matching models expose residual logits and labels
+                    # for the loss while returning final logical-class logits
+                    # for metrics and deployment.
+                    loss_input, loss_target = loss_adapter(y_pred, y)
+                loss_c = self.criterion(loss_input, loss_target)
 
             if train and not torch.isfinite(loss_c):
                 skipped_batches += 1
@@ -318,6 +331,13 @@ class Trainer:
             if not train:
                 all_y_pred.append(y_pred)
                 all_y.append(y)
+                baseline_classes = getattr(
+                    self.model, "last_baseline_classes", None
+                )
+                if baseline_classes is not None:
+                    all_baseline_classes.append(
+                        baseline_classes.detach().to(device=y.device)
+                    )
 
             if train:
                 """Record loss."""
@@ -342,6 +362,14 @@ class Trainer:
                     scheduler.step()
 
         if not train:
+            if all_baseline_classes:
+                baseline = torch.cat(all_baseline_classes)
+                truth = torch.cat(all_y)
+                self._last_baseline_accuracy = float(
+                    (baseline == truth).float().mean().item()
+                )
+            else:
+                self._last_baseline_accuracy = None
             return loss / batches, (torch.cat(all_y_pred), torch.cat(all_y))
 
         if skipped_batches:

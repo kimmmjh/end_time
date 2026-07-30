@@ -30,6 +30,29 @@ def test_noiseless_circuit_is_deterministic():
     circuit.detector_error_model()
 
 
+def test_noisy_circuit_is_closed_in_time():
+    lattice_size = 3
+    rounds = 3
+    circuit = generate_toric_memory_circuit(
+        Toric2DCode(lattice_size),
+        rounds=rounds,
+        gate_error_rate=0.001,
+        measurement_error_rate=0.001,
+    )
+
+    dem = circuit.detector_error_model(decompose_errors=True)
+    assert circuit.num_detectors == rounds * 2 * lattice_size**2
+    assert len(circuit.shortest_graphlike_error()) == lattice_size
+
+    for instruction in dem.flattened():
+        if instruction.type != "error":
+            continue
+        targets = instruction.targets_copy()
+        has_logical = any(target.is_logical_observable_id() for target in targets)
+        has_detector = any(target.is_relative_detector_id() for target in targets)
+        assert not has_logical or has_detector
+
+
 def test_generator_matches_model_input_shape():
     code = Toric2DCode(3)
     generator = CircuitLevelDataGenerator(

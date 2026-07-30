@@ -34,6 +34,7 @@ class Record:
     channels: str
     depths: str
     decoder: str
+    noise_model: str
 
 
 def parse_args() -> argparse.Namespace:
@@ -130,18 +131,29 @@ def parse_log(path: Path, metric: str) -> Record | None:
     q = float(flag(command, "measurement_error_rate", str(p)))
     channels = multi_flag(command, "channels", "64-64-64")
     depths = multi_flag(command, "depths", "3-3-3")
+    noise_model = flag(command, "noise_model", "phenomenological")
     decoder = flag(command, "decoder")
     if decoder is None:
         decoder = "pymatching" if "pymatching_threshold.py" in command else "neural"
     architecture = flag(command, "architecture")
     if architecture is None:
         architecture = "n/a" if decoder == "pymatching" else "cnn3d"
-    elif architecture == "convgru":
+    elif architecture in {"convgru", "convgru_mwpm"}:
+        architecture_name = architecture
         gru_channels = flag(command, "gru_channels", channels.split("-")[-1])
         gru_layers = flag(command, "gru_layers", "1")
         gru_kernel_size = flag(command, "gru_kernel_size", "3")
+        matching_suffix = ""
+        if architecture_name == "convgru_mwpm":
+            matching_mode = (
+                "corr"
+                if re.search(r"(?:^|\s)--matching_correlations(?:\s|$)", command)
+                else "standard"
+            )
+            matching_suffix = f"-m{matching_mode}"
         architecture = (
-            f"convgru-gc{gru_channels}-gl{gru_layers}-gk{gru_kernel_size}"
+            f"{architecture_name}-gc{gru_channels}-gl{gru_layers}-gk"
+            f"{gru_kernel_size}{matching_suffix}"
         )
 
     return Record(
@@ -157,6 +169,7 @@ def parse_log(path: Path, metric: str) -> Record | None:
         channels=channels,
         depths=depths,
         decoder=decoder,
+        noise_model=noise_model or "unknown",
     )
 
 
@@ -183,6 +196,16 @@ def parse_csv(path: Path) -> list[Record]:
             decoder = row.get("decoder") or ""
             if not decoder:
                 decoder = "pymatching" if label.startswith("PyMatching ") else "neural"
+            architecture = row.get("architecture") or ""
+            if not architecture and decoder.lower() == "pymatching":
+                correlations = (row.get("matching_correlations") or "").lower()
+                architecture = (
+                    "matching-corr"
+                    if correlations in {"1", "true", "yes"}
+                    else "matching-standard"
+                    if correlations in {"0", "false", "no"}
+                    else "n/a"
+                )
             records.append(
                 Record(
                     source=path,
@@ -194,12 +217,13 @@ def parse_csv(path: Path) -> list[Record]:
                     p=p,
                     q=float(row.get("q") or p),
                     architecture=(
-                        row.get("architecture")
+                        architecture
                         or ("n/a" if decoder.lower() == "pymatching" else "cnn3d")
                     ),
                     channels=row.get("channels") or "n/a",
                     depths=row.get("depths") or "n/a",
                     decoder=decoder.lower(),
+                    noise_model=row.get("noise_model") or "unknown",
                 )
             )
     return records
@@ -218,24 +242,62 @@ def decoder_name(decoder: str) -> str:
 
 
 def label_for(record: Record, group: str) -> str:
+    is_hybrid = record.architecture.startswith("convgru_mwpm-")
+    is_convgru = record.architecture.startswith("convgru-") or is_hybrid
     include_arch = (
         group in {"L_arch", "L_arch_decoder"}
         and record.decoder.lower() != "pymatching"
     )
     if include_arch:
-        architecture = (
-            f" arch={record.architecture}"
-            if record.architecture not in {"", "cnn3d", "n/a"}
-            else ""
-        )
-        label = (
-            f"L={record.L}{architecture} "
-            f"ch={record.channels} d={record.depths}"
-        )
+        if is_convgru:
+            gru_match = re.fullmatch(
+                r"convgru(?:_mwpm)?-gc(.+?)-gl(.+?)-gk(.+?)"
+                r"(?:-m(?:corr|standard))?",
+                record.architecture,
+            )
+            gru = (
+                f" gru={gru_match.group(1)}x{gru_match.group(2)} "
+                f"k={gru_match.group(3)}"
+                if gru_match
+                else f" arch={record.architecture}"
+            )
+            if is_hybrid:
+                gru += (
+                    " matching=corr"
+                    if record.architecture.endswith("-mcorr")
+                    else " matching=standard"
+                )
+            label = (
+                f"L={record.L} ch={record.channels} d={record.depths}{gru}"
+            )
+        else:
+            architecture = (
+                f" arch={record.architecture}"
+                if record.architecture not in {"", "cnn3d", "n/a"}
+                else ""
+            )
+            label = (
+                f"L={record.L}{architecture} "
+                f"ch={record.channels} d={record.depths}"
+            )
     else:
         label = f"L={record.L}"
+    if record.noise_model not in {"", "unknown"}:
+        label = f"{label} noise={record.noise_model}"
+    if (
+        record.decoder.lower() == "pymatching"
+        and record.architecture.startswith("matching-")
+    ):
+        label = f"{label} {record.architecture}"
     if group in {"L_decoder", "L_arch_decoder"}:
-        return f"{decoder_name(record.decoder)} {label}"
+        model_name = (
+            "ConvGRU+MWPM"
+            if is_hybrid
+            else "ConvGRU"
+            if is_convgru
+            else decoder_name(record.decoder)
+        )
+        return f"{model_name} {label}"
     return label
 
 
@@ -298,6 +360,11 @@ def aggregate(records: list[Record], group: str):
                 if all(item.decoder == items[0].decoder for item in items)
                 else "mixed"
             ),
+            "noise_model": (
+                items[0].noise_model
+                if all(item.noise_model == items[0].noise_model for item in items)
+                else "mixed"
+            ),
             "architecture": (
                 items[0].architecture
                 if all(item.architecture == items[0].architecture for item in items)
@@ -338,6 +405,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
             fieldnames=[
                 "label",
                 "decoder",
+                "noise_model",
                 "L",
                 "architecture",
                 "channels",
@@ -355,6 +423,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
                 {
                     "label": row["label"],
                     "decoder": row["decoder"],
+                    "noise_model": row["noise_model"],
                     "L": row["L"],
                     "architecture": row["architecture"],
                     "channels": row["channels"],
@@ -381,7 +450,7 @@ def main() -> None:
 
     curves, rows = aggregate(records, args.group)
 
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(9, 5.5))
     lattice_sizes = sorted(
         {point["L"] for points in curves.values() for point in points if point["L"]}
     )
@@ -443,9 +512,9 @@ def main() -> None:
     if not args.linear:
         plt.yscale("log")
     plt.grid(True, which="both", alpha=0.3)
-    plt.legend()
+    plt.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=9)
     plt.tight_layout()
-    plt.savefig(args.out, dpi=200)
+    plt.savefig(args.out, dpi=200, bbox_inches="tight")
 
     if args.csv:
         write_csv(args.csv, rows)

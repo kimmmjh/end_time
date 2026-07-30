@@ -7,11 +7,17 @@ import re
 import numpy as np
 
 from torch import nn
-from models import Decoder, RecurrentEND2D
+from models import (
+    Decoder,
+    MatchingResidualDecoder,
+    RecurrentEND2D,
+    RecurrentResidualEND2D,
+)
 from models.loss_functions import DynamicCELoss
 from models._the_end_3d import TransformedEND3D
 from models.pooling_layers import TranslationalEquivariantPooling2D
 from src import Trainer
+from src.stim_utils import generate_toric_memory_circuit
 from panqec.codes import Toric2DCode
 
 
@@ -45,11 +51,22 @@ def main() -> None:
         "--architecture",
         type=str,
         default="cnn3d",
-        choices=["cnn3d", "convgru"],
+        choices=["cnn3d", "convgru", "convgru_mwpm"],
         help=(
             "Temporal architecture. cnn3d treats time as a third spatial axis; "
             "convgru applies a shared equivariant 2D CNN to each round and "
-            "recurrently accumulates the rounds."
+            "recurrently accumulates the rounds; convgru_mwpm lets a Stim DEM "
+            "PyMatching decoder do global pairing and trains the equivariant "
+            "ConvGRU to predict its residual logical class."
+        ),
+    )
+    parser.add_argument(
+        "--matching_correlations",
+        action="store_true",
+        help=(
+            "For --architecture=convgru_mwpm, enable PyMatching's correlated "
+            "two-pass decoder. The default uses ordinary DEM-based MWPM so the "
+            "neural residual model can learn correlations missed by it."
         ),
     )
     parser.add_argument(
@@ -106,7 +123,8 @@ def main() -> None:
         type=int,
         default=None,
         help=(
-            "ConvGRU hidden width for --architecture=convgru. "
+            "ConvGRU hidden width for --architecture=convgru or "
+            "convgru_mwpm. "
             "Defaults to the last value in --channels."
         ),
     )
@@ -172,6 +190,15 @@ def main() -> None:
         parser.error("--gru_layers must be positive.")
     if args.gru_kernel_size < 1:
         parser.error("--gru_kernel_size must be positive.")
+    if args.architecture == "convgru_mwpm" and args.noise_model != "circuit":
+        parser.error(
+            "--architecture=convgru_mwpm requires --noise_model=circuit."
+        )
+    if args.matching_correlations and args.architecture != "convgru_mwpm":
+        parser.error(
+            "--matching_correlations is only valid with "
+            "--architecture=convgru_mwpm."
+        )
 
     if args.seed is not None:
         np.random.seed(args.seed)
@@ -187,7 +214,29 @@ def main() -> None:
 
     # in_channels is always 2 for the vertex/face detector sectors.
     in_channels = 2
-    if args.architecture == "convgru":
+    if args.architecture == "convgru_mwpm":
+        network = RecurrentResidualEND2D(
+            channels=args.channels,
+            depths=args.depths,
+            lattice_size=args.L,
+            in_channels=in_channels,
+            gru_channels=args.gru_channels,
+            gru_layers=args.gru_layers,
+            gru_kernel_size=args.gru_kernel_size,
+        )
+        matching_circuit = generate_toric_memory_circuit(
+            code,
+            rounds=rounds,
+            gate_error_rate=args.p,
+            measurement_error_rate=args.measurement_error_rate,
+        )
+        decoder = MatchingResidualDecoder(
+            residual_decoder=network,
+            circuit=matching_circuit,
+            num_observables=2 * code.k,
+            enable_correlations=args.matching_correlations,
+        )
+    elif args.architecture == "convgru":
         network = RecurrentEND2D(
             channels=args.channels,
             depths=args.depths,
@@ -197,6 +246,7 @@ def main() -> None:
             gru_layers=args.gru_layers,
             gru_kernel_size=args.gru_kernel_size,
         )
+        decoder = Decoder(network=network, pooling=pooling, ensemble=None)
     else:
         network = TransformedEND3D(
             channels=args.channels,
@@ -204,8 +254,8 @@ def main() -> None:
             lattice_size=args.L,
             in_channels=in_channels,
         )
+        decoder = Decoder(network=network, pooling=pooling, ensemble=None)
 
-    decoder = Decoder(network=network, pooling=pooling, ensemble=None)
     decoder.to(device)
 
     """Instantiate Optimizer, Scheduler and Loss."""
@@ -243,7 +293,12 @@ def main() -> None:
             + (
                 f"_gru{args.gru_channels or args.channels[-1]}x{args.gru_layers}"
                 f"_gk{args.gru_kernel_size}"
-                if args.architecture == "convgru"
+                if args.architecture in {"convgru", "convgru_mwpm"}
+                else ""
+            )
+            + (
+                f"_matching-{'corr' if args.matching_correlations else 'standard'}"
+                if args.architecture == "convgru_mwpm"
                 else ""
             )
             + ("_resume" if args.load_model else "")
@@ -288,7 +343,7 @@ def main() -> None:
         recurrent=(
             f"ConvGRU channels={args.gru_channels or args.channels[-1]}, "
             f"layers={args.gru_layers}, kernel={args.gru_kernel_size}"
-            if args.architecture == "convgru"
+            if args.architecture in {"convgru", "convgru_mwpm"}
             else None
         ),
         attention=attention,
@@ -320,13 +375,19 @@ def main() -> None:
     )
 
     # Check if network is using Attention
-    if args.architecture == "convgru":
+    if args.architecture in {"convgru", "convgru_mwpm"}:
         logging.info(
             "Temporal model: ConvGRU | "
             f"Hidden channels: {args.gru_channels or args.channels[-1]} | "
             f"Layers: {args.gru_layers} | Kernel: {args.gru_kernel_size}"
         )
         logging.info("Attention: Disabled (shared 2D circular CNN encoder)")
+        if args.architecture == "convgru_mwpm":
+            logging.info(
+                "Global decoder: Stim DEM PyMatching | "
+                f"Correlated matching: {args.matching_correlations} | "
+                "Neural target: residual logical class"
+            )
     elif attention != "disabled":
         logging.info(
             f"Attention: Enabled | Heads: {conv_in.number_heads} | Key Depths: {conv_in.key_depths} | Attn Channels: {conv_in.attention_channels}"

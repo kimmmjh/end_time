@@ -165,7 +165,10 @@ def generate_toric_memory_circuit(
     vertex checks followed by all face checks at each time. Logical
     observables are correlation sheets in PanQEC's
     ``[logicals_x, logicals_z]`` order, so X, Y, and Z logical components
-    from the same physical shot remain correlated.
+    from the same physical shot remain correlated. ``rounds`` is the number
+    of returned detector frames: the first ``rounds - 1`` cycles are noisy,
+    and the final cycle is noiseless so that data faults from the last noisy
+    cycle are measured instead of becoming undetectable logical faults.
     """
     _require_stim()
     _validate_probability("gate_error_rate", gate_error_rate)
@@ -218,13 +221,21 @@ def generate_toric_memory_circuit(
     _append_logical_sheets(circuit, code)
 
     for time_index in range(rounds):
+        # Close the time boundary with a perfect syndrome extraction. Without
+        # this final cycle, data faults after the last noisy CNOT layer have no
+        # later detector and can flip a logical observable at circuit distance
+        # one. Keeping the closing cycle inside `rounds` preserves the public
+        # detector tensor shape (rounds, 2, L, L).
+        closing_cycle = time_index == rounds - 1
         _append_measurement_cycle(
             circuit,
             code=code,
             x_stabilizers=x_stabilizers,
             layers=layers,
-            gate_error_rate=gate_error_rate,
-            measurement_error_rate=measurement_error_rate,
+            gate_error_rate=0.0 if closing_cycle else gate_error_rate,
+            measurement_error_rate=(
+                0.0 if closing_cycle else measurement_error_rate
+            ),
         )
         for stabilizer_index, location in enumerate(code.stabilizer_coordinates):
             check_type = 0 if stabilizer_index in z_stabilizer_set else 1

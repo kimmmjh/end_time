@@ -71,6 +71,53 @@ For the toric code, each sample has four logical commutation bits in
 `[logical X_0, logical X_1, logical Z_0, logical Z_1]` order. Training
 converts these bits to one of 16 classes.
 
+## Equivariant ConvGRU + MWPM hybrid
+
+For circuit-level noise, `convgru_mwpm` lets PyMatching handle global
+space-time pairing and trains the equivariant ConvGRU to predict only the
+logical residual left by that matching correction:
+
+```text
+Stim detection events
+        |----------------------|
+        v                      v
+DEM-based PyMatching    circular CNN + ConvGRU
+        |                      |
+MWPM logical class      residual logical logits
+        |----------------------|
+                    XOR
+                     |
+             final logical class
+```
+
+The circular CNN and ConvGRU produce a translation-equivariant spatial map.
+Because the residual after matching is a closed-cycle homology class, spatial
+mean pooling gives the appropriate translation-invariant 16-class readout.
+The model therefore retains exact toric translation symmetry while
+PyMatching supplies the non-local pairing operation.
+
+Run a single point with:
+
+```bash
+python main.py --architecture=convgru_mwpm --noise_model=circuit \
+  --L=5 --rounds=5 --p=0.010 --measurement_error_rate=0.010 \
+  --channels 96 96 96 --depths 4 4 4 \
+  --gru_channels=96 --gru_layers=2 --gru_kernel_size=3 \
+  --loss_fn=dynamic --lr=0.0003 --save_model
+```
+
+`--loss_fn=dynamic` is recommended because residual class zero means that
+MWPM succeeded and is much more frequent than the non-zero residual classes.
+Add `--matching_correlations` to use PyMatching's correlated two-pass decoder;
+without it, the neural residual model is trained to learn correlations missed
+by ordinary DEM-based MWPM.
+
+This implementation is a neural **residual/postdecoder**, not per-shot edge
+reweighting. PyMatching 2.3 uses static graph weights and does not accept
+batched shot-dependent weights. A true local neural predecoder would require
+explicit Stim fault-mechanism targets, hard local corrections, and a second
+matching pass on the residual syndrome.
+
 ## Noise models
 
 Code capacity:
@@ -95,10 +142,73 @@ python main.py --noise_model=circuit --L=5 --rounds=5 --p=0.004 \
 
 The circuit uses one ancilla per stabilizer, four collision-free CNOT layers,
 depolarizing faults after one- and two-qubit gates, reset faults, and
-measurement flips. A noiseless reference cycle is followed by the requested
-number of noisy cycles. Stim samples all detectors and all four logical
+measurement flips. A noiseless reference cycle is followed by `rounds - 1`
+noisy cycles and one final perfect closing cycle. Thus `rounds` is the number
+of returned detector frames. The perfect final frame is necessary to detect
+data faults from the last noisy cycle; omitting it creates undetectable
+single-fault logical errors. Stim samples all detectors and all four logical
 correlation sheets from the same shot, preserving X/Z/Y and hook-error
 correlations.
+
+## Circuit-level experiment scripts
+
+The sequential single-GPU runner scans the corrected circuit near its observed
+threshold region, `p=q=0.008,...,0.012`:
+
+```bash
+bash run_circuit_hybrid.sh 5
+bash run_circuit_hybrid.sh 7
+bash run_circuit_hybrid.sh 9
+```
+
+`GPU_ID` defaults to zero and can be overridden:
+
+```bash
+GPU_ID=1 bash run_circuit_hybrid.sh 7
+```
+
+Each invocation creates `resdir_<script-pid>/exp_<index>` and runs the five
+points sequentially. To generate the matching-only circuit baseline:
+
+```bash
+python scripts/circuit_pymatching_threshold.py \
+  --L 5 7 9 --p 0.008 0.009 0.010 0.011 0.012 \
+  --shots 262144 --batch_size 2048 \
+  --output circuit_pymatching_threshold.csv
+```
+
+Add `--enable_correlations` for the correlated-matching baseline.
+
+The same baseline can be launched with a shell runner matching the hybrid
+experiment grid:
+
+```bash
+# Ordinary MWPM for L=5,7,9.
+bash run_circuit_pymatching.sh all
+
+# Optional correlated PyMatching comparison.
+bash run_circuit_pymatching.sh all correlated
+```
+
+To run only one lattice size, replace `all` with `5`, `7`, or `9`. The default
+is 262,144 shots per point. It can be overridden without editing the script:
+
+```bash
+SHOTS=1000000 BATCH_SIZE=4096 bash run_circuit_pymatching.sh 7
+```
+
+After the neural and matching runs finish, pass their result directories
+together to the threshold plotter:
+
+```bash
+python scripts/plot_threshold.py \
+  /path/to/hybrid_L5_resdir \
+  /path/to/hybrid_L7_resdir \
+  /path/to/hybrid_L9_resdir \
+  /path/to/pymatching_resdir \
+  --out circuit_hybrid_vs_mwpm.png \
+  --csv circuit_hybrid_vs_mwpm.csv
+```
 
 ## Offline circuit data
 
@@ -132,10 +242,4 @@ python main.py --architecture=convgru --noise_model=phenomenological \
   --channels 96 96 96 --depths 4 4 4 \
   --gru_channels=96 --gru_layers=2 --lr=0.0003 --save_model \
   --load_model=/absolute/path/to/model.pt
-```
-
-For the L=11, p=0.03 Perlmutter continuation job in this repository:
-
-```bash
-sbatch resume_L11_p030.slurm /absolute/path/to/model.pt
 ```

@@ -9,13 +9,19 @@ __pycache__/
 # Experiment results
 outputs/
 resdir_*/
-past_results/
+nn/
 threshold_*.png
 threshold_*.csv
 tests/
+!tests/
+tests/*
+!tests/test_circuit_pymatching_threshold.py
+!tests/test_hybrid_decoder.py
 
 # IDEs
 .idea/
 .vscode/
 
 *.sh
+!run_circuit_hybrid.sh
+!run_circuit_pymatching.sh
