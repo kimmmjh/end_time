@@ -1,11 +1,12 @@
 import torch
 import os
+import shutil
 from torch import nn, Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 
-from src.metrics import WandbMetrics
-from typing import Callable, Type
+from src.metrics import PairedDecoderMetrics, WandbMetrics, paired_decoder_metrics
+from typing import Any, Callable, Mapping, Type
 from ._data_generator import (
     DataGenerator,
     PhenomenologicalDataGenerator,
@@ -52,6 +53,7 @@ class Trainer:
         batches: int,
         eval_batches: int = 16,
         final_eval_batches: int | None = None,
+        hybrid_calibration_batches: int | None = None,
         amp_dtype: str = "fp16",
         lattice_size: int | None = None,
         channels: list[int] | None = None,
@@ -76,6 +78,9 @@ class Trainer:
         :param batches: Number of batches per epoch.
         :param eval_batches: Number of batches used for evaluation each epoch.
         :param final_eval_batches: Optional larger final-epoch evaluation.
+        :param hybrid_calibration_batches: Fresh batches used to calibrate a
+            hybrid correction gate before each evaluation. Defaults to
+            ``eval_batches`` and is ignored by models without ``calibrate_gate``.
         :param amp_dtype: Mixed precision dtype: "fp16", "bf16", or "none".
         :param lattice_size: Lattice size used for the code.
         :param channels: Model channel widths per stage.
@@ -121,6 +126,13 @@ class Trainer:
         self._final_eval_batches = (
             eval_batches if final_eval_batches is None else final_eval_batches
         )
+        self._hybrid_calibration_batches = (
+            eval_batches
+            if hybrid_calibration_batches is None
+            else hybrid_calibration_batches
+        )
+        if self._hybrid_calibration_batches < 0:
+            raise ValueError("hybrid_calibration_batches must be non-negative.")
         self._num_epochs = epochs
         self._batch_size = batch_size
         self._save_directory = save_directory
@@ -134,8 +146,25 @@ class Trainer:
             attention=attention,
         )
 
-        self.history = {"epoch": [], "loss": [], "accuracy": []}
+        self.history = {
+            "epoch": [],
+            "loss": [],
+            "accuracy": [],
+            "mwpm_accuracy": [],
+            "net_gain": [],
+            "net_gain_standard_error": [],
+            "rescued": [],
+            "harmed": [],
+            "corrections": [],
+        }
         self._last_baseline_accuracy: float | None = None
+        self._last_eval_baseline_classes: Tensor | None = None
+        self._last_eval_residual_logits: Tensor | None = None
+        self._last_calibration_metadata: dict[str, Any] | None = None
+        self._best_epoch: int | None = None
+        self._best_score = float("-inf")
+        self._best_accuracy = float("-inf")
+        self._best_checkpoint_metadata: dict[str, Any] | None = None
         self.resume_epochs: list[int] = []
         self.start_epoch = 0
         if load_model_path is not None:
@@ -195,6 +224,8 @@ class Trainer:
         else:
             raise ValueError(f"Unknown noise model: {noise_model!r}.")
 
+        hybrid_interface = self._hybrid_interface()
+
         """Start Training."""
         for epoch in range(self.start_epoch, self._num_epochs):
             self._output(f"{'=' * 18}")
@@ -206,13 +237,32 @@ class Trainer:
             loss, _ = self._process_batches(data_generator, device, self._num_batches)
             epoch_time = time.time() - epoch_start
 
-            """Evaluate model."""
+            """Calibrate the hybrid gate on samples disjoint from evaluation."""
             self._output("Evaluating Model.")
             self.model.eval()
+            calibration_metadata = None
+            if hybrid_interface is not None:
+                if self._hybrid_calibration_batches == 0:
+                    calibration_metadata = self._disable_hybrid_gate()
+                else:
+                    calibration_metadata = self._calibrate_hybrid_gate(
+                        data_generator=data_generator,
+                        device=device,
+                        batches=self._hybrid_calibration_batches,
+                    )
+
+            """Evaluate on fresh samples after calibration."""
+            # A saved hybrid run gets its large held-out evaluation from the
+            # selected best checkpoint below.  All other runs retain the
+            # legacy behavior of using ``final_eval_batches`` in the last
+            # epoch.
+            has_selected_best_evaluation = (
+                hybrid_interface is not None and self._save_model
+            )
             eval_batches = (
-                self._final_eval_batches
-                if epoch == self._num_epochs - 1
-                else self._eval_batches
+                self._eval_batches
+                if has_selected_best_evaluation or epoch < self._num_epochs - 1
+                else self._final_eval_batches
             )
             with torch.no_grad():
                 _, (y_pred, y_true) = self._process_batches(
@@ -227,6 +277,7 @@ class Trainer:
                 learning_rate=self.schedulers[0].optimizer.param_groups[0]["lr"],
                 epoch_duration=epoch_time,
             )
+            paired_metrics = self._paired_metrics(y_pred, y_true)
             log_message = (
                 f"[Epoch {epoch}] "
                 f"Loss: {metrics.loss:.4f} | "
@@ -235,17 +286,34 @@ class Trainer:
                 f"Eval Samples: {eval_batches * self._batch_size} | "
                 f"Time: {metrics.epoch_duration:.2f}s"
             )
-            if self._last_baseline_accuracy is not None:
+            if paired_metrics is not None:
                 log_message += (
-                    f" | MWPM Accuracy: {self._last_baseline_accuracy:.4f}"
+                    f" | MWPM Accuracy: {paired_metrics.baseline_accuracy:.4f}"
+                    f" | Rescue: {paired_metrics.rescue_rate:.6f}"
+                    f" | Harm: {paired_metrics.harm_rate:.6f}"
+                    f" | Correction: {paired_metrics.correction_rate:.6f}"
+                    f" | Net Gain: {paired_metrics.net_gain:+.6f}"
+                    f" | Paired SE: "
+                    f"{paired_metrics.paired_standard_error:.6f}"
                 )
             self._output(log_message)
             # wandb.log(metrics.__dict__)
 
             # Update history and save plots
-            self.history["epoch"].append(epoch + 1)
-            self.history["loss"].append(float(metrics.loss))
-            self.history["accuracy"].append(float(metrics.accuracy))
+            self._append_history(epoch, metrics, paired_metrics)
+
+            if self._save_model and hybrid_interface is not None:
+                if paired_metrics is None:
+                    raise RuntimeError(
+                        "A calibratable hybrid model must expose paired MWPM "
+                        "predictions during evaluation."
+                    )
+                self._consider_best_checkpoint(
+                    epoch=epoch,
+                    accuracy=float(metrics.accuracy),
+                    paired_metrics=paired_metrics,
+                    calibration_metadata=calibration_metadata,
+                )
 
             # Format info string for plots dynamically
             q_str = (
@@ -260,14 +328,284 @@ class Trainer:
 
             self.save_plots(path=self._save_directory, info_str=info_str)
 
-        """Sve the finished model."""
+        """Save the final resumable state, then evaluate the selected best."""
         if self._save_model:
-            self._output("Saving Model.")
+            self._output("Saving final resumable model.")
             self.save_model(
                 path=self._save_directory,
                 model_name="model",
                 epoch=self._num_epochs - 1,
             )
+            if hybrid_interface is not None and self._best_epoch is not None:
+                self._evaluate_selected_best(data_generator, device)
+
+    def _hybrid_interface(self) -> nn.Module | None:
+        """Return the model object exposing the optional hybrid gate API."""
+
+        interface = (
+            self.model.module
+            if isinstance(self.model, nn.DataParallel)
+            else self.model
+        )
+        return interface if callable(getattr(interface, "calibrate_gate", None)) else None
+
+    def _calibrate_hybrid_gate(
+        self,
+        *,
+        data_generator: DataGenerator,
+        device: torch.device,
+        batches: int,
+    ) -> dict[str, Any]:
+        """Calibrate on fresh shots without using them for model selection."""
+
+        interface = self._hybrid_interface()
+        if interface is None:
+            return {}
+
+        with torch.no_grad():
+            _, (_, true_classes) = self._process_batches(
+                data_generator,
+                device,
+                batches,
+                train=False,
+            )
+        if self._last_eval_baseline_classes is None:
+            raise RuntimeError(
+                "A calibratable hybrid model must expose last_baseline_classes."
+            )
+        if self._last_eval_residual_logits is None:
+            raise RuntimeError(
+                "A calibratable hybrid model must expose last_residual_logits."
+            )
+
+        with torch.no_grad():
+            result = interface.calibrate_gate(
+                self._last_eval_residual_logits,
+                true_classes,
+                self._last_eval_baseline_classes,
+            )
+        if not isinstance(result, Mapping):
+            raise TypeError(
+                "calibrate_gate must return a mapping of calibration metadata."
+            )
+        metadata = self._primitive_mapping(result)
+        metadata["samples"] = batches * self._batch_size
+        self._last_calibration_metadata = metadata
+        summary = ", ".join(
+            f"{key}={value}" for key, value in sorted(metadata.items())
+        )
+        self._output(f"Hybrid Calibration: {summary}")
+        return metadata
+
+    def _disable_hybrid_gate(self) -> dict[str, Any]:
+        """Explicitly retain pure-MWPM fallback when calibration is disabled."""
+
+        interface = self._hybrid_interface()
+        if interface is None:
+            return {}
+        configure_gate = getattr(interface, "configure_gate", None)
+        if callable(configure_gate):
+            configure_gate(enabled=False)
+        else:
+            gate_enabled = getattr(interface, "gate_enabled", None)
+            if isinstance(gate_enabled, Tensor):
+                with torch.no_grad():
+                    gate_enabled.fill_(False)
+            elif gate_enabled is not None:
+                setattr(interface, "gate_enabled", False)
+        metadata = {
+            "enabled": False,
+            "reason": "hybrid_calibration_batches=0",
+            "samples": 0,
+        }
+        self._last_calibration_metadata = metadata
+        self._output("Hybrid Calibration: disabled (0 batches)")
+        return metadata
+
+    def _paired_metrics(
+        self,
+        final_logits: Tensor,
+        true_classes: Tensor,
+    ) -> PairedDecoderMetrics | None:
+        if self._last_eval_baseline_classes is None:
+            self._last_baseline_accuracy = None
+            return None
+        metrics = paired_decoder_metrics(
+            final_logits,
+            true_classes,
+            self._last_eval_baseline_classes,
+        )
+        self._last_baseline_accuracy = metrics.baseline_accuracy
+        return metrics
+
+    def _append_history(
+        self,
+        epoch: int,
+        metrics: WandbMetrics,
+        paired_metrics: PairedDecoderMetrics | None,
+    ) -> None:
+        """Append metrics while upgrading a resumed legacy history lazily."""
+
+        previous_points = len(self.history.setdefault("epoch", []))
+        optional_values = {
+            "mwpm_accuracy": (
+                paired_metrics.baseline_accuracy if paired_metrics else None
+            ),
+            "net_gain": paired_metrics.net_gain if paired_metrics else None,
+            "net_gain_standard_error": (
+                paired_metrics.paired_standard_error if paired_metrics else None
+            ),
+            "rescued": paired_metrics.rescued if paired_metrics else None,
+            "harmed": paired_metrics.harmed if paired_metrics else None,
+            "corrections": paired_metrics.corrections if paired_metrics else None,
+        }
+        for key in optional_values:
+            if key not in self.history:
+                self.history[key] = [None] * previous_points
+
+        self.history["epoch"].append(epoch + 1)
+        self.history.setdefault("loss", []).append(float(metrics.loss))
+        self.history.setdefault("accuracy", []).append(float(metrics.accuracy))
+        for key, value in optional_values.items():
+            self.history[key].append(value)
+
+    def _consider_best_checkpoint(
+        self,
+        *,
+        epoch: int,
+        accuracy: float,
+        paired_metrics: PairedDecoderMetrics | None,
+        calibration_metadata: Mapping[str, Any] | None = None,
+    ) -> bool:
+        """Save a candidate selected by paired gain, or accuracy otherwise."""
+
+        selection_metric = "net_gain" if paired_metrics is not None else "accuracy"
+        score = paired_metrics.net_gain if paired_metrics is not None else accuracy
+        tolerance = 1e-12
+        better = score > self._best_score + tolerance
+        tied_but_more_accurate = (
+            abs(score - self._best_score) <= tolerance
+            and accuracy > self._best_accuracy + tolerance
+        )
+        if not (better or tied_but_more_accurate):
+            return False
+
+        self._best_epoch = epoch
+        self._best_score = float(score)
+        self._best_accuracy = float(accuracy)
+        metadata: dict[str, Any] = {
+            "epoch": epoch,
+            "completed_epochs": epoch + 1,
+            "selection_metric": selection_metric,
+            "selection_score": float(score),
+            "accuracy": float(accuracy),
+            "calibration": self._primitive_mapping(calibration_metadata or {}),
+        }
+        if paired_metrics is not None:
+            metadata["paired_metrics"] = paired_metrics.as_dict()
+        self._best_checkpoint_metadata = metadata
+
+        self._output(
+            f"Saving new best checkpoint at epoch {epoch}: "
+            f"{selection_metric}={score:+.6f}."
+        )
+        self.save_model(
+            path=self._save_directory or ".",
+            model_name="best_model",
+            epoch=epoch,
+            checkpoint_metadata={"checkpoint_role": "best"},
+        )
+        return True
+
+    def _evaluate_selected_best(
+        self,
+        data_generator: DataGenerator,
+        device: torch.device,
+    ) -> None:
+        """Evaluate the selected checkpoint once on fresh held-out samples."""
+
+        checkpoint_directory = self._save_directory or "."
+        best_path = os.path.join(checkpoint_directory, "best_model.pt")
+        final_path = os.path.join(checkpoint_directory, "model.pt")
+        if not os.path.isfile(best_path):
+            raise FileNotFoundError(f"Best checkpoint not found: {best_path}")
+
+        try:
+            self._load_model_weights(best_path)
+            self.model.eval()
+            with torch.no_grad():
+                _, (y_pred, y_true) = self._process_batches(
+                    data_generator,
+                    device,
+                    self._final_eval_batches,
+                    train=False,
+                )
+            accuracy = float(
+                (y_pred.argmax(dim=1) == y_true).float().mean().item()
+            )
+            paired_metrics = self._paired_metrics(y_pred, y_true)
+            selected: dict[str, Any] = {
+                "epoch": self._best_epoch,
+                "eval_samples": self._final_eval_batches * self._batch_size,
+                "accuracy": accuracy,
+            }
+            if paired_metrics is not None:
+                selected["paired_metrics"] = paired_metrics.as_dict()
+                lower_95 = (
+                    paired_metrics.net_gain
+                    - 1.96 * paired_metrics.paired_standard_error
+                )
+                selected["net_gain_lower_95"] = lower_95
+                selected["recommended_decoder"] = (
+                    "hybrid" if lower_95 > 0.0 else "mwpm"
+                )
+                log_line = (
+                    f"[Selected Best] Epoch: {self._best_epoch}"
+                    f" | Accuracy: {accuracy:.6f}"
+                    f" | MWPM Accuracy: {paired_metrics.baseline_accuracy:.6f}"
+                    f" | Rescue: {paired_metrics.rescue_rate:.6f}"
+                    f" | Harm: {paired_metrics.harm_rate:.6f}"
+                    f" | Correction: {paired_metrics.correction_rate:.6f}"
+                    f" | Net Gain: {paired_metrics.net_gain:+.6f}"
+                    f" | Paired SE: {paired_metrics.paired_standard_error:.6f}"
+                    f" | Eval Samples: {paired_metrics.num_samples}"
+                    f" | Recommended: {selected['recommended_decoder']}"
+                )
+            else:
+                selected["recommended_decoder"] = "model"
+                log_line = (
+                    f"[Selected Best] Epoch: {self._best_epoch}"
+                    f" | Accuracy: {accuracy:.6f}"
+                    f" | Eval Samples: {self._final_eval_batches * self._batch_size}"
+                    " | Recommended: model"
+                )
+            self._output(log_line)
+            self._update_checkpoint_metadata(
+                best_path, "selected_best_evaluation", selected
+            )
+            self._update_checkpoint_metadata(
+                final_path, "selected_best_evaluation", selected
+            )
+        finally:
+            self._load_model_weights(final_path)
+
+    @staticmethod
+    def _primitive_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
+        """Convert calibration values to objects safe for torch checkpoints."""
+
+        def convert(value: Any) -> Any:
+            if isinstance(value, Tensor):
+                value = value.detach().cpu()
+                return value.item() if value.numel() == 1 else value.tolist()
+            if isinstance(value, Mapping):
+                return {str(key): convert(item) for key, item in value.items()}
+            if isinstance(value, (list, tuple)):
+                return [convert(item) for item in value]
+            if isinstance(value, (str, int, float, bool)) or value is None:
+                return value
+            return str(value)
+
+        return {str(key): convert(value) for key, value in values.items()}
 
     def _process_batches(
         self,
@@ -297,12 +635,20 @@ class Trainer:
         all_y_pred = []
         all_y = []
         all_baseline_classes = []
+        all_residual_logits = []
+        metric_source = self._hybrid_interface() or self.model
+        loss_source = self._model_state_target()
+
+        if not train:
+            self._last_eval_baseline_classes = None
+            self._last_eval_residual_logits = None
 
         for _ in iterator:
             X, y = data_generator.generate_batch(device=device)
             """Zero out the gradient for all optimizers."""
-            for optimizer in self.optimizers:
-                optimizer.zero_grad()
+            if train:
+                for optimizer in self.optimizers:
+                    optimizer.zero_grad()
 
             """Forward pass."""
             amp_enabled = device.type == "cuda" and self._amp_dtype != "none"
@@ -311,16 +657,18 @@ class Trainer:
                 device_type=device.type, dtype=amp_dtype, enabled=amp_enabled
             ):
                 y_pred = self.model(X)
-                loss_input, loss_target = y_pred, y
-                loss_adapter = getattr(self.model, "loss_inputs", None)
-                if callable(loss_adapter):
-                    # Hybrid matching models expose residual logits and labels
-                    # for the loss while returning final logical-class logits
-                    # for metrics and deployment.
-                    loss_input, loss_target = loss_adapter(y_pred, y)
-                loss_c = self.criterion(loss_input, loss_target)
+                loss_c = None
+                if train:
+                    loss_input, loss_target = y_pred, y
+                    loss_adapter = getattr(loss_source, "loss_inputs", None)
+                    if callable(loss_adapter):
+                        # Hybrid matching models expose residual logits and labels
+                        # for the loss while returning final logical-class logits
+                        # for metrics and deployment.
+                        loss_input, loss_target = loss_adapter(y_pred, y)
+                    loss_c = self.criterion(loss_input, loss_target)
 
-            if train and not torch.isfinite(loss_c):
+            if train and loss_c is not None and not torch.isfinite(loss_c):
                 skipped_batches += 1
                 for optimizer in self.optimizers:
                     optimizer.zero_grad(set_to_none=True)
@@ -332,14 +680,22 @@ class Trainer:
                 all_y_pred.append(y_pred)
                 all_y.append(y)
                 baseline_classes = getattr(
-                    self.model, "last_baseline_classes", None
+                    metric_source, "last_baseline_classes", None
                 )
                 if baseline_classes is not None:
                     all_baseline_classes.append(
                         baseline_classes.detach().to(device=y.device)
                     )
+                residual_logits = getattr(
+                    metric_source, "last_residual_logits", None
+                )
+                if residual_logits is not None:
+                    all_residual_logits.append(
+                        residual_logits.detach().to(device=y.device)
+                    )
 
             if train:
+                assert loss_c is not None
                 """Record loss."""
                 loss += loss_c.item()
                 finite_batches += 1
@@ -365,11 +721,14 @@ class Trainer:
             if all_baseline_classes:
                 baseline = torch.cat(all_baseline_classes)
                 truth = torch.cat(all_y)
+                self._last_eval_baseline_classes = baseline
                 self._last_baseline_accuracy = float(
                     (baseline == truth).float().mean().item()
                 )
             else:
                 self._last_baseline_accuracy = None
+            if all_residual_logits:
+                self._last_eval_residual_logits = torch.cat(all_residual_logits)
             return loss / batches, (torch.cat(all_y_pred), torch.cat(all_y))
 
         if skipped_batches:
@@ -406,7 +765,11 @@ class Trainer:
         return " | ".join(parts)
 
     def save_model(
-        self, path: str = ".", model_name: str = "model", epoch: int = 0
+        self,
+        path: str = ".",
+        model_name: str = "model",
+        epoch: int = 0,
+        checkpoint_metadata: Mapping[str, Any] | None = None,
     ) -> None:
         """
         Save the current model and training state.
@@ -435,9 +798,44 @@ class Trainer:
             "scaler_state_dict": self.scaler.state_dict(),
             "history": self.history,
             "resume_epochs": self.resume_epochs,
+            "best_checkpoint": self._best_checkpoint_metadata,
         }
+        if checkpoint_metadata:
+            checkpoint.update(self._primitive_mapping(checkpoint_metadata))
 
-        torch.save(checkpoint, f"{path}/{model_name}.pt")
+        destination = os.path.join(path or ".", f"{model_name}.pt")
+        temporary = f"{destination}.tmp"
+        torch.save(checkpoint, temporary)
+        os.replace(temporary, destination)
+
+    def _model_state_target(self) -> nn.Module:
+        return self.model.module if isinstance(self.model, nn.DataParallel) else self.model
+
+    def _restore_model_state(self, state_dict: Mapping[str, Tensor]) -> None:
+        """Restore weights while tolerating a legacy DataParallel prefix."""
+
+        target = self._model_state_target()
+        try:
+            target.load_state_dict(state_dict)
+        except RuntimeError:
+            normalized = {
+                key.replace("module.", "", 1) if key.startswith("module.") else key: value
+                for key, value in state_dict.items()
+            }
+            target.load_state_dict(normalized)
+
+    def _load_model_weights(self, path: str) -> None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        checkpoint = torch.load(path, map_location=device)
+        self._restore_model_state(checkpoint["model_state_dict"])
+
+    @staticmethod
+    def _update_checkpoint_metadata(path: str, key: str, value: Any) -> None:
+        checkpoint = torch.load(path, map_location="cpu")
+        checkpoint[key] = value
+        temporary = f"{path}.tmp"
+        torch.save(checkpoint, temporary)
+        os.replace(temporary, path)
 
     def load_model(self, path: str) -> None:
         """
@@ -450,16 +848,7 @@ class Trainer:
         checkpoint = torch.load(path, map_location=device)
 
         # Restore model weights.
-        try:
-            self.model.load_state_dict(checkpoint["model_state_dict"])
-        except RuntimeError:
-            # Try to handle 'module.' prefix mismatch
-            state_dict = checkpoint["model_state_dict"]
-            new_state_dict = {}
-            for k, v in state_dict.items():
-                name = k.replace("module.", "") if k.startswith("module.") else k
-                new_state_dict[name] = v
-            self.model.load_state_dict(new_state_dict)
+        self._restore_model_state(checkpoint["model_state_dict"])
 
         # Restore Adam/optimizer moments while retaining the freshly configured
         # hyperparameters (especially the LR values installed by the new
@@ -507,10 +896,29 @@ class Trainer:
                 "Checkpoint history is inconsistent: epoch and metric lengths differ."
             )
         self.history = {
-            "epoch": history_epochs,
-            "loss": losses,
-            "accuracy": accuracies,
+            key: list(values)
+            for key, values in checkpoint_history.items()
+            if isinstance(values, (list, tuple))
         }
+        self.history["epoch"] = history_epochs
+        self.history["loss"] = losses
+        self.history["accuracy"] = accuracies
+
+        # Preserve an earlier best checkpoint across a resumed phase when the
+        # checkpoint lives beside it. Legacy checkpoints simply start a fresh
+        # best-selection phase.
+        best_metadata = checkpoint.get("best_checkpoint")
+        source_best = os.path.join(os.path.dirname(path), "best_model.pt")
+        if isinstance(best_metadata, Mapping) and os.path.isfile(source_best):
+            self._best_checkpoint_metadata = self._primitive_mapping(best_metadata)
+            self._best_epoch = int(best_metadata["epoch"])
+            self._best_score = float(best_metadata["selection_score"])
+            self._best_accuracy = float(best_metadata["accuracy"])
+            destination_best = os.path.join(
+                self._save_directory or ".", "best_model.pt"
+            )
+            if os.path.abspath(source_best) != os.path.abspath(destination_best):
+                shutil.copy2(source_best, destination_best)
 
         self.start_epoch = int(checkpoint.get("epoch", len(losses)))
         if self.start_epoch < 0:
@@ -570,6 +978,21 @@ class Trainer:
         # Plot Accuracy
         plt.figure(figsize=(12, 6))
         plt.plot(epochs, self.history["accuracy"], label="Accuracy", color="orange")
+        mwpm_history = self.history.get("mwpm_accuracy", [])
+        if len(mwpm_history) == len(epochs):
+            mwpm_points = [
+                (epoch, value)
+                for epoch, value in zip(epochs, mwpm_history)
+                if value is not None
+            ]
+            if mwpm_points:
+                plt.plot(
+                    [point[0] for point in mwpm_points],
+                    [point[1] for point in mwpm_points],
+                    label="MWPM Accuracy",
+                    color="steelblue",
+                    linestyle="--",
+                )
         self._plot_resume_markers()
         plt.xlabel("Epoch")
         plt.ylabel("Accuracy")
@@ -579,6 +1002,44 @@ class Trainer:
         plt.tight_layout()
         plt.savefig(f"{path}/accuracy_curve.png")
         plt.close()
+
+        # Plot the paired improvement separately so a tiny hybrid degradation
+        # cannot be hidden by two nearly overlapping accuracy curves.
+        net_gain_history = self.history.get("net_gain", [])
+        standard_errors = self.history.get("net_gain_standard_error", [])
+        if (
+            len(net_gain_history) == len(epochs)
+            and len(standard_errors) == len(epochs)
+        ):
+            gain_points = [
+                (epoch, gain, standard_error)
+                for epoch, gain, standard_error in zip(
+                    epochs, net_gain_history, standard_errors
+                )
+                if gain is not None and standard_error is not None
+            ]
+            if gain_points:
+                plt.figure(figsize=(12, 6))
+                plt.errorbar(
+                    [point[0] for point in gain_points],
+                    [point[1] for point in gain_points],
+                    yerr=[1.96 * point[2] for point in gain_points],
+                    label="Hybrid - MWPM (95% paired interval)",
+                    color="purple",
+                    marker="o",
+                    markersize=3,
+                    capsize=2,
+                )
+                plt.axhline(0.0, color="black", linestyle=":", linewidth=1)
+                self._plot_resume_markers()
+                plt.xlabel("Epoch")
+                plt.ylabel("Accuracy difference")
+                plt.title(f"Hybrid Net Gain over MWPM{title_suffix}", fontsize=11)
+                plt.legend()
+                plt.grid(True)
+                plt.tight_layout()
+                plt.savefig(f"{path}/hybrid_net_gain_curve.png")
+                plt.close()
 
     def _plot_resume_markers(self) -> None:
         """Mark boundaries between checkpointed and newly added epochs."""

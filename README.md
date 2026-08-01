@@ -103,14 +103,19 @@ python main.py --architecture=convgru_mwpm --noise_model=circuit \
   --L=5 --rounds=5 --p=0.010 --measurement_error_rate=0.010 \
   --channels 96 96 96 --depths 4 4 4 \
   --gru_channels=96 --gru_layers=2 --gru_kernel_size=3 \
-  --loss_fn=dynamic --lr=0.0003 --save_model
+  --loss_fn=ce --hybrid_calibration_batches=256 \
+  --lr=0.0003 --save_model
 ```
 
-`--loss_fn=dynamic` is recommended because residual class zero means that
-MWPM succeeded and is much more frequent than the non-zero residual classes.
-Add `--matching_correlations` to use PyMatching's correlated two-pass decoder;
-without it, the neural residual model is trained to learn correlations missed
-by ordinary DEM-based MWPM.
+Use ordinary cross entropy for the residual task. Residual class zero means
+that MWPM succeeded and is intentionally much more common; inverse-frequency
+class weighting overemphasizes rare overrides and can make the hybrid worse
+than MWPM. After training, `--hybrid_calibration_batches` uses fresh samples to
+calibrate a selective override threshold. If no neural override improves the
+calibration accuracy, the gate falls back to the exact MWPM prediction. Add
+`--matching_correlations` to use PyMatching's correlated two-pass decoder;
+without it, the neural residual model is trained against ordinary DEM-based
+MWPM.
 
 This implementation is a neural **residual/postdecoder**, not per-shot edge
 reweighting. PyMatching 2.3 uses static graph weights and does not accept
@@ -152,23 +157,30 @@ correlations.
 
 ## Circuit-level experiment scripts
 
-The sequential single-GPU runner scans the corrected circuit near its observed
-threshold region, `p=q=0.008,...,0.012`:
+The two-GPU runner covers L=5,7,9 and p=q=0.008,...,0.012 with 300 epochs per
+point:
 
 ```bash
-bash run_circuit_hybrid.sh 5
-bash run_circuit_hybrid.sh 7
-bash run_circuit_hybrid.sh 9
+GPU_IDS="0 1" bash run_convgru_mwpm_full.sh
 ```
 
-`GPU_ID` defaults to zero and can be overridden:
+The final `[Selected Best]` line is measured on fresh held-out shots and reports
+`Recommended: hybrid` only when the paired 95% lower bound is positive;
+otherwise it reports `Recommended: mwpm`. Each hybrid run also overlays MWPM
+in `accuracy_curve.png` and writes `hybrid_net_gain_curve.png` with paired 95%
+error bars. The runner creates `resdir_<script-pid>/exp_<index>`, keeps at most
+one process on each GPU, forwards termination signals, and stops the remaining
+schedule after the first failed experiment. `GPU_IDS` must contain exactly two
+distinct physical GPU indices.
+
+The existing single-GPU runner uses the same safe CE loss and calibrated MWPM
+fallback, and scans all five `p` values sequentially for one lattice size:
 
 ```bash
 GPU_ID=1 bash run_circuit_hybrid.sh 7
 ```
 
-Each invocation creates `resdir_<script-pid>/exp_<index>` and runs the five
-points sequentially. To generate the matching-only circuit baseline:
+To generate the matching-only circuit baseline:
 
 ```bash
 python scripts/circuit_pymatching_threshold.py \
@@ -198,7 +210,9 @@ SHOTS=1000000 BATCH_SIZE=4096 bash run_circuit_pymatching.sh 7
 ```
 
 After the neural and matching runs finish, pass their result directories
-together to the threshold plotter:
+together to the threshold plotter. Its default `--metric=final` uses the fresh
+`[Selected Best]` evaluation when that line is present, rather than the noisier
+last-epoch validation value:
 
 ```bash
 python scripts/plot_threshold.py \

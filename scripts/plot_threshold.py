@@ -18,6 +18,11 @@ METRIC_RE = re.compile(
     r"\[Epoch (\d+)\] Loss: ([0-9.eE+-]+) \| Accuracy: ([0-9.eE+-]+) "
     r"\(±([0-9.eE+-]+)\)(?: \| Eval Samples: (\d+))?"
 )
+SELECTED_BEST_RE = re.compile(
+    r"\[Selected Best\] Epoch: (\d+) \| Accuracy: ([0-9.eE+-]+)"
+    r"[^\n]*?\| Eval Samples: (\d+)"
+)
+HYBRID_CALIBRATION_RE = re.compile(r"Hybrid calibration batches:\s*(\d+)")
 
 
 @dataclass
@@ -118,12 +123,20 @@ def parse_log(path: Path, metric: str) -> Record | None:
         )
         for epoch, loss, accuracy, _std, eval_samples in METRIC_RE.findall(text)
     ]
-    if not metrics:
+    selected_best = [
+        (int(epoch), float(accuracy), int(eval_samples))
+        for epoch, accuracy, eval_samples in SELECTED_BEST_RE.findall(text)
+    ]
+    if metric == "final" and selected_best:
+        epoch, accuracy, eval_samples = selected_best[-1]
+        epoch_losses = [item[1] for item in metrics if item[0] == epoch]
+        loss = epoch_losses[-1] if epoch_losses else math.nan
+    elif metrics:
+        epoch, loss, accuracy, eval_samples = (
+            metrics[-1] if metric == "final" else max(metrics, key=lambda item: item[2])
+        )
+    else:
         return None
-
-    epoch, loss, accuracy, eval_samples = (
-        metrics[-1] if metric == "final" else max(metrics, key=lambda item: item[2])
-    )
 
     command = command_match.group(1)
     L = int(flag(command, "L", "0"))
@@ -151,6 +164,27 @@ def parse_log(path: Path, metric: str) -> Record | None:
                 else "standard"
             )
             matching_suffix = f"-m{matching_mode}"
+            loss_flag = flag(command, "loss_fn")
+            calibration_batches = flag(command, "hybrid_calibration_batches")
+            if calibration_batches is None:
+                calibration_match = HYBRID_CALIBRATION_RE.search(text)
+                calibration_batches = (
+                    calibration_match.group(1) if calibration_match else None
+                )
+            variant_suffix = ""
+            if (
+                loss_flag is not None
+                or calibration_batches is not None
+                or selected_best
+            ):
+                loss_name = loss_flag or "ce"
+                gate_name = (
+                    f"cal{calibration_batches}"
+                    if calibration_batches is not None
+                    else "calibrated" if selected_best else "legacy"
+                )
+                variant_suffix = f"-loss{loss_name}-gate{gate_name}"
+            matching_suffix += variant_suffix
         architecture = (
             f"{architecture_name}-gc{gru_channels}-gl{gru_layers}-gk"
             f"{gru_kernel_size}{matching_suffix}"
@@ -251,8 +285,9 @@ def label_for(record: Record, group: str) -> str:
     if include_arch:
         if is_convgru:
             gru_match = re.fullmatch(
-                r"convgru(?:_mwpm)?-gc(.+?)-gl(.+?)-gk(.+?)"
-                r"(?:-m(?:corr|standard))?",
+                r"convgru(?:_mwpm)?-gc([^-]+)-gl([^-]+)-gk([^-]+)"
+                r"(?:-m(corr|standard))?"
+                r"(?:-loss([^-]+)-gate([^-]+))?",
                 record.architecture,
             )
             gru = (
@@ -262,11 +297,10 @@ def label_for(record: Record, group: str) -> str:
                 else f" arch={record.architecture}"
             )
             if is_hybrid:
-                gru += (
-                    " matching=corr"
-                    if record.architecture.endswith("-mcorr")
-                    else " matching=standard"
-                )
+                matching_mode = gru_match.group(4) if gru_match else None
+                gru += f" matching={matching_mode or 'unknown'}"
+                if gru_match and gru_match.group(5):
+                    gru += f" loss={gru_match.group(5)}" f" gate={gru_match.group(6)}"
             label = (
                 f"L={record.L} ch={record.channels} d={record.depths}{gru}"
             )

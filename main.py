@@ -96,6 +96,17 @@ def main() -> None:
             "--eval_batches; set this higher for a lower-variance threshold point."
         ),
     )
+    parser.add_argument(
+        "--hybrid_calibration_batches",
+        type=int,
+        default=128,
+        help=(
+            "Fresh batches used to calibrate the selective residual gate for "
+            "--architecture=convgru_mwpm. These samples are separate from the "
+            "reported evaluation samples. Set to zero to keep the gate disabled "
+            "and return the exact MWPM baseline."
+        ),
+    )
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size.")
     parser.add_argument(
         "--loss_fn",
@@ -178,6 +189,8 @@ def main() -> None:
         parser.error("--eval_batches must be positive.")
     if args.final_eval_batches is not None and args.final_eval_batches < 1:
         parser.error("--final_eval_batches must be positive.")
+    if args.hybrid_calibration_batches < 0:
+        parser.error("--hybrid_calibration_batches must be non-negative.")
     if not args.channels or len(args.channels) != len(args.depths):
         parser.error("--channels and --depths must be non-empty and have equal length.")
     if any(channel < 1 for channel in args.channels):
@@ -198,6 +211,12 @@ def main() -> None:
         parser.error(
             "--matching_correlations is only valid with "
             "--architecture=convgru_mwpm."
+        )
+    if args.architecture == "convgru_mwpm" and args.loss_fn != "ce":
+        parser.error(
+            "--architecture=convgru_mwpm requires --loss_fn=ce. "
+            "Inverse-frequency dynamic loss overweights rare residual classes "
+            "and can make the hybrid worse than its MWPM fallback."
         )
 
     if args.seed is not None:
@@ -289,6 +308,7 @@ def main() -> None:
             f"q{args.measurement_error_rate:g}_lr{lr:g}_"
             f"bs{args.batch_size}_b{args.batches}_eb{args.eval_batches}_"
             f"feb{args.final_eval_batches or args.eval_batches}_"
+            f"loss{args.loss_fn}_"
             f"ch{'-'.join(map(str, args.channels))}_d{'-'.join(map(str, args.depths))}"
             + (
                 f"_gru{args.gru_channels or args.channels[-1]}x{args.gru_layers}"
@@ -298,6 +318,11 @@ def main() -> None:
             )
             + (
                 f"_matching-{'corr' if args.matching_correlations else 'standard'}"
+                if args.architecture == "convgru_mwpm"
+                else ""
+            )
+            + (
+                f"_gatecal{args.hybrid_calibration_batches}"
                 if args.architecture == "convgru_mwpm"
                 else ""
             )
@@ -335,6 +360,7 @@ def main() -> None:
         batches=args.batches,
         eval_batches=args.eval_batches,
         final_eval_batches=args.final_eval_batches,
+        hybrid_calibration_batches=args.hybrid_calibration_batches,
         amp_dtype=args.amp_dtype,
         lattice_size=args.L,
         channels=args.channels,
@@ -361,7 +387,8 @@ def main() -> None:
     logging.info(
         f"Batch size: {args.batch_size}, Training batches: {args.batches}, "
         f"Evaluation batches: {args.eval_batches}, Final evaluation batches: "
-        f"{args.final_eval_batches or args.eval_batches}"
+        f"{args.final_eval_batches or args.eval_batches}, Hybrid calibration "
+        f"batches: {args.hybrid_calibration_batches}"
     )
     logging.info(
         f"Samples - training per epoch: {args.batch_size * args.batches}, "
@@ -386,7 +413,8 @@ def main() -> None:
             logging.info(
                 "Global decoder: Stim DEM PyMatching | "
                 f"Correlated matching: {args.matching_correlations} | "
-                "Neural target: residual logical class"
+                "Neural target: residual logical class | "
+                "Selective gate: calibrated with MWPM fallback"
             )
     elif attention != "disabled":
         logging.info(

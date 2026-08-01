@@ -17,6 +17,7 @@ tests/
 tests/*
 !tests/test_circuit_pymatching_threshold.py
 !tests/test_hybrid_decoder.py
+!tests/test_hybrid_trainer.py
 
 # IDEs
 .idea/
@@ -25,3 +26,4 @@ tests/*
 *.sh
 !run_circuit_hybrid.sh
 !run_circuit_pymatching.sh
+!run_convgru_mwpm_full.sh

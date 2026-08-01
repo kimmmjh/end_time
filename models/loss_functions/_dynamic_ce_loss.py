@@ -15,9 +15,13 @@ class DynamicCELoss(nn.Module):
         """
         super(DynamicCELoss, self).__init__()
         # Initialize with 1.0 (Laplace smoothing) to avoid division by zero
-        self.logit_counter = torch.ones(size=(tensor_size,), device=device) 
+        self.register_buffer(
+            "logit_counter", torch.ones(size=(tensor_size,), device=device)
+        )
         # Start global counter at tensor_size (as if we saw 1 of each class)
-        self.global_counter = torch.tensor(float(tensor_size), device=device) 
+        self.register_buffer(
+            "global_counter", torch.tensor(float(tensor_size), device=device)
+        )
         self.num_classes = tensor_size
 
     def forward(self, output: Tensor, target: Tensor) -> Tensor:
@@ -28,6 +32,9 @@ class DynamicCELoss(nn.Module):
         :param target: The target tensor in the same form.
         """
         """Calculating weights and updating counters."""
+        # Evaluation must be read-only. In the previous implementation every
+        # validation pass changed the class-frequency state and therefore the
+        # loss used by subsequent training epochs.
         with torch.no_grad():
             if target.ndim == 1:
                 # Target is indices (B,)
@@ -36,8 +43,9 @@ class DynamicCELoss(nn.Module):
                 # Target is one-hot (B, C) - this shouldn't happen with current config but good for safety
                 counts = target.sum(dim=0).float()
                 
-            self.logit_counter = self.logit_counter + counts
-            self.global_counter = self.global_counter + target.shape[0]
+            if self.training:
+                self.logit_counter.add_(counts)
+                self.global_counter.add_(target.shape[0])
         
         # Calculate inverse frequency weights
         weights = (self.global_counter / (self.logit_counter * self.num_classes))
