@@ -18,12 +18,12 @@ tests/*
 !tests/test_circuit_pymatching_threshold.py
 !tests/test_hybrid_decoder.py
 !tests/test_hybrid_trainer.py
+!tests/test_weighted_matching_decoder.py
 
 # IDEs
 .idea/
 .vscode/
 
 *.sh
-!run_circuit_hybrid.sh
-!run_circuit_pymatching.sh
-!run_convgru_mwpm_full.sh
+!run_0.sh
+!run_1.sh

@@ -1,6 +1,7 @@
 import torch
 import os
 import shutil
+import numpy as np
 from torch import nn, Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
@@ -52,6 +53,7 @@ class Trainer:
         epochs: int,
         batches: int,
         eval_batches: int = 16,
+        eval_every: int = 1,
         final_eval_batches: int | None = None,
         hybrid_calibration_batches: int | None = None,
         amp_dtype: str = "fp16",
@@ -77,6 +79,7 @@ class Trainer:
         :param epochs: Number of epochs to train.
         :param batches: Number of batches per epoch.
         :param eval_batches: Number of batches used for evaluation each epoch.
+        :param eval_every: Evaluate every N epochs; the final epoch is mandatory.
         :param final_eval_batches: Optional larger final-epoch evaluation.
         :param hybrid_calibration_batches: Fresh batches used to calibrate a
             hybrid correction gate before each evaluation. Defaults to
@@ -123,6 +126,9 @@ class Trainer:
 
         self._num_batches = batches
         self._eval_batches = eval_batches
+        self._eval_every = eval_every
+        if self._eval_every < 1:
+            raise ValueError("eval_every must be positive.")
         self._final_eval_batches = (
             eval_batches if final_eval_batches is None else final_eval_batches
         )
@@ -192,6 +198,22 @@ class Trainer:
             True  # Enable cuda to find the best tuner for hardware.
         )
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        data_seed = seed
+        if seed is not None and self.start_epoch > 0:
+            # Stim samplers do not expose serializable RNG state.  Starting a
+            # resumed run from the original seed would replay the beginning of
+            # the previous training stream, so derive a deterministic disjoint
+            # stream from the completed-epoch count.
+            data_seed = int(
+                np.random.SeedSequence(
+                    [seed, self.start_epoch, 0x5EED]
+                ).generate_state(1, dtype=np.uint64)[0]
+            )
+            np.random.seed(data_seed % (2**32))
+            self._output(
+                "Resume data stream uses a derived seed to avoid replaying "
+                f"earlier shots: {data_seed}."
+            )
         if noise_model == "capacity":
             data_generator = CapacityDataGenerator(
                 code=code,
@@ -199,7 +221,7 @@ class Trainer:
                 error_rate=error_rate,
                 batch_size=self._batch_size,
                 measurement_error_rate=measurement_error_rate,
-                seed=seed,
+                seed=data_seed,
             )
         elif noise_model == "phenomenological":
             data_generator = PhenomenologicalDataGenerator(
@@ -209,7 +231,7 @@ class Trainer:
                 batch_size=self._batch_size,
                 measurement_error_rate=measurement_error_rate,
                 rounds=rounds,
-                seed=seed,
+                seed=data_seed,
             )
         elif noise_model == "circuit":
             data_generator = CircuitLevelDataGenerator(
@@ -219,12 +241,13 @@ class Trainer:
                 batch_size=self._batch_size,
                 measurement_error_rate=measurement_error_rate,
                 rounds=rounds,
-                seed=seed,
+                seed=data_seed,
             )
         else:
             raise ValueError(f"Unknown noise model: {noise_model!r}.")
 
         hybrid_interface = self._hybrid_interface()
+        paired_interface = self._paired_interface()
 
         """Start Training."""
         for epoch in range(self.start_epoch, self._num_epochs):
@@ -236,6 +259,18 @@ class Trainer:
             self.model.train()
             loss, _ = self._process_batches(data_generator, device, self._num_batches)
             epoch_time = time.time() - epoch_start
+
+            should_evaluate = (
+                (epoch + 1) % self._eval_every == 0
+                or epoch == self._num_epochs - 1
+            )
+            if not should_evaluate:
+                self._output(
+                    f"[Epoch {epoch}] Loss: {loss:.4f} | "
+                    f"Evaluation skipped (every {self._eval_every} epochs) | "
+                    f"Time: {epoch_time:.2f}s"
+                )
+                continue
 
             """Calibrate the hybrid gate on samples disjoint from evaluation."""
             self._output("Evaluating Model.")
@@ -257,7 +292,7 @@ class Trainer:
             # legacy behavior of using ``final_eval_batches`` in the last
             # epoch.
             has_selected_best_evaluation = (
-                hybrid_interface is not None and self._save_model
+                paired_interface is not None and self._save_model
             )
             eval_batches = (
                 self._eval_batches
@@ -302,7 +337,7 @@ class Trainer:
             # Update history and save plots
             self._append_history(epoch, metrics, paired_metrics)
 
-            if self._save_model and hybrid_interface is not None:
+            if self._save_model and paired_interface is not None:
                 if paired_metrics is None:
                     raise RuntimeError(
                         "A calibratable hybrid model must expose paired MWPM "
@@ -336,7 +371,7 @@ class Trainer:
                 model_name="model",
                 epoch=self._num_epochs - 1,
             )
-            if hybrid_interface is not None and self._best_epoch is not None:
+            if paired_interface is not None and self._best_epoch is not None:
                 self._evaluate_selected_best(data_generator, device)
 
     def _hybrid_interface(self) -> nn.Module | None:
@@ -348,6 +383,15 @@ class Trainer:
             else self.model
         )
         return interface if callable(getattr(interface, "calibrate_gate", None)) else None
+
+    def _paired_interface(self) -> nn.Module | None:
+        """Return a model exposing predictions from a same-shot baseline."""
+
+        interface = self._model_state_target()
+        supports_baseline = bool(
+            getattr(interface, "supports_paired_baseline", False)
+        ) or callable(getattr(interface, "calibrate_gate", None))
+        return interface if supports_baseline else None
 
     def _calibrate_hybrid_gate(
         self,
@@ -556,8 +600,12 @@ class Trainer:
                     - 1.96 * paired_metrics.paired_standard_error
                 )
                 selected["net_gain_lower_95"] = lower_95
+                interface = self._paired_interface()
+                recommendation_name = getattr(
+                    interface, "recommendation_name", "hybrid"
+                )
                 selected["recommended_decoder"] = (
-                    "hybrid" if lower_95 > 0.0 else "mwpm"
+                    recommendation_name if lower_95 > 0.0 else "mwpm"
                 )
                 log_line = (
                     f"[Selected Best] Epoch: {self._best_epoch}"
@@ -636,15 +684,30 @@ class Trainer:
         all_y = []
         all_baseline_classes = []
         all_residual_logits = []
-        metric_source = self._hybrid_interface() or self.model
+        metric_source = self._paired_interface() or self.model
         loss_source = self._model_state_target()
+        requires_batch_metadata = bool(
+            getattr(loss_source, "requires_batch_metadata", False)
+        )
 
         if not train:
             self._last_eval_baseline_classes = None
             self._last_eval_residual_logits = None
 
         for _ in iterator:
-            X, y = data_generator.generate_batch(device=device)
+            batch_metadata = None
+            if train and requires_batch_metadata:
+                metadata_generator = getattr(
+                    data_generator, "generate_batch_with_metadata", None
+                )
+                if not callable(metadata_generator):
+                    raise TypeError(
+                        "This model requires batch metadata, but the data "
+                        "generator does not provide generate_batch_with_metadata()."
+                    )
+                X, y, batch_metadata = metadata_generator(device=device)
+            else:
+                X, y = data_generator.generate_batch(device=device)
             """Zero out the gradient for all optimizers."""
             if train:
                 for optimizer in self.optimizers:
@@ -665,7 +728,14 @@ class Trainer:
                         # Hybrid matching models expose residual logits and labels
                         # for the loss while returning final logical-class logits
                         # for metrics and deployment.
-                        loss_input, loss_target = loss_adapter(y_pred, y)
+                        if batch_metadata is None:
+                            loss_input, loss_target = loss_adapter(y_pred, y)
+                        else:
+                            loss_input, loss_target = loss_adapter(
+                                y_pred,
+                                y,
+                                batch_metadata=batch_metadata,
+                            )
                     loss_c = self.criterion(loss_input, loss_target)
 
             if train and loss_c is not None and not torch.isfinite(loss_c):

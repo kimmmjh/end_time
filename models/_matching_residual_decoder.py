@@ -38,6 +38,9 @@ class MatchingResidualDecoder(nn.Module):
     autograd graph; gradients flow through ``residual_decoder``.
     """
 
+    supports_paired_baseline = True
+    recommendation_name = "hybrid"
+
     def __init__(
         self,
         residual_decoder: nn.Module,

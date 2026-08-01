@@ -151,7 +151,11 @@ def parse_log(path: Path, metric: str) -> Record | None:
     architecture = flag(command, "architecture")
     if architecture is None:
         architecture = "n/a" if decoder == "pymatching" else "cnn3d"
-    elif architecture in {"convgru", "convgru_mwpm"}:
+    elif architecture in {
+        "convgru",
+        "convgru_mwpm",
+        "convgru_weighted_mwpm",
+    }:
         architecture_name = architecture
         gru_channels = flag(command, "gru_channels", channels.split("-")[-1])
         gru_layers = flag(command, "gru_layers", "1")
@@ -185,6 +189,21 @@ def parse_log(path: Path, metric: str) -> Record | None:
                 )
                 variant_suffix = f"-loss{loss_name}-gate{gate_name}"
             matching_suffix += variant_suffix
+        elif architecture_name == "convgru_weighted_mwpm":
+            temporal_mode = (
+                "causal"
+                if re.search(r"(?:^|\s)--causal_edge_gru(?:\s|$)", command)
+                else "bidir"
+            )
+            edge_hidden = flag(command, "edge_hidden_channels")
+            if edge_hidden is None:
+                edge_hidden = str(
+                    int(gru_channels) * (1 if temporal_mode == "causal" else 2)
+                )
+            entropy = flag(command, "edge_entropy_weight", "0")
+            matching_suffix = (
+                f"-mweighted_{temporal_mode}_eh{edge_hidden}_ent{entropy}"
+            )
         architecture = (
             f"{architecture_name}-gc{gru_channels}-gl{gru_layers}-gk"
             f"{gru_kernel_size}{matching_suffix}"
@@ -276,7 +295,11 @@ def decoder_name(decoder: str) -> str:
 
 
 def label_for(record: Record, group: str) -> str:
-    is_hybrid = record.architecture.startswith("convgru_mwpm-")
+    is_residual_hybrid = record.architecture.startswith("convgru_mwpm-")
+    is_weighted_hybrid = record.architecture.startswith(
+        "convgru_weighted_mwpm-"
+    )
+    is_hybrid = is_residual_hybrid or is_weighted_hybrid
     is_convgru = record.architecture.startswith("convgru-") or is_hybrid
     include_arch = (
         group in {"L_arch", "L_arch_decoder"}
@@ -285,8 +308,8 @@ def label_for(record: Record, group: str) -> str:
     if include_arch:
         if is_convgru:
             gru_match = re.fullmatch(
-                r"convgru(?:_mwpm)?-gc([^-]+)-gl([^-]+)-gk([^-]+)"
-                r"(?:-m(corr|standard))?"
+                r"convgru(?:_(?:weighted_)?mwpm)?-gc([^-]+)-gl([^-]+)-gk([^-]+)"
+                r"(?:-m([^-]+))?"
                 r"(?:-loss([^-]+)-gate([^-]+))?",
                 record.architecture,
             )
@@ -325,8 +348,10 @@ def label_for(record: Record, group: str) -> str:
         label = f"{label} {record.architecture}"
     if group in {"L_decoder", "L_arch_decoder"}:
         model_name = (
-            "ConvGRU+MWPM"
-            if is_hybrid
+            "ConvGRU-weighted MWPM"
+            if is_weighted_hybrid
+            else "ConvGRU+MWPM residual"
+            if is_residual_hybrid
             else "ConvGRU"
             if is_convgru
             else decoder_name(record.decoder)

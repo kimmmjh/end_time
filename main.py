@@ -10,10 +10,12 @@ from torch import nn
 from models import (
     Decoder,
     MatchingResidualDecoder,
+    NeuralWeightedMatchingDecoder,
     RecurrentEND2D,
+    RecurrentEdgeWeightNetwork,
     RecurrentResidualEND2D,
 )
-from models.loss_functions import DynamicCELoss
+from models.loss_functions import DynamicCELoss, EdgeBCELoss
 from models._the_end_3d import TransformedEND3D
 from models.pooling_layers import TranslationalEquivariantPooling2D
 from src import Trainer
@@ -51,13 +53,20 @@ def main() -> None:
         "--architecture",
         type=str,
         default="cnn3d",
-        choices=["cnn3d", "convgru", "convgru_mwpm"],
+        choices=[
+            "cnn3d",
+            "convgru",
+            "convgru_mwpm",
+            "convgru_weighted_mwpm",
+        ],
         help=(
             "Temporal architecture. cnn3d treats time as a third spatial axis; "
             "convgru applies a shared equivariant 2D CNN to each round and "
             "recurrently accumulates the rounds; convgru_mwpm lets a Stim DEM "
             "PyMatching decoder do global pairing and trains the equivariant "
-            "ConvGRU to predict its residual logical class."
+            "ConvGRU to predict its residual logical class; "
+            "convgru_weighted_mwpm instead predicts shot-dependent sparse DEM "
+            "edge probabilities before MWPM."
         ),
     )
     parser.add_argument(
@@ -68,6 +77,42 @@ def main() -> None:
             "two-pass decoder. The default uses ordinary DEM-based MWPM so the "
             "neural residual model can learn correlations missed by it."
         ),
+    )
+    parser.add_argument(
+        "--causal_edge_gru",
+        action="store_true",
+        help=(
+            "For --architecture=convgru_weighted_mwpm, use only a forward "
+            "ConvGRU. By default offline decoding concatenates forward and "
+            "reverse ConvGRU features so every edge can use all rounds."
+        ),
+    )
+    parser.add_argument(
+        "--edge_hidden_channels",
+        type=int,
+        default=None,
+        help=(
+            "Hidden width of the symmetric DEM-edge MLP. Defaults to the "
+            "ConvGRU feature width."
+        ),
+    )
+    parser.add_argument(
+        "--edge_delta_scale",
+        type=float,
+        default=6.0,
+        help="Maximum absolute neural shift added to each DEM prior logit.",
+    )
+    parser.add_argument(
+        "--edge_chunk_size",
+        type=int,
+        default=1024,
+        help="Number of DEM edges scored together to control GPU memory.",
+    )
+    parser.add_argument(
+        "--edge_entropy_weight",
+        type=float,
+        default=0.0,
+        help="Optional entropy regularization coefficient for edge BCE.",
     )
     parser.add_argument(
         "--seed",
@@ -86,6 +131,15 @@ def main() -> None:
         type=int,
         default=16,
         help="Number of batches used for evaluation each epoch.",
+    )
+    parser.add_argument(
+        "--eval_every",
+        type=int,
+        default=1,
+        help=(
+            "Evaluate every N epochs (the final epoch is always evaluated). "
+            "Useful when shot-specific PyMatching reconstruction is expensive."
+        ),
     )
     parser.add_argument(
         "--final_eval_batches",
@@ -112,7 +166,7 @@ def main() -> None:
         "--loss_fn",
         type=str,
         default="ce",
-        choices=["ce", "dynamic"],
+        choices=["ce", "dynamic", "edge_bce"],
         help="Loss function type.",
     )
     parser.add_argument(
@@ -134,8 +188,8 @@ def main() -> None:
         type=int,
         default=None,
         help=(
-            "ConvGRU hidden width for --architecture=convgru or "
-            "convgru_mwpm. "
+            "ConvGRU hidden width for --architecture=convgru, "
+            "convgru_mwpm, or convgru_weighted_mwpm. "
             "Defaults to the last value in --channels."
         ),
     )
@@ -187,6 +241,8 @@ def main() -> None:
         parser.error("--measurement_error_rate must be in [0, 1].")
     if args.eval_batches < 1:
         parser.error("--eval_batches must be positive.")
+    if args.eval_every < 1:
+        parser.error("--eval_every must be positive.")
     if args.final_eval_batches is not None and args.final_eval_batches < 1:
         parser.error("--final_eval_batches must be positive.")
     if args.hybrid_calibration_batches < 0:
@@ -203,20 +259,46 @@ def main() -> None:
         parser.error("--gru_layers must be positive.")
     if args.gru_kernel_size < 1:
         parser.error("--gru_kernel_size must be positive.")
-    if args.architecture == "convgru_mwpm" and args.noise_model != "circuit":
+    if args.edge_hidden_channels is not None and args.edge_hidden_channels < 1:
+        parser.error("--edge_hidden_channels must be positive.")
+    if args.edge_delta_scale <= 0.0:
+        parser.error("--edge_delta_scale must be positive.")
+    if args.edge_chunk_size < 1:
+        parser.error("--edge_chunk_size must be positive.")
+    if args.edge_entropy_weight < 0.0:
+        parser.error("--edge_entropy_weight must be non-negative.")
+    matching_architectures = {"convgru_mwpm", "convgru_weighted_mwpm"}
+    if args.architecture in matching_architectures and args.noise_model != "circuit":
         parser.error(
-            "--architecture=convgru_mwpm requires --noise_model=circuit."
+            f"--architecture={args.architecture} requires --noise_model=circuit."
         )
     if args.matching_correlations and args.architecture != "convgru_mwpm":
         parser.error(
             "--matching_correlations is only valid with "
-            "--architecture=convgru_mwpm."
+            "the legacy --architecture=convgru_mwpm. Per-shot rebuilt weights "
+            "cannot retain PyMatching's correlation metadata."
         )
     if args.architecture == "convgru_mwpm" and args.loss_fn != "ce":
         parser.error(
             "--architecture=convgru_mwpm requires --loss_fn=ce. "
             "Inverse-frequency dynamic loss overweights rare residual classes "
             "and can make the hybrid worse than its MWPM fallback."
+        )
+    if (
+        args.architecture == "convgru_weighted_mwpm"
+        and args.loss_fn != "edge_bce"
+    ):
+        parser.error(
+            "--architecture=convgru_weighted_mwpm requires "
+            "--loss_fn=edge_bce."
+        )
+    if (
+        args.architecture != "convgru_weighted_mwpm"
+        and args.loss_fn == "edge_bce"
+    ):
+        parser.error(
+            "--loss_fn=edge_bce is only valid with "
+            "--architecture=convgru_weighted_mwpm."
         )
 
     if args.seed is not None:
@@ -233,7 +315,37 @@ def main() -> None:
 
     # in_channels is always 2 for the vertex/face detector sectors.
     in_channels = 2
-    if args.architecture == "convgru_mwpm":
+    if args.architecture == "convgru_weighted_mwpm":
+        matching_circuit = generate_toric_memory_circuit(
+            code,
+            rounds=rounds,
+            gate_error_rate=args.p,
+            measurement_error_rate=args.measurement_error_rate,
+        )
+        detector_error_model = matching_circuit.detector_error_model(
+            decompose_errors=True
+        ).flattened()
+        network = RecurrentEdgeWeightNetwork(
+            channels=args.channels,
+            depths=args.depths,
+            lattice_size=args.L,
+            in_channels=in_channels,
+            gru_channels=args.gru_channels,
+            gru_layers=args.gru_layers,
+            gru_kernel_size=args.gru_kernel_size,
+            bidirectional=not args.causal_edge_gru,
+            edge_hidden_channels=args.edge_hidden_channels,
+            edge_delta_scale=args.edge_delta_scale,
+            edge_chunk_size=args.edge_chunk_size,
+        )
+        decoder = NeuralWeightedMatchingDecoder(
+            edge_network=network,
+            detector_error_model=detector_error_model,
+            lattice_size=args.L,
+            rounds=rounds,
+            num_observables=2 * code.k,
+        )
+    elif args.architecture == "convgru_mwpm":
         network = RecurrentResidualEND2D(
             channels=args.channels,
             depths=args.depths,
@@ -293,13 +405,19 @@ def main() -> None:
 
     if args.loss_fn == "ce":
         criterion = nn.CrossEntropyLoss()
-    else:
+    elif args.loss_fn == "dynamic":
         criterion = DynamicCELoss(2 ** (2 * code.k), device)
+    else:
+        criterion = EdgeBCELoss(entropy_weight=args.edge_entropy_weight)
 
     """Setup Trainer and start training"""
     logging.info("Start Training")
 
     curr_time = datetime.datetime.now()
+    edge_hidden_channels = args.edge_hidden_channels or (
+        (args.gru_channels or args.channels[-1])
+        * (1 if args.causal_edge_gru else 2)
+    )
     run_slug = re.sub(
         r"[^A-Za-z0-9_.-]+",
         "_",
@@ -307,13 +425,15 @@ def main() -> None:
             f"{args.noise_model}_{args.architecture}_L{args.L}_r{rounds}_p{args.p:g}_"
             f"q{args.measurement_error_rate:g}_lr{lr:g}_"
             f"bs{args.batch_size}_b{args.batches}_eb{args.eval_batches}_"
+            f"ee{args.eval_every}_"
             f"feb{args.final_eval_batches or args.eval_batches}_"
             f"loss{args.loss_fn}_"
             f"ch{'-'.join(map(str, args.channels))}_d{'-'.join(map(str, args.depths))}"
             + (
                 f"_gru{args.gru_channels or args.channels[-1]}x{args.gru_layers}"
                 f"_gk{args.gru_kernel_size}"
-                if args.architecture in {"convgru", "convgru_mwpm"}
+                if args.architecture
+                in {"convgru", "convgru_mwpm", "convgru_weighted_mwpm"}
                 else ""
             )
             + (
@@ -324,6 +444,14 @@ def main() -> None:
             + (
                 f"_gatecal{args.hybrid_calibration_batches}"
                 if args.architecture == "convgru_mwpm"
+                else ""
+            )
+            + (
+                f"_edge{'causal' if args.causal_edge_gru else 'bidir'}"
+                f"_eh{edge_hidden_channels}"
+                f"_eds{args.edge_delta_scale:g}_ecs{args.edge_chunk_size}"
+                f"_ent{args.edge_entropy_weight:g}"
+                if args.architecture == "convgru_weighted_mwpm"
                 else ""
             )
             + ("_resume" if args.load_model else "")
@@ -359,6 +487,7 @@ def main() -> None:
         epochs=args.epochs,
         batches=args.batches,
         eval_batches=args.eval_batches,
+        eval_every=args.eval_every,
         final_eval_batches=args.final_eval_batches,
         hybrid_calibration_batches=args.hybrid_calibration_batches,
         amp_dtype=args.amp_dtype,
@@ -369,7 +498,8 @@ def main() -> None:
         recurrent=(
             f"ConvGRU channels={args.gru_channels or args.channels[-1]}, "
             f"layers={args.gru_layers}, kernel={args.gru_kernel_size}"
-            if args.architecture in {"convgru", "convgru_mwpm"}
+            if args.architecture
+            in {"convgru", "convgru_mwpm", "convgru_weighted_mwpm"}
             else None
         ),
         attention=attention,
@@ -384,12 +514,17 @@ def main() -> None:
         f"{args.measurement_error_rate}, "
         f"{'Additional epochs' if args.load_model else 'Epochs'}: {args.epochs}"
     )
-    logging.info(
+    batch_log = (
         f"Batch size: {args.batch_size}, Training batches: {args.batches}, "
-        f"Evaluation batches: {args.eval_batches}, Final evaluation batches: "
-        f"{args.final_eval_batches or args.eval_batches}, Hybrid calibration "
-        f"batches: {args.hybrid_calibration_batches}"
+        f"Evaluation batches: {args.eval_batches} every {args.eval_every} epoch(s), "
+        f"Final evaluation batches: "
+        f"{args.final_eval_batches or args.eval_batches}"
     )
+    if args.architecture == "convgru_mwpm":
+        batch_log += (
+            f", Hybrid calibration batches: {args.hybrid_calibration_batches}"
+        )
+    logging.info(batch_log)
     logging.info(
         f"Samples - training per epoch: {args.batch_size * args.batches}, "
         f"evaluation per epoch: {args.batch_size * args.eval_batches}, "
@@ -402,7 +537,11 @@ def main() -> None:
     )
 
     # Check if network is using Attention
-    if args.architecture in {"convgru", "convgru_mwpm"}:
+    if args.architecture in {
+        "convgru",
+        "convgru_mwpm",
+        "convgru_weighted_mwpm",
+    }:
         logging.info(
             "Temporal model: ConvGRU | "
             f"Hidden channels: {args.gru_channels or args.channels[-1]} | "
@@ -415,6 +554,15 @@ def main() -> None:
                 f"Correlated matching: {args.matching_correlations} | "
                 "Neural target: residual logical class | "
                 "Selective gate: calibrated with MWPM fallback"
+            )
+        elif args.architecture == "convgru_weighted_mwpm":
+            logging.info(
+                "Global decoder: shot-conditioned standard MWPM | "
+                f"Temporal context: {'causal' if args.causal_edge_gru else 'bidirectional'} | "
+                "Neural target: fired DEM edge parity | "
+                f"Edge delta scale: {args.edge_delta_scale:g} | "
+                f"Edge chunk: {args.edge_chunk_size} | "
+                f"Entropy weight: {args.edge_entropy_weight:g}"
             )
     elif attention != "disabled":
         logging.info(

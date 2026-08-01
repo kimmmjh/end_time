@@ -71,57 +71,73 @@ For the toric code, each sample has four logical commutation bits in
 `[logical X_0, logical X_1, logical Z_0, logical Z_1]` order. Training
 converts these bits to one of 16 classes.
 
-## Equivariant ConvGRU + MWPM hybrid
+## Equivariant ConvGRU-weighted MWPM
 
-For circuit-level noise, `convgru_mwpm` lets PyMatching handle global
-space-time pairing and trains the equivariant ConvGRU to predict only the
-logical residual left by that matching correction:
+`convgru_weighted_mwpm` places the neural model before MWPM. It preserves every
+ConvGRU time output and predicts a conditional probability for every local edge
+in the sparse Stim detector-error-model graph:
 
 ```text
-Stim detection events
-        |----------------------|
-        v                      v
-DEM-based PyMatching    circular CNN + ConvGRU
-        |                      |
-MWPM logical class      residual logical logits
-        |----------------------|
-                    XOR
-                     |
-             final logical class
+Stim detection events (B,2,T,L^2)
+        |
+shared circular 2D CNN for every round
+        |
+forward + reverse ConvGRU -> h(x,y,t)
+        |
+symmetric endpoint edge head + relative (dx,dy,dt) + DEM prior
+        |
+q_e(syndrome) and w_e = log((1-q_e)/q_e)
+        |
+shot-specific standard MWPM
+        |
+logical prediction
 ```
 
-The circular CNN and ConvGRU produce a translation-equivariant spatial map.
-Because the residual after matching is a closed-cycle homology class, spatial
-mean pooling gives the appropriate translation-invariant 16-class readout.
-The model therefore retains exact toric translation symmetry while
-PyMatching supplies the non-local pairing operation.
+Absolute spatial coordinates and site-specific embeddings are not used. The
+endpoint scorer sees only shared detector features and modular relative
+geometry, so translating a syndrome and all its toric edges translates the
+intermediate representation without changing the edge scores. Time is not
+circular. The default model is bidirectional because threshold evaluation is
+offline; add `--causal_edge_gru` for an online forward-only model.
+
+The final edge layer is initialized to zero. Therefore the initial conditional
+logits equal the static DEM priors exactly, and evaluation initially reproduces
+ordinary standard MWPM. Training uses Stim's decomposed DEM sampler with
+`return_errors=True`: correlated `^` components are split, parallel mechanisms
+are XOR-merged onto the same matching edge, and ordinary unweighted edge BCE is
+applied. The optional entropy term does not use inverse-frequency weighting, as
+the learned logits are later interpreted as matching probabilities. Start with
+`--edge_entropy_weight=0`; treat a nonzero value as a separate ablation.
 
 Run a single point with:
 
 ```bash
-python main.py --architecture=convgru_mwpm --noise_model=circuit \
+python main.py --architecture=convgru_weighted_mwpm --noise_model=circuit \
   --L=5 --rounds=5 --p=0.010 --measurement_error_rate=0.010 \
   --channels 96 96 96 --depths 4 4 4 \
   --gru_channels=96 --gru_layers=2 --gru_kernel_size=3 \
-  --loss_fn=ce --hybrid_calibration_batches=256 \
-  --lr=0.0003 --save_model
+  --edge_hidden_channels=192 --edge_chunk_size=1024 \
+  --edge_delta_scale=6 --edge_entropy_weight=0 \
+  --loss_fn=edge_bce --lr=0.0003 --save_model
 ```
 
-Use ordinary cross entropy for the residual task. Residual class zero means
-that MWPM succeeded and is intentionally much more common; inverse-frequency
-class weighting overemphasizes rare overrides and can make the hybrid worse
-than MWPM. After training, `--hybrid_calibration_batches` uses fresh samples to
-calibrate a selective override threshold. If no neural override improves the
-calibration accuracy, the gate falls back to the exact MWPM prediction. Add
-`--matching_correlations` to use PyMatching's correlated two-pass decoder;
-without it, the neural residual model is trained against ordinary DEM-based
-MWPM.
+PyMatching 2.3 has no batched API for shot-specific weights. Training therefore
+does not invoke MWPM; validation rebuilds a matcher per shot from the fixed
+check/fault matrices and the new weight vector. This is intentionally standard
+MWPM: `--matching_correlations` is rejected because rebuilding a check-matrix
+matcher cannot retain the original DEM correlation metadata. The training plot
+still overlays raw static MWPM on exactly the same evaluation shots.
 
-This implementation is a neural **residual/postdecoder**, not per-shot edge
-reweighting. PyMatching 2.3 uses static graph weights and does not accept
-batched shot-dependent weights. A true local neural predecoder would require
-explicit Stim fault-mechanism targets, hard local corrections, and a second
-matching pass on the residual syndrome.
+This implementation predicts conditional weights on the sparse physical DEM
+graph. It follows the neural-before-MWPM design, but is not an exact reproduction
+of NMWPM's complete active-defect graph and Transformer.
+
+### Legacy logical-residual hybrid
+
+`convgru_mwpm` remains available for old checkpoints. It runs static MWPM and a
+parallel ConvGRU 16-class residual classifier, then applies a calibrated logical
+XOR correction. It does not change any matching edge. Use `--loss_fn=ce` and
+optionally `--matching_correlations` with this legacy architecture.
 
 ## Noise models
 
@@ -157,28 +173,33 @@ correlations.
 
 ## Circuit-level experiment scripts
 
-The two-GPU runner covers L=5,7,9 and p=q=0.008,...,0.012 with 300 epochs per
-point:
+Edit `GPU_ID` near the top of each file to select the physical GPU directly.
+The two independent runners use `convgru_weighted_mwpm` and jointly cover
+L=5,7,9 and p=q=0.008,...,0.012 with 300 epochs per point:
 
 ```bash
-GPU_IDS="0 1" bash run_convgru_mwpm_full.sh
+# Terminal 1; uses the GPU_ID written in run_0.sh.
+bash run_0.sh
+
+# Terminal 2; uses the GPU_ID written in run_1.sh.
+bash run_1.sh
 ```
 
-The final `[Selected Best]` line is measured on fresh held-out shots and reports
-`Recommended: hybrid` only when the paired 95% lower bound is positive;
-otherwise it reports `Recommended: mwpm`. Each hybrid run also overlays MWPM
-in `accuracy_curve.png` and writes `hybrid_net_gain_curve.png` with paired 95%
-error bars. The runner creates `resdir_<script-pid>/exp_<index>`, keeps at most
-one process on each GPU, forwards termination signals, and stops the remaining
-schedule after the first failed experiment. `GPU_IDS` must contain exactly two
-distinct physical GPU indices.
+The final `[Selected Best]` line is measured on fresh held-out circuit samples
+and recommends `neural_weighted_mwpm` only when the paired 95% lower bound over
+raw MWPM is positive. `accuracy_curve.png` overlays raw MWPM and
+`hybrid_net_gain_curve.png` reports the paired difference. Each runner creates
+its own `resdir_<script-pid>/exp_<index>`, runs one experiment at a time on its
+configured GPU, forwards termination signals, and stops after the first failed
+experiment. The two point lists are disjoint and together contain all 15 grid
+points. Dynamic PyMatching evaluation is CPU work, so these scripts use fewer
+evaluation batches than the old logical-residual runs.
 
-The existing single-GPU runner uses the same safe CE loss and calibrated MWPM
-fallback, and scans all five `p` values sequentially for one lattice size:
-
-```bash
-GPU_ID=1 bash run_circuit_hybrid.sh 7
-```
+Each runner uses `batch_size=32` and `batches=2048`, i.e. 65,536 supervised
+DEM shots per epoch. Every five epochs, validation uses 4,096 exact circuit
+shots; the final epoch is always evaluated. The selected best checkpoint is
+finally evaluated on 16,384 fresh circuit shots. Set `--eval_every=1` to restore
+per-epoch validation.
 
 To generate the matching-only circuit baseline:
 
@@ -190,24 +211,6 @@ python scripts/circuit_pymatching_threshold.py \
 ```
 
 Add `--enable_correlations` for the correlated-matching baseline.
-
-The same baseline can be launched with a shell runner matching the hybrid
-experiment grid:
-
-```bash
-# Ordinary MWPM for L=5,7,9.
-bash run_circuit_pymatching.sh all
-
-# Optional correlated PyMatching comparison.
-bash run_circuit_pymatching.sh all correlated
-```
-
-To run only one lattice size, replace `all` with `5`, `7`, or `9`. The default
-is 262,144 shots per point. It can be overridden without editing the script:
-
-```bash
-SHOTS=1000000 BATCH_SIZE=4096 bash run_circuit_pymatching.sh 7
-```
 
 After the neural and matching runs finish, pass their result directories
 together to the threshold plotter. Its default `--metric=final` uses the fresh
@@ -249,6 +252,9 @@ history. Because a completed OneCycleLR cannot be extended consistently, the
 additional phase starts a new OneCycleLR cycle using the requested `--lr`.
 The new output directory contains plots spanning both the original and resumed
 epochs, with the resume boundary marked by a dashed line.
+Because Stim samplers do not expose RNG state, a resumed run deterministically
+derives a new sampler seed from the completed epoch count instead of replaying
+the beginning of the original training stream.
 
 ```bash
 python main.py --architecture=convgru --noise_model=phenomenological \

@@ -128,6 +128,21 @@ class DataGenerator:
         self._verbose_print("\tGenerating Errors")
         syndrome_matrices, logical_errors, errors = self._generate_sample()
 
+        return self._arrays_to_tensors(
+            syndrome_matrices=syndrome_matrices,
+            logical_errors=logical_errors,
+            device=device,
+        )
+
+    def _arrays_to_tensors(
+        self,
+        *,
+        syndrome_matrices: NDArray,
+        logical_errors: NDArray,
+        device: torch.device,
+    ) -> tuple[Tensor, Tensor]:
+        """Apply the shared class encoding and device conversion."""
+
         """ Transform to indices if we use categorical classification."""
         if self._categorical_classification:
             # CrossEntropyLoss requires indices as y_true.
@@ -152,6 +167,19 @@ class DataGenerator:
         )
 
         return syndrome_matrices, logical_errors
+
+    def generate_batch_with_metadata(
+        self, device: torch.device
+    ) -> tuple[Tensor, Tensor, dict[str, NDArray]]:
+        """Generate a batch plus optional supervision metadata.
+
+        Only the circuit-level generator overrides this with physical DEM fault
+        information.  Keeping the ordinary ``generate_batch`` API unchanged
+        preserves all existing architectures and external scripts.
+        """
+
+        syndrome, logical = self.generate_batch(device)
+        return syndrome, logical, {}
 
 
 class CapacityDataGenerator(DataGenerator):
@@ -336,16 +364,25 @@ class CircuitLevelDataGenerator(DataGenerator):
             measurement_error_rate=self._measurement_error_rate,
         )
         self.sampler = self.circuit.compile_detector_sampler(seed=self.seed)
+        self.detector_error_model = self.circuit.detector_error_model(
+            decompose_errors=True
+        ).flattened()
+        dem_seed = None
+        if self.seed is not None:
+            # Keep the supervised DEM stream deterministic but disjoint from the
+            # exact circuit-sampler stream used for validation.
+            dem_seed = int(
+                np.random.SeedSequence([self.seed, 0xD3E]).generate_state(
+                    1, dtype=np.uint64
+                )[0]
+            )
+        self.dem_sampler = self.detector_error_model.compile_sampler(seed=dem_seed)
 
-    def _generate_sample(self):
-        self._verbose_print("\tSampling Stim circuit")
-        # This is the number of shots in one generated batch. Trainer calls
-        # generate_batch() `batches` times per training epoch, so the total is
-        # batch_size * batches (and batch_size * eval_batches for evaluation).
-        detectors, logical_errors = self.sampler.sample(
-            shots=self.batch_size,
-            separate_observables=True,
-        )
+    def _reshape_stim_samples(
+        self, detectors: NDArray, logical_errors: NDArray
+    ) -> tuple[NDArray, NDArray]:
+        """Validate and reshape Stim-order samples into model order."""
+
         expected_detectors = self.rounds * self.num_stabilizers
         expected_observables = self.logicals.shape[0]
         if detectors.shape != (self.batch_size, expected_detectors):
@@ -367,9 +404,50 @@ class CircuitLevelDataGenerator(DataGenerator):
             2,
             self.num_stabilizers // 2,
         ).transpose(0, 2, 1, 3)
-
         return (
             syndrome_matrices.astype(np.uint8, copy=False),
             logical_errors.astype(np.uint8, copy=False),
+        )
+
+    def _generate_sample(self):
+        self._verbose_print("\tSampling Stim circuit")
+        # This is the number of shots in one generated batch. Trainer calls
+        # generate_batch() `batches` times per training epoch, so the total is
+        # batch_size * batches (and batch_size * eval_batches for evaluation).
+        detectors, logical_errors = self.sampler.sample(
+            shots=self.batch_size,
+            separate_observables=True,
+        )
+        syndrome_matrices, logical_errors = self._reshape_stim_samples(
+            detectors, logical_errors
+        )
+
+        return (
+            syndrome_matrices,
+            logical_errors,
             None,
         )
+
+    def generate_batch_with_metadata(
+        self, device: torch.device
+    ) -> tuple[Tensor, Tensor, dict[str, NDArray]]:
+        """Sample graphlike DEM mechanisms for neural edge supervision."""
+
+        self._verbose_print("\tSampling Stim detector error model")
+        detectors, logical_errors, fired_mechanisms = self.dem_sampler.sample(
+            shots=self.batch_size,
+            return_errors=True,
+        )
+        if fired_mechanisms is None:
+            raise RuntimeError("Stim DEM sampler did not return error mechanisms.")
+        syndrome_matrices, logical_errors = self._reshape_stim_samples(
+            detectors, logical_errors
+        )
+        syndrome, logical = self._arrays_to_tensors(
+            syndrome_matrices=syndrome_matrices,
+            logical_errors=logical_errors,
+            device=device,
+        )
+        return syndrome, logical, {
+            "dem_error_mechanisms": np.asarray(fired_mechanisms, dtype=np.uint8)
+        }
