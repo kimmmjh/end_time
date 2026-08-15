@@ -103,7 +103,8 @@ def discover_inputs(paths: list[Path]) -> list[Path]:
             inputs.update(found)
         else:
             inputs.update(path.rglob("training_log.txt"))
-        inputs.update(path.rglob("pymatching*.csv"))
+        # Current circuit baselines are named circuit_pymatching_*.csv.
+        inputs.update(path.rglob("*pymatching*.csv"))
 
     return sorted(inputs)
 

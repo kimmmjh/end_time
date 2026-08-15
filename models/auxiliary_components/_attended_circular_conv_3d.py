@@ -23,7 +23,6 @@ class AConvCircular3D(nn.Module):
         self.attention_channels = attention_channels
         self.number_heads = number_heads
 
-        """Some sanity checks."""
         assert self.number_heads != 0, "integer division or modulo by zero, number_heads >= 1"
         assert self.key_depths % self.number_heads == 0, "dk should be divided by number_heads."
         assert self.attention_channels % self.number_heads == 0, "dv should be divided by number_heads."

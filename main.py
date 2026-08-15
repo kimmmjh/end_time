@@ -310,9 +310,6 @@ def main() -> None:
     """Initialize the stabilizer Code."""
     code = Toric2DCode(args.L)
 
-    """Make Decoder Model."""
-    pooling = TranslationalEquivariantPooling2D(args.L)
-
     # in_channels is always 2 for the vertex/face detector sectors.
     in_channels = 2
     if args.architecture == "convgru_weighted_mwpm":
@@ -368,6 +365,7 @@ def main() -> None:
             enable_correlations=args.matching_correlations,
         )
     elif args.architecture == "convgru":
+        pooling = TranslationalEquivariantPooling2D(args.L)
         network = RecurrentEND2D(
             channels=args.channels,
             depths=args.depths,
@@ -379,6 +377,7 @@ def main() -> None:
         )
         decoder = Decoder(network=network, pooling=pooling, ensemble=None)
     else:
+        pooling = TranslationalEquivariantPooling2D(args.L)
         network = TransformedEND3D(
             channels=args.channels,
             depths=args.depths,

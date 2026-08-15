@@ -1,4 +1,9 @@
-from scripts.plot_threshold import aggregate, parse_log
+from scripts.plot_threshold import (
+    aggregate,
+    discover_inputs,
+    parse_csv,
+    parse_log,
+)
 
 
 def test_plot_keeps_recurrent_and_cnn3d_curves_separate(tmp_path):
@@ -137,3 +142,39 @@ def test_plot_separates_unsafe_dynamic_and_ce_gated_hybrid_runs(tmp_path):
     assert {row["num_runs"] for row in rows} == {1}
     assert any("loss=dynamic gate=legacy" in label for label in curves)
     assert any("loss=ce gate=cal256" in label for label in curves)
+
+
+def test_plotter_reads_pymatching_csv(tmp_path):
+    path = tmp_path / "circuit_pymatching_standard.csv"
+    path.write_text(
+        "decoder,L,rounds,p,q,shots,accuracy,failure\n"
+        "pymatching,5,5,0.01,0.01,1000,0.9,0.1\n"
+    )
+
+    records = parse_csv(path)
+
+    assert len(records) == 1
+    assert records[0].decoder == "pymatching"
+    assert records[0].eval_samples == 1000
+    assert records[0].L == 5
+
+
+def test_plotter_reuses_aggregated_threshold_csv(tmp_path):
+    path = tmp_path / "threshold.csv"
+    path.write_text(
+        "label,p,failure,accuracy,eval_samples,num_runs\n"
+        "L=11,0.03,0.2,0.8,65536,1\n"
+    )
+
+    records = parse_csv(path)
+
+    assert len(records) == 1
+    assert records[0].decoder == "neural"
+    assert records[0].L == 11
+
+
+def test_discover_inputs_finds_current_circuit_pymatching_csv(tmp_path):
+    path = tmp_path / "circuit_pymatching_standard.csv"
+    path.write_text("decoder,L,p,accuracy\n")
+
+    assert discover_inputs([tmp_path]) == [path]

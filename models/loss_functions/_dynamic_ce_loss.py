@@ -4,11 +4,11 @@ from torch.functional import F
 
 
 class DynamicCELoss(nn.Module):
-    """A BCE Loss adaptation, that dynamically adapts class weights."""
+    """A cross-entropy loss that dynamically adapts class weights."""
 
     def __init__(self, tensor_size: int, device: torch.device) -> None:
         """
-        Initialize the DynamicBCELoss.
+        Initialize the DynamicCELoss.
 
         :param tensor_size: The size of tensor to accept.
         :param device: The device to use the loss on.

@@ -171,6 +171,15 @@ single-fault logical errors. Stim samples all detectors and all four logical
 correlation sheets from the same shot, preserving X/Z/Y and hook-error
 correlations.
 
+Training and evaluation deliberately use two views of that same circuit. For
+edge-weight training, Stim samples the circuit's decomposed detector error
+model (DEM) with `return_errors=True`; this supplies detector events, logical
+observables, and the hidden fault mechanisms that fired, which are the targets
+for edge BCE. Validation and final accuracy instead use the compiled circuit
+detector sampler, so reported decoding accuracy is measured on fresh exact
+circuit shots rather than on those latent DEM labels. Flat detectors are
+reshaped to `(batch, 2, rounds, L^2)` before entering the network.
+
 ## Circuit-level experiment scripts
 
 Edit `GPU_ID` near the top of each file to select the physical GPU directly.
