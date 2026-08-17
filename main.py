@@ -19,6 +19,7 @@ from models.loss_functions import DynamicCELoss, EdgeBCELoss
 from models._the_end_3d import TransformedEND3D
 from models.pooling_layers import TranslationalEquivariantPooling2D
 from src import Trainer
+from src._bb_experiment import run_bb_experiment
 from src.stim_utils import generate_toric_memory_circuit
 from panqec.codes import Toric2DCode
 
@@ -27,7 +28,19 @@ def main() -> None:
     """
     Start the experiments for decoder training.
     """
-    parser = argparse.ArgumentParser(description="Neural Decoder for Toric Code")
+    parser = argparse.ArgumentParser(
+        description="Equivariant neural decoders for toric and BB codes"
+    )
+    parser.add_argument(
+        "--code",
+        type=str,
+        default="toric",
+        choices=["toric", "bb72", "bb144"],
+        help=(
+            "Code family. bb72 and bb144 select the [[72,12,6]] and "
+            "[[144,12,12]] bivariate-bicycle codes."
+        ),
+    )
     parser.add_argument("--L", type=int, default=5, help="Lattice size (L x L).")
     parser.add_argument("--p", type=float, default=0.01, help="Error rate [0,1).")
     parser.add_argument(
@@ -40,8 +53,11 @@ def main() -> None:
     parser.add_argument(
         "--measurement_error_rate",
         type=float,
-        default=0.01,
-        help="Measurement error rate [0,1).",
+        default=None,
+        help=(
+            "Measurement error rate [0,1). Defaults to 0.01 on temporal toric "
+            "runs and exactly 0 for BB code capacity."
+        ),
     )
     parser.add_argument(
         "--rounds",
@@ -58,17 +74,87 @@ def main() -> None:
             "convgru",
             "convgru_mwpm",
             "convgru_weighted_mwpm",
+            "bb_neural_bp",
         ],
         help=(
-            "Temporal architecture. cnn3d treats time as a third spatial axis; "
+            "Decoder architecture. cnn3d treats time as a third spatial axis; "
             "convgru applies a shared equivariant 2D CNN to each round and "
             "recurrently accumulates the rounds; convgru_mwpm lets a Stim DEM "
             "PyMatching decoder do global pairing and trains the equivariant "
             "ConvGRU to predict its residual logical class; "
             "convgru_weighted_mwpm instead predicts shot-dependent sparse DEM "
             "edge probabilities before MWPM."
+            " bb_neural_bp is a code-capacity BP4 decoder on a BB Tanner "
+            "graph with cyclic edge-orbit parameter sharing."
         ),
     )
+    parser.add_argument(
+        "--bp_iterations",
+        type=int,
+        default=12,
+        help="Number of unrolled BP4 iterations for --architecture=bb_neural_bp.",
+    )
+    parser.add_argument(
+        "--bp_residual_hidden_dim",
+        type=int,
+        default=64,
+        help="Hidden width of each orbit-shared neural BP residual MLP.",
+    )
+    parser.add_argument(
+        "--bp_parameter_sharing",
+        choices=["orbit", "global", "edge"],
+        default="orbit",
+        help=(
+            "Neural BP sharing ablation. orbit is the BB-equivariant default; "
+            "global is generic shared BP; edge intentionally breaks equivariance."
+        ),
+    )
+    parser.add_argument(
+        "--bp_residual_scale",
+        type=float,
+        default=2.0,
+        help="Maximum tanh residual added to each BP log message.",
+    )
+    parser.add_argument(
+        "--bp_max_relaxation_delta",
+        type=float,
+        default=0.5,
+        help="Range around one available to the learned BP relaxation coefficient.",
+    )
+    parser.add_argument(
+        "--bp_deep_supervision_weight",
+        type=float,
+        default=0.2,
+        help="Weight of intermediate-iteration BB decoding losses.",
+    )
+    parser.add_argument(
+        "--bp_gradient_clip",
+        type=float,
+        default=1.0,
+        help="Gradient norm limit for BB neural BP.",
+    )
+    parser.add_argument(
+        "--bb_channel",
+        choices=["depolarizing", "independent_xz"],
+        default="depolarizing",
+        help="Code-capacity Pauli channel used by a BB experiment.",
+    )
+    parser.add_argument(
+        "--x_error_rate",
+        type=float,
+        default=None,
+        help="Independent X-component rate; defaults to --p.",
+    )
+    parser.add_argument(
+        "--z_error_rate",
+        type=float,
+        default=None,
+        help="Independent Z-component rate; defaults to --p.",
+    )
+    parser.add_argument("--bb_syndrome_loss_weight", type=float, default=1.0)
+    parser.add_argument("--bb_logical_loss_weight", type=float, default=1.0)
+    parser.add_argument("--bb_pauli_loss_weight", type=float, default=0.1)
+    parser.add_argument("--bb_weight_decay", type=float, default=1e-4)
     parser.add_argument(
         "--matching_correlations",
         action="store_true",
@@ -165,9 +251,12 @@ def main() -> None:
     parser.add_argument(
         "--loss_fn",
         type=str,
-        default="ce",
-        choices=["ce", "dynamic", "edge_bce"],
-        help="Loss function type.",
+        default=None,
+        choices=["ce", "dynamic", "edge_bce", "bb_coset"],
+        help=(
+            "Loss function type. Defaults to bb_coset for bb_neural_bp and "
+            "ce otherwise."
+        ),
     )
     parser.add_argument(
         "--channels",
@@ -232,7 +321,15 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    rounds = args.L if args.rounds is None else args.rounds
+    bb_architecture = args.architecture == "bb_neural_bp"
+    if args.measurement_error_rate is None:
+        args.measurement_error_rate = 0.0 if bb_architecture else 0.01
+    args.loss_fn = args.loss_fn or ("bb_coset" if bb_architecture else "ce")
+    rounds = (
+        (1 if args.rounds is None else args.rounds)
+        if bb_architecture
+        else (args.L if args.rounds is None else args.rounds)
+    )
     if rounds < 1:
         parser.error("--rounds must be positive.")
     if not 0.0 <= args.p <= 1.0:
@@ -241,6 +338,12 @@ def main() -> None:
         parser.error("--measurement_error_rate must be in [0, 1].")
     if args.eval_batches < 1:
         parser.error("--eval_batches must be positive.")
+    if args.epochs < 1:
+        parser.error("--epochs must be positive.")
+    if args.batches < 1:
+        parser.error("--batches must be positive.")
+    if args.batch_size < 1:
+        parser.error("--batch_size must be positive.")
     if args.eval_every < 1:
         parser.error("--eval_every must be positive.")
     if args.final_eval_batches is not None and args.final_eval_batches < 1:
@@ -267,6 +370,66 @@ def main() -> None:
         parser.error("--edge_chunk_size must be positive.")
     if args.edge_entropy_weight < 0.0:
         parser.error("--edge_entropy_weight must be non-negative.")
+    if args.lr is not None and args.lr <= 0.0:
+        parser.error("--lr must be positive.")
+    if args.seed is not None and args.seed < 0:
+        parser.error("--seed must be non-negative.")
+    if args.x_error_rate is not None and not 0.0 <= args.x_error_rate <= 1.0:
+        parser.error("--x_error_rate must be in [0, 1].")
+    if args.z_error_rate is not None and not 0.0 <= args.z_error_rate <= 1.0:
+        parser.error("--z_error_rate must be in [0, 1].")
+    if args.bp_iterations < 1:
+        parser.error("--bp_iterations must be positive.")
+    if args.bp_residual_hidden_dim < 1:
+        parser.error("--bp_residual_hidden_dim must be positive.")
+    if args.bp_residual_scale < 0.0:
+        parser.error("--bp_residual_scale must be non-negative.")
+    if not 0.0 <= args.bp_max_relaxation_delta < 1.0:
+        parser.error("--bp_max_relaxation_delta must be in [0, 1).")
+    if args.bp_deep_supervision_weight < 0.0:
+        parser.error("--bp_deep_supervision_weight must be non-negative.")
+    if args.bp_gradient_clip <= 0.0:
+        parser.error("--bp_gradient_clip must be positive.")
+    if any(
+        value < 0.0
+        for value in (
+            args.bb_syndrome_loss_weight,
+            args.bb_logical_loss_weight,
+            args.bb_pauli_loss_weight,
+            args.bb_weight_decay,
+        )
+    ):
+        parser.error("BB loss weights and --bb_weight_decay must be non-negative.")
+
+    if bb_architecture:
+        if args.code not in {"bb72", "bb144"}:
+            parser.error("--architecture=bb_neural_bp requires --code=bb72 or bb144.")
+        if args.noise_model != "capacity":
+            parser.error(
+                "The initial BB neural BP implementation requires "
+                "--noise_model=capacity."
+            )
+        if rounds != 1:
+            parser.error(
+                "BB code-capacity decoding has one perfect syndrome: --rounds=1."
+            )
+        if args.measurement_error_rate != 0.0:
+            parser.error(
+                "BB code capacity uses perfect checks: "
+                "--measurement_error_rate must be 0."
+            )
+        if args.loss_fn != "bb_coset":
+            parser.error("--architecture=bb_neural_bp requires --loss_fn=bb_coset.")
+        if args.matching_correlations:
+            parser.error("--matching_correlations does not apply to neural BP.")
+        run_bb_experiment(args)
+        return
+
+    if args.code != "toric":
+        parser.error("--code=bb72/bb144 requires --architecture=bb_neural_bp.")
+    if args.loss_fn == "bb_coset":
+        parser.error("--loss_fn=bb_coset is only valid with bb_neural_bp.")
+
     matching_architectures = {"convgru_mwpm", "convgru_weighted_mwpm"}
     if args.architecture in matching_architectures and args.noise_model != "circuit":
         parser.error(
@@ -284,18 +447,11 @@ def main() -> None:
             "Inverse-frequency dynamic loss overweights rare residual classes "
             "and can make the hybrid worse than its MWPM fallback."
         )
-    if (
-        args.architecture == "convgru_weighted_mwpm"
-        and args.loss_fn != "edge_bce"
-    ):
+    if args.architecture == "convgru_weighted_mwpm" and args.loss_fn != "edge_bce":
         parser.error(
-            "--architecture=convgru_weighted_mwpm requires "
-            "--loss_fn=edge_bce."
+            "--architecture=convgru_weighted_mwpm requires " "--loss_fn=edge_bce."
         )
-    if (
-        args.architecture != "convgru_weighted_mwpm"
-        and args.loss_fn == "edge_bce"
-    ):
+    if args.architecture != "convgru_weighted_mwpm" and args.loss_fn == "edge_bce":
         parser.error(
             "--loss_fn=edge_bce is only valid with "
             "--architecture=convgru_weighted_mwpm."
@@ -307,7 +463,7 @@ def main() -> None:
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    """Initialize the stabilizer Code."""
+    """Initialize the toric stabilizer code."""
     code = Toric2DCode(args.L)
 
     # in_channels is always 2 for the vertex/face detector sectors.
@@ -414,8 +570,7 @@ def main() -> None:
 
     curr_time = datetime.datetime.now()
     edge_hidden_channels = args.edge_hidden_channels or (
-        (args.gru_channels or args.channels[-1])
-        * (1 if args.causal_edge_gru else 2)
+        (args.gru_channels or args.channels[-1]) * (1 if args.causal_edge_gru else 2)
     )
     run_slug = re.sub(
         r"[^A-Za-z0-9_.-]+",
@@ -497,8 +652,7 @@ def main() -> None:
         recurrent=(
             f"ConvGRU channels={args.gru_channels or args.channels[-1]}, "
             f"layers={args.gru_layers}, kernel={args.gru_kernel_size}"
-            if args.architecture
-            in {"convgru", "convgru_mwpm", "convgru_weighted_mwpm"}
+            if args.architecture in {"convgru", "convgru_mwpm", "convgru_weighted_mwpm"}
             else None
         ),
         attention=attention,
@@ -520,9 +674,7 @@ def main() -> None:
         f"{args.final_eval_batches or args.eval_batches}"
     )
     if args.architecture == "convgru_mwpm":
-        batch_log += (
-            f", Hybrid calibration batches: {args.hybrid_calibration_batches}"
-        )
+        batch_log += f", Hybrid calibration batches: {args.hybrid_calibration_batches}"
     logging.info(batch_log)
     logging.info(
         f"Samples - training per epoch: {args.batch_size * args.batches}, "

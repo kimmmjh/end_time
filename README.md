@@ -1,8 +1,9 @@
-# TheEND time: toric-code neural decoder
+# TheEND time: equivariant neural QEC decoders
 
-This repository trains a translation-equivariant neural decoder for the 2D
-toric code. It supports code-capacity, phenomenological, and Stim-based
-circuit-level noise.
+This repository contains translation-equivariant toric-code decoders and an
+orbit-equivariant neural belief-propagation decoder for bivariate-bicycle (BB)
+codes. The toric path supports code-capacity, phenomenological, and Stim-based
+circuit noise. The first BB implementation is deliberately code capacity only.
 
 ## Install
 
@@ -12,9 +13,139 @@ pip install -r requirements.txt
 
 Circuit-level generation requires Stim 1.15 or newer.
 
-## Input and labels
+## BB code-capacity neural BP
 
-Every noise model is converted to the model input
+The BB path currently provides the published `[[72,12,6]]` and
+`[[144,12,12]]` constructions. It has one perfect syndrome measurement, so
+there is no physical-time axis, CNN, ConvGRU, pooling, or MWPM:
+
+```text
+independent Pauli errors on n data qubits
+        |
+one perfect syndrome [Hx z | Hz x]       [B, 2*n/2]
+        |
+exact four-state Tanner-graph BP4 update
+        + orbit-shared neural residual and relaxation
+        |  (12 unrolled algorithmic iterations by default)
+        v
+per-qubit log P(I,X,Y,Z | syndrome)       [B, n, 4]
+        |
+hard Pauli correction; score residual modulo stabilizers
+```
+
+For BB72 the data shapes are syndrome `[B,72]`, Pauli target `[B,72]`, and
+output `[B,72,4]`. For BB144 they are `[B,144]`, `[B,144]`, and
+`[B,144,4]`. The output is not a `2^(2k)` logical-class prediction.
+
+Run one depolarizing point with:
+
+```bash
+python main.py --code=bb72 --architecture=bb_neural_bp \
+  --noise_model=capacity --loss_fn=bb_coset --bb_channel=depolarizing \
+  --measurement_error_rate=0 --p=0.08 \
+  --bp_iterations=12 --bp_residual_hidden_dim=64 \
+  --bp_parameter_sharing=orbit --epochs=300 --batch_size=64 \
+  --batches=512 --eval_batches=256 --eval_every=5 \
+  --final_eval_batches=2048 --lr=0.0003 --amp_dtype=none --save_model
+```
+
+`p` means total non-identity probability for the depolarizing channel:
+`P(I,X,Y,Z)=(1-p,p/3,p/3,p/3)`. To study independent X and Z components:
+
+```bash
+python main.py --code=bb72 --architecture=bb_neural_bp \
+  --noise_model=capacity --loss_fn=bb_coset --bb_channel=independent_xz \
+  --x_error_rate=0.04 --z_error_rate=0.04 --p=0.04 --amp_dtype=none
+```
+
+For independent X/Z noise, the total non-identity probability is
+`px+pz-px*pz`, so equal numeric `p` values do not describe the same physical
+channel as depolarizing noise.
+
+### Where the equivariance is implemented
+
+The BB checks are cyclic polynomial matrices. A simultaneous cyclic shift of
+check and qubit cell indices maps every Tanner edge into an edge of the same
+type. The implementation partitions the graph into 12 edge orbits:
+
+```text
+check type (X or Z) x qubit block (left or right) x polynomial term (3)
+```
+
+Every edge in one orbit uses exactly the same residual MLP and learned
+relaxation coefficient. Therefore, shifting the syndrome cyclically shifts the
+qubit posterior in the same way; it cannot introduce an absolute-site
+dependence. `--bp_parameter_sharing=global` is a generic shared-neural-BP
+ablation with one shared update for each X/Z check sector, while `edge` gives
+every edge separate parameters and intentionally breaks the symmetry.
+
+This is more than adding an equivariant pooling layer to the old model. The
+research idea being tested is equivariant parameter tying, but the decoder and
+targets also change from a toric-grid logical classifier to four-state message
+passing on a BB Tanner graph. Repeated BP steps are algorithm unrolling, not
+measurement-round recurrence. Vanilla BP itself is graph-equivariant, so the
+training log always evaluates `neural=False` vanilla BP4 on the exact same
+shots; `orbit`, `global`, and `edge` runs should be reported as ablations.
+
+The loss is a degeneracy-aware factorized surrogate:
+
+```text
+L = L_syndrome + L_logical-parity-surrogate + 0.1 L_Pauli-auxiliary
+```
+
+The first term asks the correction to reproduce the measured syndrome. The
+second asks the true-error/correction residual to have trivial logical parity.
+Consequently, corrections differing from the sampled error by a stabilizer are
+valid. Exact per-qubit Pauli cross entropy is only a small optimization aid.
+At soft-probability level this is not an exact coset negative log-likelihood
+and its value can depend on the chosen logical basis; the final hard success
+test itself is exact and basis-independent.
+Reported `Accuracy` is block logical success, not qubit accuracy. Logs also
+separate syndrome-nonconverged (flagged) failures from syndrome-converged but
+logical (unflagged) failures.
+
+Two GPU runners sweep the same depolarizing points for both code sizes. Edit
+`GPU_ID` at the top if needed:
+
+```bash
+bash run_bb_0.sh  # GPU 0, BB72, p=0.04,0.06,0.08,0.10
+bash run_bb_1.sh  # GPU 1, BB144, the same p values
+```
+
+On Perlmutter, submit the Slurm versions instead:
+
+```bash
+sbatch run_bb_0.slurm  # one GPU node: four concurrent BB72 p points
+sbatch run_bb_1.slurm  # one GPU node: four concurrent BB144 p points
+```
+
+Each Slurm job requests four tasks and four GPUs, then launches four
+independent `srun` steps with one GPU each. The scripts use the
+existing NERSC account `m5328_g`, environment
+`$PSCRATCH/envs/nde`, and repository `$HOME/end_time`; edit those values if
+the server paths change. Results are stored under
+`$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ..., and one
+`exp_<index>/outputs` tree per p value.
+
+Before launching all eight long jobs, run a one-epoch timing/sanity check on
+the server:
+
+```bash
+python main.py --code=bb72 --architecture=bb_neural_bp \
+  --noise_model=capacity --measurement_error_rate=0 --loss_fn=bb_coset \
+  --p=0.08 --epochs=1 --batches=2 --batch_size=8 \
+  --eval_batches=1 --final_eval_batches=1 --amp_dtype=none
+```
+
+Each neural model starts exactly as vanilla BP4 because its final residual
+layer is zero initialized and relaxation starts at one. `model.pt` is the
+latest resumable checkpoint; `best_model.pt` is selected by held-out block
+logical accuracy. Generator RNG state, optimizer state, and plot history are
+saved, and an incompatible BB graph/model checkpoint is rejected.
+
+## Toric-code input and labels
+
+Every toric noise model is converted to the model input
 
 ```text
 (batch, 2, rounds, L^2)

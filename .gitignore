@@ -1,26 +1,32 @@
-# MacOS
+# macOS
 .DS_Store
 
-# Python
+# Python bytecode, environments, and tool caches
 __pycache__/
 *.py[cod]
 *$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ipynb_checkpoints/
 
-# Experiment results
-outputs/
-resdir_*/
-nn/
-threshold_*.png
-threshold_*.csv
-tests/
-!tests/
-tests/*
-!tests/test_circuit_pymatching_threshold.py
-!tests/test_hybrid_decoder.py
-!tests/test_hybrid_trainer.py
-!tests/test_weighted_matching_decoder.py
+# Generated experiment artifacts
+/outputs/
+/resdir_*/
+/results/*
+!/results/README.md
+/threshold_*.png
+/threshold_*.csv
+/slurm-*.out
+/wandb/
 
-# IDEs
+# IDE settings
 .idea/
 .vscode/
 
