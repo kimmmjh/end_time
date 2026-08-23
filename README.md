@@ -104,37 +104,84 @@ Reported `Accuracy` is block logical success, not qubit accuracy. Logs also
 separate syndrome-nonconverged (flagged) failures from syndrome-converged but
 logical (unflagged) failures.
 
-Two GPU runners sweep the same depolarizing points for both code sizes. Edit
-`GPU_ID` at the top if needed:
+Ten Perlmutter jobs provide the next BB experiment suite. Jobs 0--7 are GPU
+neural-BP training jobs; jobs 8--9 are CPU-only classical-decoder benchmarks.
+The completed orbit/depolarizing seed-A runs remain the full-model reference.
+
+| Script | Four concurrent experiments |
+| --- | --- |
+| `run_bb_0.slurm` | orbit model, seed B, BB72/BB144 at p=0.08/0.10 |
+| `run_bb_1.slurm` | orbit model, seed C, the same four points |
+| `run_bb_2.slurm` | global h64 and parameter-matched global h393, both codes at p=0.08 |
+| `run_bb_3.slurm` | 6 and 24 BP iterations, both codes at p=0.08 (T=12 is archived) |
+| `run_bb_4.slurm` | orbit model, marginal-matched independent X/Z at p=0.08/0.10 |
+| `run_bb_5.slurm` | residual-only and learned-relaxation-only, both codes at p=0.08 |
+| `run_bb_6.slurm` | no Pauli auxiliary and no deep supervision, both codes at p=0.08 |
+| `run_bb_7.slurm` | no logical surrogate and no syndrome loss, both codes at p=0.08 |
+| `run_bb_8.slurm` | BB72 CSS-split BP+OSD-0/CS-7/LSD-0, p=0.04/0.06/0.08/0.10 |
+| `run_bb_9.slurm` | BB144 versions of the same three classical baselines |
+
+Submit selected jobs, or submit the full suite with:
 
 ```bash
-bash run_bb_0.sh  # GPU 0, BB72, p=0.04,0.06,0.08,0.10
-bash run_bb_1.sh  # GPU 1, BB144, the same p values
+for i in {0..9}; do sbatch "run_bb_${i}.slurm"; done
 ```
 
-On Perlmutter, submit the Slurm versions instead:
+For the independent-X/Z runs, `p` labels the reference depolarizing point and
+the actual component rates are `p_x=p_z=2p/3`. This preserves the X and Z
+component marginals while removing their on-qubit correlation. It does not
+preserve the total non-identity rate: that rate is
+`1-(1-2p/3)^2`, so independent-X/Z results must be plotted against their
+component rates or labeled as matched-marginal points. `global` sharing is
+still equivariant; comparing it with `orbit` tests the granularity of
+equivariant parameter sharing, not equivariance versus a non-equivariant
+network. `global h393` has 14,210 trainable parameters versus 14,196 for
+`orbit h64`, removing nearly all of the parameter-count confound. The current
+per-edge implementation is intentionally omitted because its hundreds of
+separately called MLPs make a 300-epoch job impractical.
+
+Jobs 0--7 request four tasks and four GPUs, then launch four independent
+`srun --exclusive` steps with one GPU each. Jobs 8--9 request four CPU tasks
+because `ldpc` BP+OSD/LSD does not use CUDA. They use the presumed CPU account
+`m5328`; verify that allocation or edit the two `#SBATCH --account` lines
+before submission. All scripts use `$PSCRATCH/envs/nde` and
+`$HOME/end_time`. Results are stored under
+`$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ...,
+`log_exp_3.txt`, per-experiment exit codes, and a completed/failed marker.
+For neural jobs, the timestamped model directories share
+`outputs/YYYY-MM-DD/`; classical jobs instead write their CSV/NPZ files
+directly into the result directory. There is no `exp_<index>` layer in the
+Slurm layout. The shared launch logic is in
+`scripts/run_bb_slurm_batch.sh`.
+
+The classical jobs require exactly `ldpc==2.4.1` and preflight that version
+before creating a result directory. At each `(code,p)` point all three methods
+decode one shared 131,072-shot bank using binary component prior `2p/3`,
+minimum-sum scale 0.625, parallel scheduling, and `n` BP iterations. These are
+CSS-separated, correlation-unaware baselines: their X and Z sectors are
+decoded separately, so they discard the Y-induced correlation retained by
+joint BP4. CSV files contain exact block logical error, Wilson intervals,
+flagged/unflagged failures, and latency. NPZ files preserve the sampled errors
+and per-shot outcomes. Those classical methods are paired with each other;
+they are not paired with the archived neural results unless a neural
+checkpoint is evaluated later on the saved NPZ test bank.
+
+The completed BB72 and BB144 depolarizing sweeps are summarized in
+[`results/analysis/bb_neural_bp_depolarizing_orbit.md`](results/analysis/bb_neural_bp_depolarizing_orbit.md),
+with a machine-readable CSV and a Neural BP versus vanilla BP4 comparison
+plot in `results/analysis/` and `results/plots/`.
+
+Before launching the training suite, run a one-epoch timing/sanity check on
+the heaviest unrolled configuration:
 
 ```bash
-sbatch run_bb_0.slurm  # one GPU node: four concurrent BB72 p points
-sbatch run_bb_1.slurm  # one GPU node: four concurrent BB144 p points
-```
-
-Each Slurm job requests four tasks and four GPUs, then launches four
-independent `srun` steps with one GPU each. The scripts use the
-existing NERSC account `m5328_g`, environment
-`$PSCRATCH/envs/nde`, and repository `$HOME/end_time`; edit those values if
-the server paths change. Results are stored under
-`$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ..., and one
-`exp_<index>/outputs` tree per p value.
-
-Before launching all eight long jobs, run a one-epoch timing/sanity check on
-the server:
-
-```bash
-python main.py --code=bb72 --architecture=bb_neural_bp \
-  --noise_model=capacity --measurement_error_rate=0 --loss_fn=bb_coset \
-  --p=0.08 --epochs=1 --batches=2 --batch_size=8 \
-  --eval_batches=1 --final_eval_batches=1 --amp_dtype=none
+python main.py --code=bb144 --architecture=bb_neural_bp \
+  --noise_model=capacity --rounds=1 --measurement_error_rate=0 \
+  --loss_fn=bb_coset --bb_channel=depolarizing --p=0.08 \
+  --bp_iterations=24 --bp_residual_hidden_dim=64 \
+  --bp_parameter_sharing=orbit --epochs=1 --batches=2 --batch_size=8 \
+  --eval_batches=1 --eval_every=1 --final_eval_batches=1 \
+  --lr=0.0003 --amp_dtype=none --seed=14408
 ```
 
 Each neural model starts exactly as vanilla BP4 because its final residual
@@ -311,11 +358,21 @@ detector sampler, so reported decoding accuracy is measured on fresh exact
 circuit shots rather than on those latent DEM labels. Flat detectors are
 reshaped to `(batch, 2, rounds, L^2)` before entering the network.
 
-## Circuit-level experiment scripts
+## Pure ConvGRU threshold-gap scripts
 
 Edit `GPU_ID` near the top of each file to select the physical GPU directly.
-The two independent runners use `convgru_weighted_mwpm` and jointly cover
-L=5,7,9 and p=q=0.008,...,0.012 with 300 epochs per point:
+The two independent runners train pure ConvGRU decoders without MWPM. They
+fill the unresolved transition intervals in the current threshold plot:
+
+```text
+run_0.sh: (L=13,p=.016), (L=15,p=.011), (L=13,p=.018), (L=15,p=.013)
+run_1.sh: (L=13,p=.017), (L=15,p=.012), (L=13,p=.019), (L=15,p=.014)
+```
+
+Each point is a fresh run, rather than a resume from a model trained at a
+different physical error rate. This keeps all threshold points comparable.
+The common model is ConvGRU-96x2 with a 96-96-96, depth-4-4-4 circular CNN,
+ordinary cross entropy, 300 epochs, and maximum learning rate `3e-4`:
 
 ```bash
 # Terminal 1; uses the GPU_ID written in run_0.sh.
@@ -325,21 +382,14 @@ bash run_0.sh
 bash run_1.sh
 ```
 
-The final `[Selected Best]` line is measured on fresh held-out circuit samples
-and recommends `neural_weighted_mwpm` only when the paired 95% lower bound over
-raw MWPM is positive. `accuracy_curve.png` overlays raw MWPM and
-`hybrid_net_gain_curve.png` reports the paired difference. Each runner creates
-its own `resdir_<script-pid>/exp_<index>`, runs one experiment at a time on its
-configured GPU, forwards termination signals, and stops after the first failed
-experiment. The two point lists are disjoint and together contain all 15 grid
-points. Dynamic PyMatching evaluation is CPU work, so these scripts use fewer
-evaluation batches than the old logical-residual runs.
+Each runner creates `resdir_<script-pid>/exp_<index>`, runs its four experiments
+sequentially, forwards termination signals, and stops after the first failure.
+Both L values use 32,768 generated training shots per epoch: L13 uses
+`batch_size=32,batches=1024`, while L15 uses `batch_size=16,batches=2048`.
+Validation runs every five epochs and the final evaluation uses 65,536 samples
+for L13 or 32,768 for L15.
 
-Each runner uses `batch_size=32` and `batches=2048`, i.e. 65,536 supervised
-DEM shots per epoch. Every five epochs, validation uses 4,096 exact circuit
-shots; the final epoch is always evaluated. The selected best checkpoint is
-finally evaluated on 16,384 fresh circuit shots. Set `--eval_every=1` to restore
-per-epoch validation.
+## Circuit-level matching baseline
 
 To generate the matching-only circuit baseline:
 

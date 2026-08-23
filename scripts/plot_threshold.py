@@ -23,6 +23,7 @@ SELECTED_BEST_RE = re.compile(
     r"[^\n]*?\| Eval Samples: (\d+)"
 )
 HYBRID_CALIBRATION_RE = re.compile(r"Hybrid calibration batches:\s*(\d+)")
+PLATEAU_STATUSES = {"optimization_plateau", "partial_plateau", "collapsed"}
 
 
 @dataclass
@@ -40,6 +41,7 @@ class Record:
     depths: str
     decoder: str
     noise_model: str
+    training_status: str = "completed"
 
 
 def parse_args() -> argparse.Namespace:
@@ -224,6 +226,7 @@ def parse_log(path: Path, metric: str) -> Record | None:
         depths=depths,
         decoder=decoder,
         noise_model=noise_model or "unknown",
+        training_status="completed",
     )
 
 
@@ -278,6 +281,7 @@ def parse_csv(path: Path) -> list[Record]:
                     depths=row.get("depths") or "n/a",
                     decoder=decoder.lower(),
                     noise_model=row.get("noise_model") or "unknown",
+                    training_status=row.get("training_status") or "completed",
                 )
             )
     return records
@@ -340,7 +344,9 @@ def label_for(record: Record, group: str) -> str:
             )
     else:
         label = f"L={record.L}"
-    if record.noise_model not in {"", "unknown"}:
+    # Phenomenological noise is this plotter's historical/default case, so
+    # keep its legend compact.  Non-default noise models remain explicit.
+    if record.noise_model not in {"", "unknown", "phenomenological"}:
         label = f"{label} noise={record.noise_model}"
     if (
         record.decoder.lower() == "pymatching"
@@ -446,6 +452,14 @@ def aggregate(records: list[Record], group: str):
             "accuracy": accuracy,
             "eval_samples": eval_samples,
             "num_runs": len(items),
+            "training_status": (
+                items[0].training_status
+                if all(
+                    item.training_status == items[0].training_status
+                    for item in items
+                )
+                else "mixed"
+            ),
             "yerr_low": yerr_low,
             "yerr_high": yerr_high,
         }
@@ -475,6 +489,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
                 "accuracy",
                 "eval_samples",
                 "num_runs",
+                "training_status",
             ],
         )
         writer.writeheader()
@@ -493,6 +508,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
                     "accuracy": row["accuracy"],
                     "eval_samples": row["eval_samples"],
                     "num_runs": row["num_runs"],
+                    "training_status": row["training_status"],
                 }
             )
 
@@ -535,13 +551,8 @@ def main() -> None:
         architecture: neural_styles[index % len(neural_styles)]
         for index, architecture in enumerate(neural_architectures)
     }
+    plateau_legend_added = False
     for label, points in curves.items():
-        xs = [point["p"] for point in points]
-        ys = [point["failure_for_plot"] for point in points]
-        yerr = [
-            [point["yerr_low"] for point in points],
-            [point["yerr_high"] for point in points],
-        ]
         decoder = points[0]["decoder"].lower()
         is_pymatching = decoder == "pymatching"
         linestyle, marker = (
@@ -555,16 +566,52 @@ def main() -> None:
                 )
             ]
         )
-        plt.errorbar(
-            xs,
-            ys,
-            yerr=yerr,
-            color=colors.get(points[0]["L"]),
-            linestyle=linestyle,
-            marker=marker,
-            capsize=3,
-            label=label,
-        )
+        curve_points = [
+            point
+            for point in points
+            if point["training_status"] not in PLATEAU_STATUSES
+        ]
+        plateau_points = [
+            point
+            for point in points
+            if point["training_status"] in PLATEAU_STATUSES
+        ]
+
+        if curve_points:
+            plt.errorbar(
+                [point["p"] for point in curve_points],
+                [point["failure_for_plot"] for point in curve_points],
+                yerr=[
+                    [point["yerr_low"] for point in curve_points],
+                    [point["yerr_high"] for point in curve_points],
+                ],
+                color=colors.get(points[0]["L"]),
+                linestyle=linestyle,
+                marker=marker,
+                capsize=3,
+                label=label,
+            )
+        if plateau_points:
+            plt.errorbar(
+                [point["p"] for point in plateau_points],
+                [point["failure_for_plot"] for point in plateau_points],
+                yerr=[
+                    [point["yerr_low"] for point in plateau_points],
+                    [point["yerr_high"] for point in plateau_points],
+                ],
+                color=colors.get(points[0]["L"]),
+                linestyle="none",
+                marker="X",
+                markersize=8,
+                markeredgewidth=1.5,
+                capsize=3,
+                label=(
+                    "Optimization plateau (not a threshold point)"
+                    if not plateau_legend_added
+                    else "_nolegend_"
+                ),
+            )
+            plateau_legend_added = True
 
     plt.xlabel("Physical error rate p")
     plt.ylabel("Logical error rate (1 - accuracy)")

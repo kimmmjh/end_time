@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bb144_neural_bp
+#SBATCH --job-name=bb_orbit_seed_c
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -8,35 +8,23 @@
 #SBATCH --ntasks-per-node=4
 #SBATCH --cpus-per-task=16
 #SBATCH --gpus-per-task=1
+#SBATCH --output=slurm-%x-%j.out
 
-module load python/3.10
-source $PSCRATCH/envs/nde/bin/activate
-cd $HOME/end_time
+set -uo pipefail
 
+module load python/3.10 || exit 1
+source "$PSCRATCH/envs/nde/bin/activate" || exit 1
+ROOT="$HOME/end_time"
+cd "$ROOT" || exit 1
+source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
+source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
+
+# Orbit model replicate C.
 experiments=(
-    "--code=bb144 --architecture=bb_neural_bp --noise_model=capacity --measurement_error_rate=0 --loss_fn=bb_coset --bb_channel=depolarizing --p=0.04 --bp_iterations=12 --bp_residual_hidden_dim=64 --bp_parameter_sharing=orbit --epochs=300 --batch_size=64 --batches=512 --eval_batches=256 --eval_every=5 --final_eval_batches=2048 --lr=0.0003 --amp_dtype=none --seed=14404 --save_model"
-    "--code=bb144 --architecture=bb_neural_bp --noise_model=capacity --measurement_error_rate=0 --loss_fn=bb_coset --bb_channel=depolarizing --p=0.06 --bp_iterations=12 --bp_residual_hidden_dim=64 --bp_parameter_sharing=orbit --epochs=300 --batch_size=64 --batches=512 --eval_batches=256 --eval_every=5 --final_eval_batches=2048 --lr=0.0003 --amp_dtype=none --seed=14406 --save_model"
-    "--code=bb144 --architecture=bb_neural_bp --noise_model=capacity --measurement_error_rate=0 --loss_fn=bb_coset --bb_channel=depolarizing --p=0.08 --bp_iterations=12 --bp_residual_hidden_dim=64 --bp_parameter_sharing=orbit --epochs=300 --batch_size=64 --batches=512 --eval_batches=256 --eval_every=5 --final_eval_batches=2048 --lr=0.0003 --amp_dtype=none --seed=14408 --save_model"
-    "--code=bb144 --architecture=bb_neural_bp --noise_model=capacity --measurement_error_rate=0 --loss_fn=bb_coset --bb_channel=depolarizing --p=0.10 --bp_iterations=12 --bp_residual_hidden_dim=64 --bp_parameter_sharing=orbit --epochs=300 --batch_size=64 --batches=512 --eval_batches=256 --eval_every=5 --final_eval_batches=2048 --lr=0.0003 --amp_dtype=none --seed=14410 --save_model"
+    "$BB_NEURAL_COMMON_ARGS --code=bb72 --p=0.08 --seed=27208"
+    "$BB_NEURAL_COMMON_ARGS --code=bb72 --p=0.10 --seed=27210"
+    "$BB_NEURAL_COMMON_ARGS --code=bb144 --p=0.08 --seed=214408"
+    "$BB_NEURAL_COMMON_ARGS --code=bb144 --p=0.10 --seed=214410"
 )
 
-currdir=$PWD
-dirname="resdir_$SLURM_JOB_ID"
-mkdir -p $dirname
-cd $dirname
-export SLURM_CPU_BIND="cores"
-
-job_count=0
-
-for params in "${experiments[@]}"; do
-    echo "Starting Experiment: $params"
-
-    srun --ntasks=1 --mem=16G \
-        python "$currdir/main.py" $params > log_exp_${job_count}.txt 2>&1 &
-
-    sleep 3
-
-    job_count=$((job_count + 1))
-done
-
-wait
+run_bb_experiments "${experiments[@]}"

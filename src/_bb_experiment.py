@@ -109,9 +109,14 @@ def run_bb_experiment(args: Any) -> str:
         (
             f"capacity_{code.name}_bb_neural_bp_{channel_slug}_"
             f"it{args.bp_iterations}_h{args.bp_residual_hidden_dim}_"
-            f"share{args.bp_parameter_sharing}_lr{learning_rate:g}_"
+            f"share{args.bp_parameter_sharing}_"
+            f"rs{args.bp_residual_scale:g}_rd{args.bp_max_relaxation_delta:g}_"
+            f"ds{args.bp_deep_supervision_weight:g}_"
+            f"sw{args.bb_syndrome_loss_weight:g}_"
+            f"lw{args.bb_logical_loss_weight:g}_"
+            f"pw{args.bb_pauli_loss_weight:g}_lr{learning_rate:g}_"
             f"bs{args.batch_size}_b{args.batches}_eb{args.eval_batches}_"
-            f"ee{args.eval_every}_feb{final_eval_batches}"
+            f"ee{args.eval_every}_feb{final_eval_batches}_seed{actual_seed}"
             + ("_resume" if args.load_model else "")
         ),
     )

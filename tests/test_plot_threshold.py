@@ -173,6 +173,20 @@ def test_plotter_reuses_aggregated_threshold_csv(tmp_path):
     assert records[0].L == 11
 
 
+def test_plotter_preserves_optimization_plateau_status(tmp_path):
+    path = tmp_path / "threshold.csv"
+    path.write_text(
+        "label,p,failure,accuracy,eval_samples,num_runs,training_status\n"
+        "L=13,0.017,0.72,0.28,65536,1,optimization_plateau\n"
+    )
+
+    records = parse_csv(path)
+    _, rows = aggregate(records, "L_arch_decoder")
+
+    assert records[0].training_status == "optimization_plateau"
+    assert rows[0]["training_status"] == "optimization_plateau"
+
+
 def test_discover_inputs_finds_current_circuit_pymatching_csv(tmp_path):
     path = tmp_path / "circuit_pymatching_standard.csv"
     path.write_text("decoder,L,p,accuracy\n")
