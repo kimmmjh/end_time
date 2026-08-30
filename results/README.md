@@ -73,3 +73,47 @@ python scripts/plot_bb_results.py
 
 The generated figure is
 [`plots/bb_neural_bp_vs_vanilla_bp.png`](plots/bb_neural_bp_vs_vanilla_bp.png).
+
+## August 2026 BB campaign
+
+The ten `run_bb_0`--`run_bb_9` jobs are archived by purpose under:
+
+```text
+bb/code_capacity/
+├── depolarizing/
+│   ├── orbit/replicates/
+│   ├── ablations/{sharing,iterations,mechanism,loss_auxiliary,loss_core}/
+│   └── classical/css_separated/{bb72,bb144}/
+└── independent_xz/marginal_matched/orbit/
+```
+
+Completion must be determined from each output's `training_log.txt` and
+`history.json`, not only the top-level srun exit code. Of 32 Neural BP runs, 28
+have a fresh 131,072-shot `[Selected Best]` evaluation and four are genuinely
+partial. All eight classical `(code,p)` points completed.
+
+The complete extraction and interpretation are in
+[`analysis/bb_campaign_2026_08.md`](analysis/bb_campaign_2026_08.md). Its
+machine-readable inputs are
+[`analysis/bb_campaign_2026_08_neural.csv`](analysis/bb_campaign_2026_08_neural.csv)
+and
+[`analysis/bb_campaign_2026_08_classical.csv`](analysis/bb_campaign_2026_08_classical.csv).
+The selected-best Neural/BP4 checkpoints are also evaluated on the exact saved
+classical error banks in
+[`analysis/bb_neural_vs_classical_paired.csv`](analysis/bb_neural_vs_classical_paired.csv).
+Rebuild the summaries and plots with:
+
+```bash
+python scripts/summarize_bb_campaign.py
+```
+
+The paired same-bank CSV itself is reproduced with:
+
+```bash
+python scripts/bb_neural_vs_classical_paired.py
+```
+
+The main figures are
+[`plots/bb_campaign_2026_08_ablations.png`](plots/bb_campaign_2026_08_ablations.png)
+and
+[`plots/bb_campaign_2026_08_decoders.png`](plots/bb_campaign_2026_08_decoders.png).

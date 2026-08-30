@@ -3,7 +3,10 @@
 This repository contains translation-equivariant toric-code decoders and an
 orbit-equivariant neural belief-propagation decoder for bivariate-bicycle (BB)
 codes. The toric path supports code-capacity, phenomenological, and Stim-based
-circuit noise. The first BB implementation is deliberately code capacity only.
+circuit noise. The BB path supports code capacity, which decodes four-state
+Pauli beliefs on the code Tanner graph, and Stim-based circuit noise, which
+decodes binary beliefs on the detector error model. BB phenomenological noise
+is not implemented.
 
 ## Install
 
@@ -104,22 +107,22 @@ Reported `Accuracy` is block logical success, not qubit accuracy. Logs also
 separate syndrome-nonconverged (flagged) failures from syndrome-converged but
 logical (unflagged) failures.
 
-Ten Perlmutter jobs provide the next BB experiment suite. Jobs 0--7 are GPU
-neural-BP training jobs; jobs 8--9 are CPU-only classical-decoder benchmarks.
-The completed orbit/depolarizing seed-A runs remain the full-model reference.
+The current ten Perlmutter jobs run the corrected **circuit-level** BB neural-BP
+campaign described below. Every job requests four GPUs and launches four
+independent experiments concurrently.
 
 | Script | Four concurrent experiments |
 | --- | --- |
-| `run_bb_0.slurm` | orbit model, seed B, BB72/BB144 at p=0.08/0.10 |
-| `run_bb_1.slurm` | orbit model, seed C, the same four points |
-| `run_bb_2.slurm` | global h64 and parameter-matched global h393, both codes at p=0.08 |
-| `run_bb_3.slurm` | 6 and 24 BP iterations, both codes at p=0.08 (T=12 is archived) |
-| `run_bb_4.slurm` | orbit model, marginal-matched independent X/Z at p=0.08/0.10 |
-| `run_bb_5.slurm` | residual-only and learned-relaxation-only, both codes at p=0.08 |
-| `run_bb_6.slurm` | no Pauli auxiliary and no deep supervision, both codes at p=0.08 |
-| `run_bb_7.slurm` | no logical surrogate and no syndrome loss, both codes at p=0.08 |
-| `run_bb_8.slurm` | BB72 CSS-split BP+OSD-0/CS-7/LSD-0, p=0.04/0.06/0.08/0.10 |
-| `run_bb_9.slurm` | BB144 versions of the same three classical baselines |
+| `run_bb_0.slurm` | BB72 threshold sweep, p=0.001/0.002/0.003/0.004 |
+| `run_bb_1.slurm` | BB72 threshold sweep, p=0.005/0.006/0.008/0.010 |
+| `run_bb_2.slurm` | BB144 on the same low-p grid as job 0 |
+| `run_bb_3.slurm` | BB144 on the same high-p grid as job 1 |
+| `run_bb_4.slurm` | two extra training seeds per code at p=0.004 |
+| `run_bb_5.slurm` | global-sharing controls at p=0.003/0.005, both codes |
+| `run_bb_6.slurm` | T=6 and T=24 controls at p=0.004, both codes |
+| `run_bb_7.slurm` | residual-only and learned-relaxation-only controls |
+| `run_bb_8.slurm` | no mechanism auxiliary BCE and no deep supervision |
+| `run_bb_9.slurm` | idle-noise and doubled-readout-noise controls at p=0.003 |
 
 Submit selected jobs, or submit the full suite with:
 
@@ -127,61 +130,44 @@ Submit selected jobs, or submit the full suite with:
 for i in {0..9}; do sbatch "run_bb_${i}.slurm"; done
 ```
 
-For the independent-X/Z runs, `p` labels the reference depolarizing point and
-the actual component rates are `p_x=p_z=2p/3`. This preserves the X and Z
-component marginals while removing their on-qubit correlation. It does not
-preserve the total non-identity rate: that rate is
-`1-(1-2p/3)^2`, so independent-X/Z results must be plotted against their
-component rates or labeled as matched-marginal points. `global` sharing is
-still equivariant; comparing it with `orbit` tests the granularity of
-equivariant parameter sharing, not equivariance versus a non-equivariant
-network. `global h393` has 14,210 trainable parameters versus 14,196 for
-`orbit h64`, removing nearly all of the parameter-count confound. The current
-per-edge implementation is intentionally omitted because its hundreds of
-separately called MLPs make a 300-epoch job impractical.
+The first phase is 100 epochs with 128 online-data batches per epoch and can be
+continued from `model.pt`. BB72 uses six noisy cycles and batch size 16; BB144
+uses twelve noisy cycles and batch size 8. The default model is T=12,
+hidden-width 32, orbit-embedding width 8, and normalized min-sum scale 0.625.
+Validation runs every ten epochs. It uses posterior-seeded OSD-0 for checkpoint
+selection because OSD-CS7 is too expensive to run repeatedly on these large
+space-time graphs; up to 4,096 OSD shots are used in the final evaluation.
 
-Jobs 0--7 request four tasks and four GPUs, then launch four independent
-`srun --exclusive` steps with one GPU each. Jobs 8--9 request four CPU tasks
-because `ldpc` BP+OSD/LSD does not use CUDA. They use the presumed CPU account
-`m5328`; verify that allocation or edit the two `#SBATCH --account` lines
-before submission. All scripts use `$PSCRATCH/envs/nde` and
-`$HOME/end_time`. Results are stored under
+The threshold sweeps use `q=p` and zero idle error. Job 9 separately tests
+`idle=p` and `q=2p`. `global` sharing remains translation equivariant but has
+far fewer trainable group embeddings than `orbit`, so job 5 is a useful
+parameter-sharing control rather than a parameter-count-matched comparison.
+
+All jobs use account `m5328_g`, `$PSCRATCH/envs/nde`, and `$HOME/end_time`.
+Each allocation launches four `srun --exclusive` steps with one GPU and 16 CPU
+cores each. Results are stored under
 `$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ...,
 `log_exp_3.txt`, per-experiment exit codes, and a completed/failed marker.
-For neural jobs, the timestamped model directories share
-`outputs/YYYY-MM-DD/`; classical jobs instead write their CSV/NPZ files
-directly into the result directory. There is no `exp_<index>` layer in the
-Slurm layout. The shared launch logic is in
+The timestamped model directories are under each result directory's
+`outputs/YYYY-MM-DD/`. There is no `exp_<index>` layer in the Slurm layout.
+The shared launch logic and canonical settings are in
 `scripts/run_bb_slurm_batch.sh`.
-
-The classical jobs require exactly `ldpc==2.4.1` and preflight that version
-before creating a result directory. At each `(code,p)` point all three methods
-decode one shared 131,072-shot bank using binary component prior `2p/3`,
-minimum-sum scale 0.625, parallel scheduling, and `n` BP iterations. These are
-CSS-separated, correlation-unaware baselines: their X and Z sectors are
-decoded separately, so they discard the Y-induced correlation retained by
-joint BP4. CSV files contain exact block logical error, Wilson intervals,
-flagged/unflagged failures, and latency. NPZ files preserve the sampled errors
-and per-shot outcomes. Those classical methods are paired with each other;
-they are not paired with the archived neural results unless a neural
-checkpoint is evaluated later on the saved NPZ test bank.
 
 The completed BB72 and BB144 depolarizing sweeps are summarized in
 [`results/analysis/bb_neural_bp_depolarizing_orbit.md`](results/analysis/bb_neural_bp_depolarizing_orbit.md),
 with a machine-readable CSV and a Neural BP versus vanilla BP4 comparison
 plot in `results/analysis/` and `results/plots/`.
 
-Before launching the training suite, run a one-epoch timing/sanity check on
-the heaviest unrolled configuration:
+Before submitting all ten jobs, time one BB144 T=24 circuit batch on a GPU:
 
 ```bash
 python main.py --code=bb144 --architecture=bb_neural_bp \
-  --noise_model=capacity --rounds=1 --measurement_error_rate=0 \
-  --loss_fn=bb_coset --bb_channel=depolarizing --p=0.08 \
-  --bp_iterations=24 --bp_residual_hidden_dim=64 \
-  --bp_parameter_sharing=orbit --epochs=1 --batches=2 --batch_size=8 \
+  --noise_model=circuit --rounds=12 --p=0.004 --measurement_error_rate=0.004 \
+  --loss_fn=bb_coset --bp_iterations=24 --bp_residual_hidden_dim=32 \
+  --bp_orbit_embedding_dim=8 --bp_parameter_sharing=orbit \
+  --epochs=1 --batches=2 --batch_size=8 \
   --eval_batches=1 --eval_every=1 --final_eval_batches=1 \
-  --lr=0.0003 --amp_dtype=none --seed=14408
+  --bb_osd_eval_shots=0 --lr=0.0003 --amp_dtype=none --seed=14401004
 ```
 
 Each neural model starts exactly as vanilla BP4 because its final residual
@@ -189,6 +175,133 @@ layer is zero initialized and relaxation starts at one. `model.pt` is the
 latest resumable checkpoint; `best_model.pt` is selected by held-out block
 logical accuracy. Generator RNG state, optimizer state, and plot history are
 saved, and an incompatible BB graph/model checkpoint is rejected.
+
+## BB circuit-level neural BP
+
+The code-capacity path above assumes one perfect syndrome.  `--noise_model=circuit`
+instead decodes a full Stim memory experiment, and that changes the decoder
+rather than merely adding a time axis:
+
+| | `--noise_model=capacity` | `--noise_model=circuit` |
+| --- | --- | --- |
+| Variable node | data qubit, four-state `I,X,Y,Z` | DEM fault mechanism, binary |
+| Check node | stabilizer row of `Hx`/`Hz` | detector |
+| Graph | code Tanner graph | Stim detector error model |
+| Base algorithm | exact sum-product BP4 | normalised min-sum BP2 |
+
+The quaternary structure disappears because Stim has already factorised each
+circuit fault into independent mechanisms, so `EquivariantNeuralBP4` is not
+reused; the circuit decoder is `models/_equivariant_neural_bp2.py`.
+
+```bash
+python main.py --code=bb144 --architecture=bb_neural_bp --noise_model=circuit \
+  --p=0.001 --measurement_error_rate=0.001 --rounds=12 \
+  --bp_iterations=12 --bp_residual_hidden_dim=32 --bp_orbit_embedding_dim=8 \
+  --bp_parameter_sharing=orbit --loss_fn=bb_coset \
+  --epochs=300 --batch_size=8 --batches=512 --eval_batches=32 --eval_every=5 \
+  --final_eval_batches=128 --bb_osd_eval_shots=1024 \
+  --lr=0.0003 --amp_dtype=none --save_model
+```
+
+`--p` is the gate error rate; `--measurement_error_rate` defaults to it, and
+`--rounds` is the number of **noisy** extraction cycles and defaults to the code
+distance.  The circuit adds a perfect reference cycle before them and a
+separate perfect closing cycle after them, so a run with `--rounds=R` returns
+`R+1` detector frames and `(R+1)*n` detector bits for these BB constructions.
+The closing frame is required to expose faults late in the last noisy cycle.
+`--bb_idle_error_rate` additionally depolarizes data qubits that sit out one of
+the seven CNOT layers; it defaults to zero to match the simplified toric noise
+model.
+
+This corrected convention is circuit schema version 2.  Checkpoints and
+reported points made by the earlier implementation, where `R` contained only
+`R-1` noisy cycles, are intentionally rejected rather than silently mixed with
+new experiments.
+
+### Syndrome extraction circuit
+
+A BB check has weight six and is not nearest-neighbour in any planar embedding,
+so `src/stim_utils.py` cannot express it and `src/bb_stim_utils.py` builds its
+own cycle.  Layers are assigned per Tanner-edge *orbit*, which makes the
+schedule automatically invariant under the code's cyclic translation group.
+A schedule is legal when each ancilla and each data qubit sees six distinct
+layers, and when, for every `k` and `j`,
+
+```text
+[t(X,L,a_k) < t(Z,L,b_j)] == [t(X,R,b_j) < t(Z,R,a_k)]
+```
+
+The second condition is what keeps detectors deterministic: an X ancilla acts
+on a data qubit while a Z ancilla reads it, so an odd number of shared qubits
+with X-before-Z leaves the two ancillas entangled.  Exhaustive search shows
+depth six admits no legal schedule and depth seven admits 8,496, matching the
+depth-7 circuit of Bravyi et al.  `search_schedules` reproduces that count and
+`assert_detectors_deterministic` checks the result against Stim itself.
+
+### Equivariance and orbits
+
+A mechanism's orbit is the canonical form of its detector signature under a
+simultaneous space and time translation, with distance to the first and last
+frame retained so that boundary mechanisms are not tied to bulk ones.  Only the
+detector signature enters the key: belief propagation reads the check matrix
+alone, so mechanisms that share a detector pattern but differ in observables
+may be tied exactly.
+
+Both codes and every noisy-round count from three upwards give **1,410
+orbits** with the default boundary width.  The
+orbit structure describes one extraction cycle, so it does not grow with the
+lattice or with the experiment length, and the decoder's parameter count stays
+fixed as the code and the circuit grow.  Saturation requires
+`rounds + 1 >= 2*boundary_width + 2` detector frames; below that every mechanism
+touches a time boundary.
+
+Parameters are shared through one residual MLP conditioned on a learned orbit
+embedding, rather than one MLP per orbit.  That decouples how finely orbits are
+resolved from how many parameters exist -- BB72 at 12 rounds has 1,410 orbits
+and 13,299 trainable parameters -- and makes `--bp_parameter_sharing=edge` a
+change of index tensor rather than hundreds of separate networks, so unlike the
+code-capacity path it is actually runnable.
+
+### Belief propagation is not the baseline here
+
+Plain BP is a weak decoder on a quantum LDPC detector error model, so a raw
+Neural-BP-versus-BP comparison is not enough.  Use `--bb_osd_eval_shots` to
+also report Neural-BP+OSD against BP+OSD on identical shots.  The current `ldpc`
+interface performs one BP update after receiving each posterior as a new
+reliability prior, so this is precisely a paired *posterior-seeded BP(1)+OSD*
+comparison, not an OSD-only claim.  When this evaluation is enabled,
+`best_model.pt` is selected by paired OSD gain (then Neural+OSD accuracy as a
+tie-break); without it, selection uses paired Neural-BP gain.
+
+Reported block success uses strict recovery semantics.  If `c` is the predicted
+mechanism correction, `H_dem c` must equal the measured detector vector **and**
+`O_dem c` must equal the sampled logical-observable vector.  A prediction whose
+logical bits happen to match while leaving an unsatisfied detector is a flagged
+failure, not a successful decode.
+
+Because the residual head is zero-initialised and the relaxation starts at one,
+an untrained model reproduces normalised min-sum bitwise, and the paired gain
+starts at exactly zero.
+
+`model.pt` is the latest resumable optimisation state.  Passing it back via
+`--load_model` restores the model, AdamW moments, epoch numbering, history and
+previous best state; `--epochs` then means additional epochs and starts a fresh
+OneCycle phase at the requested learning rate.  Stim does not expose a compiled
+sampler RNG state, so the base seed and resumed epoch deterministically derive a
+new, non-replayed sampler stream rather than pretending to provide bit-for-bit
+sampler continuation.
+
+### Validation status
+
+`tests/test_bb_circuit_level.py` covers the schedule conditions, Stim's
+deterministic stabilizer-flow check, exact noisy-round/closing-frame count, DEM
+label algebra, graph compatibility, orbit invariance, finite zero-LLR
+gradients, strict correction scoring, checkpoint resume, the initialised
+neural/vanilla identity, and OSD scoring/selection.  The circuit distance is
+**not** yet certified: the DEM rejects an undetectable single-fault logical
+mechanism, but that is not a proof that the full fault distance equals the code
+distance.  Threshold or distance-scaling claims need an exact or independently
+validated circuit-distance analysis first.
 
 ## Toric-code input and labels
 

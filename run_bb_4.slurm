@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bb_independent_xz
+#SBATCH --job-name=bbc_replicates
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -19,15 +19,13 @@ cd "$ROOT" || exit 1
 source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
 source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
 
-# Match the depolarizing X/Z component marginals with px=pz=2p/3 while
-# removing their same-qubit correlation. Here --p is a reference label.
-INDEPENDENT_ARGS="$BB_NEURAL_TRAINING_CORE_ARGS $BB_NEURAL_DEFAULT_MODEL_ARGS --bb_channel=independent_xz"
-
+# Two additional seeds at the central p=0.004 point. Combined with the seed-A
+# points in run_bb_0/run_bb_2, this gives three training replicates per code.
 experiments=(
-    "$INDEPENDENT_ARGS --code=bb72 --p=0.08 --x_error_rate=0.0533333333 --z_error_rate=0.0533333333 --seed=7208"
-    "$INDEPENDENT_ARGS --code=bb72 --p=0.10 --x_error_rate=0.0666666667 --z_error_rate=0.0666666667 --seed=7210"
-    "$INDEPENDENT_ARGS --code=bb144 --p=0.08 --x_error_rate=0.0533333333 --z_error_rate=0.0533333333 --seed=14408"
-    "$INDEPENDENT_ARGS --code=bb144 --p=0.10 --x_error_rate=0.0666666667 --z_error_rate=0.0666666667 --seed=14410"
+    "$BB_CIRCUIT_BB72_ARGS --p=0.004 --measurement_error_rate=0.004 --bb_idle_error_rate=0 --seed=7202004"
+    "$BB_CIRCUIT_BB72_ARGS --p=0.004 --measurement_error_rate=0.004 --bb_idle_error_rate=0 --seed=7203004"
+    "$BB_CIRCUIT_BB144_ARGS --p=0.004 --measurement_error_rate=0.004 --bb_idle_error_rate=0 --seed=14402004"
+    "$BB_CIRCUIT_BB144_ARGS --p=0.004 --measurement_error_rate=0.004 --bb_idle_error_rate=0 --seed=14403004"
 )
 
 run_bb_experiments "${experiments[@]}"

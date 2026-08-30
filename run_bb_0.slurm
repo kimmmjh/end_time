@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bb_orbit_seed_b
+#SBATCH --job-name=bbc72_low
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -19,13 +19,13 @@ cd "$ROOT" || exit 1
 source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
 source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
 
-# Orbit model replicate B. Together with the archived seed-A results and
-# run_bb_1, this gives three training seeds at both informative p values.
+# Corrected circuit schema v2: six noisy cycles plus one perfect closing frame.
+# Low-p BB72 threshold sweep; all four GPUs train independently.
 experiments=(
-    "$BB_NEURAL_COMMON_ARGS --code=bb72 --p=0.08 --seed=17208"
-    "$BB_NEURAL_COMMON_ARGS --code=bb72 --p=0.10 --seed=17210"
-    "$BB_NEURAL_COMMON_ARGS --code=bb144 --p=0.08 --seed=114408"
-    "$BB_NEURAL_COMMON_ARGS --code=bb144 --p=0.10 --seed=114410"
+    "$BB_CIRCUIT_BB72_ARGS --p=0.001 --measurement_error_rate=0.001 --bb_idle_error_rate=0 --seed=7201001"
+    "$BB_CIRCUIT_BB72_ARGS --p=0.002 --measurement_error_rate=0.002 --bb_idle_error_rate=0 --seed=7201002"
+    "$BB_CIRCUIT_BB72_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0 --seed=7201003"
+    "$BB_CIRCUIT_BB72_ARGS --p=0.004 --measurement_error_rate=0.004 --bb_idle_error_rate=0 --seed=7201004"
 )
 
 run_bb_experiments "${experiments[@]}"

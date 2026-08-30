@@ -20,8 +20,12 @@ from models._the_end_3d import TransformedEND3D
 from models.pooling_layers import TranslationalEquivariantPooling2D
 from src import Trainer
 from src._bb_experiment import run_bb_experiment
+from src._bb_circuit_experiment import run_bb_circuit_experiment
 from src.stim_utils import generate_toric_memory_circuit
 from panqec.codes import Toric2DCode
+
+
+_BB_DISTANCE = {"bb72": 6, "bb144": 12}
 
 
 def main() -> None:
@@ -63,7 +67,10 @@ def main() -> None:
         "--rounds",
         type=int,
         default=None,
-        help="Syndrome rounds (defaults to L).",
+        help=(
+            "Syndrome rounds. For BB circuit noise this is the number of noisy "
+            "extraction cycles; a separate perfect closing frame is added."
+        ),
     )
     parser.add_argument(
         "--architecture",
@@ -84,15 +91,19 @@ def main() -> None:
             "ConvGRU to predict its residual logical class; "
             "convgru_weighted_mwpm instead predicts shot-dependent sparse DEM "
             "edge probabilities before MWPM."
-            " bb_neural_bp is a code-capacity BP4 decoder on a BB Tanner "
-            "graph with cyclic edge-orbit parameter sharing."
+            " bb_neural_bp uses BP4 on the BB code Tanner graph for capacity "
+            "noise and binary BP2 on Stim's detector-error-model graph for "
+            "circuit noise, with cyclic edge-orbit parameter sharing."
         ),
     )
     parser.add_argument(
         "--bp_iterations",
         type=int,
         default=12,
-        help="Number of unrolled BP4 iterations for --architecture=bb_neural_bp.",
+        help=(
+            "Unrolled BP iterations for --architecture=bb_neural_bp: BP4 for "
+            "code capacity and binary BP2 for circuit noise."
+        ),
     )
     parser.add_argument(
         "--bp_residual_hidden_dim",
@@ -254,8 +265,8 @@ def main() -> None:
         default=None,
         choices=["ce", "dynamic", "edge_bce", "bb_coset"],
         help=(
-            "Loss function type. Defaults to bb_coset for bb_neural_bp and "
-            "ce otherwise."
+            "Loss function type. Defaults to the degeneracy-aware bb_coset "
+            "objective for bb_neural_bp and ce otherwise."
         ),
     )
     parser.add_argument(
@@ -319,17 +330,90 @@ def main() -> None:
         choices=["bf16", "fp16", "none"],
         help="Mixed precision dtype.",
     )
+    parser.add_argument(
+        "--bp_orbit_embedding_dim",
+        type=int,
+        default=8,
+        help=(
+            "Width of the learned per-orbit embedding used by circuit-level "
+            "BB neural BP. Zero ties every Tanner edge to one shared update."
+        ),
+    )
+    parser.add_argument(
+        "--bp_normalisation",
+        type=float,
+        default=0.625,
+        help=(
+            "Min-sum scaling factor for circuit-level BB neural BP. The "
+            "default matches the classical ldpc BP+OSD baselines."
+        ),
+    )
+    parser.add_argument(
+        "--bp_no_gradient_checkpoint",
+        action="store_true",
+        help=(
+            "Keep every unrolled BP iteration's activations. Circuit-level "
+            "graphs have hundreds of thousands of edges, so this usually "
+            "exhausts GPU memory; checkpointing is on by default."
+        ),
+    )
+    parser.add_argument(
+        "--bb_idle_error_rate",
+        type=float,
+        default=0.0,
+        help=(
+            "Depolarizing rate for data qubits sitting out a CNOT layer of the "
+            "seven-layer BB extraction cycle. Zero matches the toric circuits."
+        ),
+    )
+    parser.add_argument(
+        "--bb_osd_eval_shots",
+        type=int,
+        default=0,
+        help=(
+            "Shots per evaluation additionally decoded through ordered "
+            "statistics post-processing, reported as Neural-BP+OSD versus "
+            "BP+OSD on the same shots. Plain BP is a weak quantum LDPC "
+            "decoder, so this is the comparison the literature uses. When "
+            "enabled, best-checkpoint selection uses the paired OSD gain."
+        ),
+    )
+    parser.add_argument(
+        "--bb_osd_method",
+        type=str,
+        default="OSD_CS",
+        choices=["OSD_0", "OSD_CS"],
+        help="Ordered-statistics variant used by --bb_osd_eval_shots.",
+    )
+    parser.add_argument(
+        "--bb_osd_order",
+        type=int,
+        default=7,
+        help="Combination-sweep depth for --bb_osd_method=OSD_CS.",
+    )
 
     args = parser.parse_args()
     bb_architecture = args.architecture == "bb_neural_bp"
+    if bb_architecture and args.code not in {"bb72", "bb144"}:
+        parser.error("--architecture=bb_neural_bp requires --code=bb72 or bb144.")
+    bb_circuit = bb_architecture and args.noise_model == "circuit"
     if args.measurement_error_rate is None:
-        args.measurement_error_rate = 0.0 if bb_architecture else 0.01
+        if bb_circuit:
+            # A circuit-level memory experiment has noisy checks by
+            # construction, so mirror the toric convention of q = p.
+            args.measurement_error_rate = args.p
+        else:
+            args.measurement_error_rate = 0.0 if bb_architecture else 0.01
     args.loss_fn = args.loss_fn or ("bb_coset" if bb_architecture else "ce")
-    rounds = (
-        (1 if args.rounds is None else args.rounds)
-        if bb_architecture
-        else (args.L if args.rounds is None else args.rounds)
-    )
+    if bb_circuit:
+        # Rounds default to the code distance, the usual memory-experiment
+        # choice, rather than to the toric lattice size.
+        default_rounds = _BB_DISTANCE[args.code]
+        rounds = default_rounds if args.rounds is None else args.rounds
+    elif bb_architecture:
+        rounds = 1 if args.rounds is None else args.rounds
+    else:
+        rounds = args.L if args.rounds is None else args.rounds
     if rounds < 1:
         parser.error("--rounds must be positive.")
     if not 0.0 <= args.p <= 1.0:
@@ -402,13 +486,62 @@ def main() -> None:
         parser.error("BB loss weights and --bb_weight_decay must be non-negative.")
 
     if bb_architecture:
-        if args.code not in {"bb72", "bb144"}:
-            parser.error("--architecture=bb_neural_bp requires --code=bb72 or bb144.")
-        if args.noise_model != "capacity":
+        if args.noise_model == "phenomenological":
             parser.error(
-                "The initial BB neural BP implementation requires "
-                "--noise_model=capacity."
+                "BB neural BP supports --noise_model=capacity (four-state BP4 "
+                "on the code Tanner graph) or --noise_model=circuit (binary BP "
+                "on the Stim detector error model). Phenomenological BB noise "
+                "is not implemented."
             )
+        if args.noise_model == "circuit":
+            if args.loss_fn != "bb_coset":
+                parser.error(
+                    "--architecture=bb_neural_bp requires --loss_fn=bb_coset."
+                )
+            if args.matching_correlations:
+                parser.error("--matching_correlations does not apply to neural BP.")
+            if args.bp_orbit_embedding_dim < 0:
+                parser.error("--bp_orbit_embedding_dim must be non-negative.")
+            if not 0.0 < args.bp_normalisation <= 1.0:
+                parser.error("--bp_normalisation must be in (0, 1].")
+            if not 0.0 <= args.bb_idle_error_rate <= 1.0:
+                parser.error("--bb_idle_error_rate must be in [0, 1].")
+            if args.p > 0.75:
+                parser.error(
+                    "BB circuit --p must be at most 0.75 because it parameterizes "
+                    "one-qubit depolarizing channels after Hadamards."
+                )
+            if args.bb_idle_error_rate > 0.75:
+                parser.error(
+                    "--bb_idle_error_rate must be at most 0.75 for DEPOLARIZE1."
+                )
+            if (
+                args.p == 0.0
+                and args.measurement_error_rate == 0.0
+                and args.bb_idle_error_rate == 0.0
+            ):
+                parser.error(
+                    "BB circuit training needs at least one non-zero gate, "
+                    "measurement, or idle error rate; the all-zero circuit has "
+                    "no DEM variables to learn."
+                )
+            if args.bb_osd_eval_shots < 0:
+                parser.error("--bb_osd_eval_shots must be non-negative.")
+            if args.bb_osd_order < 0:
+                parser.error("--bb_osd_order must be non-negative.")
+            if args.amp_dtype != "none":
+                parser.error(
+                    "BB circuit neural BP currently requires --amp_dtype=none; "
+                    "mixed precision is not silently applied to sparse parity loss."
+                )
+            if args.bb_channel != "depolarizing":
+                parser.error(
+                    "--bb_channel selects a code-capacity Pauli channel and "
+                    "does not apply to circuit-level noise."
+                )
+            args.rounds = rounds
+            run_bb_circuit_experiment(args)
+            return
         if rounds != 1:
             parser.error(
                 "BB code-capacity decoding has one perfect syndrome: --rounds=1."
