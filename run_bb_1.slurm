@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc72_high
+#SBATCH --job-name=bbc_raw72_high
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -19,12 +19,15 @@ cd "$ROOT" || exit 1
 source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
 source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
 
+# OSD is fully disabled. Evaluation compares raw Neural BP2 with raw
+# vanilla BP2, and checkpoints are selected by raw paired gain.
+
 # High-p BB72 sweep. Together with run_bb_0 this spans p=0.001--0.010.
 experiments=(
-    "$BB_CIRCUIT_BB72_ARGS --p=0.005 --measurement_error_rate=0.005 --bb_idle_error_rate=0 --seed=7201005"
-    "$BB_CIRCUIT_BB72_ARGS --p=0.006 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=7201006"
-    "$BB_CIRCUIT_BB72_ARGS --p=0.008 --measurement_error_rate=0.008 --bb_idle_error_rate=0 --seed=7201008"
-    "$BB_CIRCUIT_BB72_ARGS --p=0.010 --measurement_error_rate=0.010 --bb_idle_error_rate=0 --seed=7201010"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.005 --measurement_error_rate=0.005 --bb_idle_error_rate=0 --seed=7201005"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.006 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=7201006"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.008 --measurement_error_rate=0.008 --bb_idle_error_rate=0 --seed=7201008"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.010 --measurement_error_rate=0.010 --bb_idle_error_rate=0 --seed=7201010"
 )
 
 run_bb_experiments "${experiments[@]}"

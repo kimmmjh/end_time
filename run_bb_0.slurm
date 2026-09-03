@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc72_low
+#SBATCH --job-name=bbc_raw72_low
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -19,13 +19,16 @@ cd "$ROOT" || exit 1
 source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
 source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
 
+# OSD is fully disabled. Evaluation compares raw Neural BP2 with raw
+# vanilla BP2, and checkpoints are selected by raw paired gain.
+
 # Corrected circuit schema v2: six noisy cycles plus one perfect closing frame.
 # Low-p BB72 threshold sweep; all four GPUs train independently.
 experiments=(
-    "$BB_CIRCUIT_BB72_ARGS --p=0.001 --measurement_error_rate=0.001 --bb_idle_error_rate=0 --seed=7201001"
-    "$BB_CIRCUIT_BB72_ARGS --p=0.002 --measurement_error_rate=0.002 --bb_idle_error_rate=0 --seed=7201002"
-    "$BB_CIRCUIT_BB72_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0 --seed=7201003"
-    "$BB_CIRCUIT_BB72_ARGS --p=0.004 --measurement_error_rate=0.004 --bb_idle_error_rate=0 --seed=7201004"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.001 --measurement_error_rate=0.001 --bb_idle_error_rate=0 --seed=7201001"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.002 --measurement_error_rate=0.002 --bb_idle_error_rate=0 --seed=7201002"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0 --seed=7201003"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.004 --measurement_error_rate=0.004 --bb_idle_error_rate=0 --seed=7201004"
 )
 
 run_bb_experiments "${experiments[@]}"

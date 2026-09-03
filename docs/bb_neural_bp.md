@@ -255,3 +255,247 @@ BB144 output: [batch, 144, 4]
 마지막 차원의 순서는 `I, X, Y, Z`이다. 각 qubit에서 `argmax`를 취한
 `[batch, n]` Pauli 배열이 hard correction이 된다. Residual은 작은 MLP의
 중간 출력이고, 전체 decoder의 최종 출력은 qubit별 Pauli posterior이다.
+
+---
+
+# Circuit-level BB Neural BP2
+
+위 설명은 code-capacity BP4이고, circuit-level decoder는 Stim의 detector
+error model(DEM) 위에서 **binary BP2**를 수행한다.
+
+```text
+여러 round의 noisy Stim circuit
+    -> DEM: fault probability + detector/observable signature
+    -> detector--fault-mechanism Tanner graph
+    -> normalized min-sum BP2 + neural residual
+    -> 각 fault mechanism의 posterior LLR
+```
+
+- detector 하나가 check node가 된다.
+- DEM fault mechanism 하나가 binary variable node가 된다. 같은 detector와
+  observable signature를 가진 항들은 graph를 만들 때 합쳐질 수 있다.
+- 해당 mechanism이 detector를 뒤집으면 두 node 사이에 edge를 만든다.
+- measurement round와 fault propagation은 이미 DEM 안에 들어 있다.
+- `T=12`는 measurement round 수가 아니라 이 고정 graph에서 반복하는 BP
+  iteration 수다.
+
+최종 출력 shape은 `[batch, num_mechanisms]`이다. 원소는 각 mechanism이
+발생하지 않았다는 쪽의 posterior log-likelihood ratio(LLR)이며, 양수일수록
+그 mechanism이 발생하지 않았을 가능성이 높다.
+
+## Code-level과 달라진 점
+
+Circuit-level 모델은 code-level Tanner graph를 DEM graph로 단순 교체한
+것만은 아니다. 추론하는 variable과 message의 의미도 바뀐다.
+
+| | Code-level BP4 | Circuit-level BP2 |
+|---|---|---|
+| variable node | physical data qubit | DEM fault mechanism |
+| check node | stabilizer | detector |
+| graph | `Hx`, `Hz` | Stim DEM에서 만든 detector--mechanism graph |
+| variable 상태 | `I, X, Y, Z` | 발생하지 않음/발생함 |
+| BP message | 4-state log probability | scalar binary LLR |
+| baseline update | sum-product BP4 | normalized min-sum BP2 |
+| neural output | C-to-V residual 4개 | C-to-V scalar residual 1개 |
+| 최종 posterior | `[B, n, 4]` | `[B, num_mechanisms]` |
+| 시간 정보 | 없음 | 모든 measurement round가 DEM graph에 포함 |
+
+Code-level에서는 `(check type, spatial edge orbit)`마다 별도 residual MLP를
+사용한다. Circuit-level DEM은 훨씬 크고 irregular하므로, MLP 본체 하나를
+모든 edge가 공유하고 space-time orbit embedding과 orbit별 relaxation으로
+edge의 역할을 구분한다. 기본값은 `sharing=orbit`이며 `global`이 아니다.
+
+## Physical error와 DEM fault mechanism
+
+Circuit noise instruction 하나는 gate, reset, measurement 또는 idle 위치에서
+Pauli fault를 발생시킬 수 있다. Stim은 그 fault가 회로를 따라 전파되었을 때
+뒤집는 detector와 logical observable을 계산해 다음과 같은 DEM mechanism으로
+표현한다.
+
+```text
+probability p_j
+    + detector signature {D2, D7, ...}
+    + observable signature {L0, ...}
+```
+
+모델은 회로 전체에 fault가 하나라도 있는지를 하나의 binary 값으로 분류하지
+않는다. DEM에 있는 각 mechanism `j`에 대해 posterior LLR `ell_j`를 낸다.
+
+```text
+ell_j > 0: mechanism j가 발생하지 않았을 가능성이 큼
+ell_j < 0: mechanism j가 발생했을 가능성이 큼
+```
+
+DEM mechanism은 microscopic physical fault와 항상 1:1은 아니다. 서로 다른
+gate fault라도 detector와 observable signature가 같으면 graph를 만들 때 같은
+effective mechanism으로 합칠 수 있다. 반대로 한 mechanism은 여러 detector를
+동시에 뒤집을 수 있다.
+
+따라서 decoder의 목표는 실제 microscopic fault history를 정확히 복원하는
+것이 아니다. 같은 syndrome을 설명하는 fault set은 여러 개일 수 있으므로,
+
+```text
+관측 detector parity를 만족하고
+    +
+실제 error와 합친 뒤 logical error를 남기지 않는
+correction-equivalent mechanism set을 찾는 것
+```
+
+이 목표다. 학습 때 Stim이 알려주는 sampled mechanism label은 보조
+`mechanism BCE`에만 사용한다. 주된 `detector loss`와 `logical loss`는
+degeneracy를 허용하므로, 예측 mechanism set이 실제 sampled set과 달라도
+올바른 logical correction이면 성공으로 학습할 수 있다. 평가 때는 mechanism
+label을 decoder에 제공하지 않는다.
+
+## 한 circuit-level BP iteration
+
+먼저 신경망을 넣지 않은 normalized min-sum baseline의
+detector-to-mechanism message `m_exact`를 계산한다. 그 다음 learned
+relaxation과 residual을 적용한다. 여기서 `exact`는 코드에서 neural
+correction 전의 값을 부르는 이름이며, 전체 확률추론이 exact라는 뜻은 아니다.
+
+$$
+m^{new}_{c\to v}
+=
+\lambda_g m^{exact}_{c\to v}
++(1-\lambda_g)m^{old}_{c\to v}
++R_\theta(x_{cv}, e_g).
+$$
+
+여기서 `g`는 edge sharing group이고, 기본값 `orbit`에서는 같은
+space-time orbit의 edge가 같은 embedding과 relaxation을 공유한다.
+MLP 본체 하나는 모든 orbit이 공유하고, orbit별 차이는 embedding과
+relaxation으로 준다.
+
+- `lambda_g = 1 + 0.5 tanh(a_g)`, 따라서 기본 설정에서 `0.5 < lambda_g < 1.5`
+- `R_theta = 2 tanh(MLP(...))`, 따라서 residual은 `[-2, 2]`
+- 갱신한 message는 마지막에 `[-30, 30]`으로 clip한다.
+
+그 뒤 mechanism posterior를 계산하고, 목적지 edge의 message를 제외한
+extrinsic mechanism-to-detector message를 다음 iteration으로 보낸다.
+
+## Residual MLP의 입력과 구조
+
+각 Tanner edge와 각 shot마다 다음 8개 scalar feature를 만든다.
+
+| 번호 | edge feature | 역할 |
+|---:|---|---|
+| 1 | 현재 exact C-to-V message | vanilla min-sum이 제안한 값 |
+| 2 | 현재 V-to-C message | mechanism 쪽에서 들어온 정보 |
+| 3 | 이전 C-to-V message | 직전 iteration의 상태 |
+| 4 | 해당 detector bit | 현재 shot에서 detector가 click했는지 |
+| 5 | mechanism prior LLR | noise model이 주는 사전 확률 |
+| 6 | mechanism posterior LLR | 현재까지 모인 주변 정보 |
+| 7 | 정규화한 detector degree | irregular DEM graph의 local degree |
+| 8 | V-to-C message의 절댓값 | 현재 message의 confidence 크기 |
+
+기본 `orbit_embedding_dim=8`에서는 여기에 learned orbit embedding 8개를
+붙인다.
+
+```text
+8 edge features + 8-dimensional orbit embedding
+                    -> 16
+                    -> LayerNorm
+                    -> Linear(16, 32)
+                    -> SiLU
+                    -> Linear(32, 1)
+                    -> tanh x 2
+                    -> scalar residual
+```
+
+이 MLP가 작은 이유는 이 함수를 모든 shot, 모든 Tanner edge, 모든 BP
+iteration에서 실행하기 때문이다. 계산량과 activation memory가 대략
+`batch x edge 수 x BP iteration 수`에 비례하므로 큰 network는 빠르게
+비싸진다. 또한 mechanism은 발생/비발생의 binary variable이어서 BP
+message 자체가 scalar LLR이다. 따라서 residual도 scalar 하나면 충분하다.
+
+- `LayerNorm`: syndrome bit, degree, prior LLR처럼 scale이 다른 feature를
+  안정적으로 섞는다.
+- `Linear(16, 32)`: local BP state 사이의 비선형 interaction을 표현하되
+  parameter와 memory를 작게 유지한다.
+- `SiLU`: 12번 unroll하여 미분할 때 부드러운 activation을 제공한다.
+- 마지막 `Linear(32, 1)`: 한 C-to-V LLR에 더할 scalar correction을 만든다.
+- 마지막 layer의 zero initialization: 학습 시작 시 residual이 정확히 0이고
+  `lambda=1`이므로 vanilla normalized min-sum BP와 동일하다.
+
+`8`, `8`, `32`, `SiLU`, `LayerNorm` 자체는 이론적으로 유일한 정답이 아니라
+현재의 안정성/비용 trade-off를 위한 hyperparameter다.
+
+## 이 MLP가 만족해야 하는 조건
+
+현재 설계에서 중요한 조건은 다음과 같다.
+
+1. **출력 의미**: binary C-to-V message에 더할 유한한 scalar LLR
+   correction이어야 한다. Class probability나 logical class 출력이 아니다.
+2. **Equivariance**: `sharing=orbit`일 때 absolute detector/edge ID가 아니라
+   symmetry로 대응되는 edge orbit이 같은 parameter를 써야 한다. Orbit
+   assignment, shared MLP, permutation-invariant BP aggregation이 함께 이
+   성질을 만든다. Pooling이 equivariance를 만드는 것은 아니다.
+3. **Local/graph-size-independent update**: edge 하나의 local state를 같은
+   MLP로 처리하므로 BB72, BB144 또는 다른 round 수에서도 MLP 입출력 shape은
+   같다. 다만 graph buffer와 orbit 수에 따른 embedding table은 새 graph에
+   맞춰 다시 만들며, orbit 수가 다른 checkpoint는 그대로 load할 수 없다.
+4. **안정적인 unrolling**: residual과 relaxation이 bounded이고 전체 message가
+   finite해야 한다. 현재 `tanh`, relaxation 범위, message clipping이 이를
+   담당한다.
+5. **Vanilla BP fallback**: residual이 0이고 `lambda=1`이면 정확히 baseline
+   normalized min-sum으로 돌아가야 한다. 그래야 같은 shot에서 neural BP와
+   vanilla BP를 공정하게 비교할 수 있다.
+6. **정보 누출 방지**: 입력은 현재 shot의 detector/BP state와 고정된 graph
+   metadata만 사용해야 하며, 실제 발생 mechanism label이나 logical 정답을
+   forward input으로 넣으면 안 된다.
+
+MLP 자체가 parity constraint를 직접 만족할 필요는 없다. Parity 구조는 DEM
+Tanner graph와 baseline min-sum update가 제공하고, MLP는 그 update에 bounded
+local correction만 더한다. 또한 orbit embedding만 붙인다고 자동으로
+equivariant가 되는 것은 아니며, symmetry에 맞는 orbit 분류가 전제되어야
+한다.
+
+## Circuit-level loss
+
+Residual의 정답값을 따로 주고 MSE로 학습하지 않는다. 최종 mechanism
+posterior에 다음 end-to-end loss를 적용한다.
+
+$$
+L
+=
+L_{detector}
++L_{logical}
++0.1L_{mechanism}
++0.2L_{deep}.
+$$
+
+- `detector loss`: 예측 mechanism parity가 관측 detector bit를 재현하게 한다.
+- `logical loss`: 실제 fault와 예측 correction을 합친 residual의 logical
+  observable parity가 trivial이 되게 한다.
+- `mechanism loss`: Stim이 sampling한 mechanism label에 대한 작은 보조 BCE다.
+  Degeneracy 때문에 이것을 주 loss로 사용하지 않는다.
+- `deep supervision`: 마지막을 제외한 중간 BP iteration loss의 평균이다.
+
+## Stim data와 noise model
+
+Circuit은 perfect reference cycle, 지정한 수의 noisy syndrome-extraction
+cycle, perfect closing cycle로 구성된다. 따라서 `rounds=R`이면 detector
+frame은 `R+1`개다. Stim은 회로의 모든 noise instruction과 measurement
+propagation을 분석해 DEM을 만들고, 이 repo는 그 DEM을 Tanner graph로
+변환한다.
+
+`--bb_circuit_noise_model`로 다음 profile을 선택한다.
+
+| profile | 주요 channel |
+|---|---|
+| `legacy` | reset flip `p`, H 뒤 `DEP1(p)`, CNOT 뒤 `DEP2(p)`, configurable measurement `q`, optional data idle |
+| `standard` | preparation/measurement `p`, ideal H, CNOT `DEP2(p)`, 매 physical tick의 inactive qubit에 `DEP1(p)` |
+| `si1000` | reset `2p`, H와 gate idle `p/10`, CNOT `p`, measurement `5p`, M/R tick의 resonator idle `2p` |
+
+`standard`와 `si1000`은 arXiv:2607.05897의 Table II/III channel rate를 현재
+periodic BB seven-CNOT-layer schedule에 적용한다. 논문의 open-boundary layout과
+routing 자체를 그대로 복제한 것은 아니다. SI1000의 여러 idle channel은
+서로 독립적인 Stim instruction으로 쌓이며, 표에 있는 SWAP `1.5p`는 현재
+schedule에 SWAP이 없으므로 실행되지 않는다.
+
+학습에서는 DEM sampler의 `return_errors=True`를 사용해 detector,
+observable, sampled mechanism label을 얻는다. 평가는 exact Stim circuit
+sampler로 새 detector/observable shot을 만들며 mechanism label은 사용하지
+않는다. 즉, 학습과 평가는 같은 물리 noise profile을 쓰지만 평가가 latent
+fault 정답을 decoder input으로 보는 일은 없다.

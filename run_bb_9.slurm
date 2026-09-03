@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_noise_balance
+#SBATCH --job-name=bbc_raw_noise
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -19,14 +19,17 @@ cd "$ROOT" || exit 1
 source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
 source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
 
+# OSD is fully disabled. Evaluation compares raw Neural BP2 with raw
+# vanilla BP2, and checkpoints are selected by raw paired gain.
+
 # The sweep uses q=p and no idle faults. These runs test two omitted hardware
 # effects at p=0.003: one idle depolarizing location per inactive data/layer,
 # or a readout rate twice the gate rate.
 experiments=(
-    "$BB_CIRCUIT_BB72_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0.003 --seed=7201003"
-    "$BB_CIRCUIT_BB72_ARGS --p=0.003 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=7201003"
-    "$BB_CIRCUIT_BB144_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0.003 --seed=14401003"
-    "$BB_CIRCUIT_BB144_ARGS --p=0.003 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=14401003"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0.003 --seed=7201003"
+    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.003 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=7201003"
+    "$BB_CIRCUIT_NO_OSD_BB144_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0.003 --seed=14401003"
+    "$BB_CIRCUIT_NO_OSD_BB144_ARGS --p=0.003 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=14401003"
 )
 
 run_bb_experiments "${experiments[@]}"

@@ -21,6 +21,10 @@ from models.pooling_layers import TranslationalEquivariantPooling2D
 from src import Trainer
 from src._bb_experiment import run_bb_experiment
 from src._bb_circuit_experiment import run_bb_circuit_experiment
+from src.bb_stim_utils import (
+    BB_CIRCUIT_NOISE_MODELS,
+    resolve_bb_circuit_noise_profile,
+)
 from src.stim_utils import generate_toric_memory_circuit
 from panqec.codes import Toric2DCode
 
@@ -60,7 +64,8 @@ def main() -> None:
         default=None,
         help=(
             "Measurement error rate [0,1). Defaults to 0.01 on temporal toric "
-            "runs and exactly 0 for BB code capacity."
+            "runs and exactly 0 for BB code capacity. BB standard/SI1000 "
+            "circuit profiles derive it from --p."
         ),
     )
     parser.add_argument(
@@ -358,12 +363,23 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--bb_circuit_noise_model",
+        choices=BB_CIRCUIT_NOISE_MODELS,
+        default="legacy",
+        help=(
+            "BB circuit channel profile: legacy preserves previous runs; "
+            "standard implements arXiv:2607.05897 Table II; si1000 implements "
+            "its modified SI1000 Table III."
+        ),
+    )
+    parser.add_argument(
         "--bb_idle_error_rate",
         type=float,
-        default=0.0,
+        default=None,
         help=(
-            "Depolarizing rate for data qubits sitting out a CNOT layer of the "
-            "seven-layer BB extraction cycle. Zero matches the toric circuits."
+            "Legacy-only depolarizing rate for data qubits sitting out a CNOT "
+            "layer. Defaults to zero. standard and si1000 derive full tick-aware "
+            "idle channels from --p and reject incompatible overrides."
         ),
     )
     parser.add_argument(
@@ -397,13 +413,33 @@ def main() -> None:
     if bb_architecture and args.code not in {"bb72", "bb144"}:
         parser.error("--architecture=bb_neural_bp requires --code=bb72 or bb144.")
     bb_circuit = bb_architecture and args.noise_model == "circuit"
-    if args.measurement_error_rate is None:
-        if bb_circuit:
-            # A circuit-level memory experiment has noisy checks by
-            # construction, so mirror the toric convention of q = p.
-            args.measurement_error_rate = args.p
-        else:
+    if bb_circuit:
+        try:
+            bb_noise_profile = resolve_bb_circuit_noise_profile(
+                args.bb_circuit_noise_model,
+                base_error_rate=args.p,
+                measurement_error_rate=args.measurement_error_rate,
+                idle_error_rate=args.bb_idle_error_rate,
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        args.bb_circuit_noise_model = bb_noise_profile.name
+        # Store the effective rates in the existing fields so logs, metadata,
+        # and old analysis code remain explicit. SI1000's additional 2p
+        # resonator-idle channel is recorded separately by the experiment.
+        args.measurement_error_rate = bb_noise_profile.measurement_error_rate
+        args.bb_idle_error_rate = bb_noise_profile.gate_idle_error_rate
+    else:
+        if args.bb_circuit_noise_model != "legacy":
+            parser.error(
+                "--bb_circuit_noise_model=standard/si1000 requires "
+                "--code=bb72 or bb144 --architecture=bb_neural_bp "
+                "--noise_model=circuit."
+            )
+        if args.measurement_error_rate is None:
             args.measurement_error_rate = 0.0 if bb_architecture else 0.01
+        if args.bb_idle_error_rate is None:
+            args.bb_idle_error_rate = 0.0
     args.loss_fn = args.loss_fn or ("bb_coset" if bb_architecture else "ce")
     if bb_circuit:
         # Rounds default to the code distance, the usual memory-experiment
@@ -506,15 +542,6 @@ def main() -> None:
                 parser.error("--bp_normalisation must be in (0, 1].")
             if not 0.0 <= args.bb_idle_error_rate <= 1.0:
                 parser.error("--bb_idle_error_rate must be in [0, 1].")
-            if args.p > 0.75:
-                parser.error(
-                    "BB circuit --p must be at most 0.75 because it parameterizes "
-                    "one-qubit depolarizing channels after Hadamards."
-                )
-            if args.bb_idle_error_rate > 0.75:
-                parser.error(
-                    "--bb_idle_error_rate must be at most 0.75 for DEPOLARIZE1."
-                )
             if (
                 args.p == 0.0
                 and args.measurement_error_rate == 0.0

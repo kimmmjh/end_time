@@ -24,7 +24,11 @@ from .bb_dem import (
     build_bb_dem_graph,
     detector_error_model_fingerprint,
 )
-from .bb_stim_utils import CIRCUIT_SCHEMA_VERSION, generate_bb_memory_circuit
+from .bb_stim_utils import (
+    CIRCUIT_SCHEMA_VERSION,
+    generate_bb_memory_circuit,
+    resolve_bb_circuit_noise_profile,
+)
 
 try:
     import stim
@@ -61,6 +65,8 @@ class BBCircuitGenerator:
         distance.  The generator adds one perfect closing detector frame.
     gate_error_rate, measurement_error_rate, idle_error_rate:
         Circuit noise strengths, forwarded to the circuit generator.
+    circuit_noise_model:
+        ``legacy``, paper Table-II ``standard``, or modified ``si1000``.
     batch_size:
         Shots per generated batch.
     seed:
@@ -74,8 +80,9 @@ class BBCircuitGenerator:
         *,
         rounds: int | None = None,
         gate_error_rate: float,
-        measurement_error_rate: float,
-        idle_error_rate: float = 0.0,
+        measurement_error_rate: float | None = None,
+        idle_error_rate: float | None = None,
+        circuit_noise_model: str = "legacy",
         batch_size: int = 32,
         seed: int | None = None,
         graph: BBDemGraph | None = None,
@@ -96,9 +103,16 @@ class BBCircuitGenerator:
         self.code = code
         self.rounds = resolved_rounds
         self.batch_size = int(batch_size)
-        self.gate_error_rate = float(gate_error_rate)
-        self.measurement_error_rate = float(measurement_error_rate)
-        self.idle_error_rate = float(idle_error_rate)
+        self.noise_profile = resolve_bb_circuit_noise_profile(
+            circuit_noise_model,
+            base_error_rate=gate_error_rate,
+            measurement_error_rate=measurement_error_rate,
+            idle_error_rate=idle_error_rate,
+        )
+        self.circuit_noise_model = self.noise_profile.name
+        self.gate_error_rate = self.noise_profile.base_error_rate
+        self.measurement_error_rate = self.noise_profile.measurement_error_rate
+        self.idle_error_rate = self.noise_profile.gate_idle_error_rate
 
         self.circuit = generate_bb_memory_circuit(
             code,
@@ -106,6 +120,7 @@ class BBCircuitGenerator:
             gate_error_rate=gate_error_rate,
             measurement_error_rate=measurement_error_rate,
             idle_error_rate=idle_error_rate,
+            circuit_noise_model=self.circuit_noise_model,
         )
         self.detector_error_model = self.circuit.detector_error_model(
             decompose_errors=False, allow_gauge_detectors=False
@@ -117,6 +132,7 @@ class BBCircuitGenerator:
                 gate_error_rate=gate_error_rate,
                 measurement_error_rate=measurement_error_rate,
                 idle_error_rate=idle_error_rate,
+                circuit_noise_model=self.circuit_noise_model,
                 circuit=self.circuit,
             )
         else:
@@ -155,6 +171,7 @@ class BBCircuitGenerator:
         expected = {
             "code_name": self.code.name,
             "circuit_schema_version": CIRCUIT_SCHEMA_VERSION,
+            "circuit_noise_model": self.circuit_noise_model,
             "rounds": self.rounds,
             "detector_frames": self.rounds + 1,
             "num_detectors": int(self.detector_error_model.num_detectors),

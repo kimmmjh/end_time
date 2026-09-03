@@ -227,6 +227,7 @@ class BBCircuitTrainer:
         required = (
             "architecture",
             "circuit_schema_version",
+            "circuit_noise_model",
             "code",
             "graph_fingerprint",
             "rounds",
@@ -255,11 +256,19 @@ class BBCircuitTrainer:
             "bb_osd_order",
             "seed",
         )
+        def saved_value(key: str) -> Any:
+            # Schema-v2 checkpoints created before selectable profiles are
+            # legacy circuits by construction. Preserve safe resume support;
+            # their graph fingerprint still has to match exactly.
+            if key == "circuit_noise_model":
+                return saved.get(key, "legacy")
+            return saved.get(key)
+
         mismatches = [
-            f"{key}: checkpoint={saved.get(key)!r}, "
+            f"{key}: checkpoint={saved_value(key)!r}, "
             f"current={self.experiment_config.get(key)!r}"
             for key in required
-            if saved.get(key) != self.experiment_config.get(key)
+            if saved_value(key) != self.experiment_config.get(key)
         ]
         if mismatches:
             raise ValueError(

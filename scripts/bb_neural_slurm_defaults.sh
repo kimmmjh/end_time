@@ -11,11 +11,12 @@ BB_NEURAL_DEFAULT_MODEL_ARGS="--bp_iterations=12 --bp_residual_hidden_dim=64 --b
 
 BB_NEURAL_COMMON_ARGS="$BB_NEURAL_TRAINING_ARGS $BB_NEURAL_DEFAULT_MODEL_ARGS"
 
-# Circuit-level BB campaign. Here --rounds is the number of noisy extraction
-# cycles; the corrected circuit adds one perfect closing detector frame. OSD-0
-# is used during checkpoint selection because CS-7 is too expensive to run at
-# every validation point on the large space-time DEM graphs.
-BB_CIRCUIT_TRAINING_CORE_ARGS="--architecture=bb_neural_bp --noise_model=circuit --loss_fn=bb_coset --epochs=100 --batches=128 --eval_every=10 --lr=0.0003 --amp_dtype=none --save_model --bb_osd_eval_shots=4096 --bb_osd_method=OSD_0 --bb_osd_order=0"
+# OSD-enabled circuit reference retained for reproducing the earlier campaign.
+# Here --rounds is the number of noisy extraction cycles; the corrected circuit
+# adds one perfect closing detector frame. OSD-0 is used during checkpoint
+# selection because CS-7 is too expensive to run at every validation point on
+# the large space-time DEM graphs.
+BB_CIRCUIT_TRAINING_CORE_ARGS="--architecture=bb_neural_bp --noise_model=circuit --bb_circuit_noise_model=legacy --loss_fn=bb_coset --epochs=100 --batches=128 --eval_every=10 --lr=0.0003 --amp_dtype=none --save_model --bb_osd_eval_shots=4096 --bb_osd_method=OSD_0 --bb_osd_order=0"
 
 BB_CIRCUIT_BB72_TRAINING_ARGS="$BB_CIRCUIT_TRAINING_CORE_ARGS --code=bb72 --rounds=6 --batch_size=16 --eval_batches=64 --final_eval_batches=256"
 BB_CIRCUIT_BB144_TRAINING_ARGS="$BB_CIRCUIT_TRAINING_CORE_ARGS --code=bb144 --rounds=12 --batch_size=8 --eval_batches=128 --final_eval_batches=512"
@@ -24,3 +25,16 @@ BB_CIRCUIT_DEFAULT_MODEL_ARGS="--bp_iterations=12 --bp_residual_hidden_dim=32 --
 
 BB_CIRCUIT_BB72_ARGS="$BB_CIRCUIT_BB72_TRAINING_ARGS $BB_CIRCUIT_DEFAULT_MODEL_ARGS"
 BB_CIRCUIT_BB144_ARGS="$BB_CIRCUIT_BB144_TRAINING_ARGS $BB_CIRCUIT_DEFAULT_MODEL_ARGS"
+
+# Raw circuit-level Neural-BP campaign. Setting the OSD shot budget to zero
+# prevents construction or execution of the OSD post-processor. Validation and
+# checkpoint selection use raw Neural-BP2 paired gain against raw vanilla BP2.
+# These are fresh runs: OSD-selected checkpoints use an incompatible selection
+# metric and are intentionally not resumed here.
+BB_CIRCUIT_NO_OSD_TRAINING_CORE_ARGS="--architecture=bb_neural_bp --noise_model=circuit --bb_circuit_noise_model=legacy --loss_fn=bb_coset --epochs=100 --batches=128 --eval_every=10 --lr=0.0003 --amp_dtype=none --save_model --bb_osd_eval_shots=0"
+
+BB_CIRCUIT_NO_OSD_BB72_TRAINING_ARGS="$BB_CIRCUIT_NO_OSD_TRAINING_CORE_ARGS --code=bb72 --rounds=6 --batch_size=16 --eval_batches=64 --final_eval_batches=256"
+BB_CIRCUIT_NO_OSD_BB144_TRAINING_ARGS="$BB_CIRCUIT_NO_OSD_TRAINING_CORE_ARGS --code=bb144 --rounds=12 --batch_size=8 --eval_batches=128 --final_eval_batches=512"
+
+BB_CIRCUIT_NO_OSD_BB72_ARGS="$BB_CIRCUIT_NO_OSD_BB72_TRAINING_ARGS $BB_CIRCUIT_DEFAULT_MODEL_ARGS"
+BB_CIRCUIT_NO_OSD_BB144_ARGS="$BB_CIRCUIT_NO_OSD_BB144_TRAINING_ARGS $BB_CIRCUIT_DEFAULT_MODEL_ARGS"

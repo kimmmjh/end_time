@@ -48,6 +48,7 @@ class BBDemGraph:
 
     code_name: str
     circuit_schema_version: int
+    circuit_noise_model: str
     rounds: int
     detector_frames: int
     ell: int
@@ -103,7 +104,8 @@ class BBDemGraph:
     def summary(self) -> str:
         degrees = np.bincount(self.edge_detector, minlength=self.num_detectors)
         return (
-            f"{self.code_name} noisy_rounds={self.rounds}, "
+            f"{self.code_name} noise={self.circuit_noise_model}, "
+            f"noisy_rounds={self.rounds}, "
             f"detector_frames={self.detector_frames}: "
             f"{self.num_detectors} detectors, {self.num_mechanisms} mechanisms, "
             f"{self.num_edges} edges, {self.num_orbits} orbits, "
@@ -258,8 +260,9 @@ def build_bb_dem_graph(
     *,
     rounds: int,
     gate_error_rate: float,
-    measurement_error_rate: float,
-    idle_error_rate: float = 0.0,
+    measurement_error_rate: float | None = None,
+    idle_error_rate: float | None = None,
+    circuit_noise_model: str = "legacy",
     boundary_width: int = 1,
     merge_duplicates: bool = True,
     circuit: "stim.Circuit | None" = None,
@@ -274,10 +277,15 @@ def build_bb_dem_graph(
     """
 
     _require_stim()
-    from .bb_stim_utils import CIRCUIT_SCHEMA_VERSION, generate_bb_memory_circuit
+    from .bb_stim_utils import (
+        CIRCUIT_SCHEMA_VERSION,
+        generate_bb_memory_circuit,
+        normalize_bb_circuit_noise_model,
+    )
 
     if isinstance(code, str):
         code = BBCodeSpec.from_name(code)
+    resolved_noise_model = normalize_bb_circuit_noise_model(circuit_noise_model)
     if boundary_width < 0:
         raise ValueError("boundary_width must be non-negative.")
 
@@ -288,6 +296,7 @@ def build_bb_dem_graph(
             gate_error_rate=gate_error_rate,
             measurement_error_rate=measurement_error_rate,
             idle_error_rate=idle_error_rate,
+            circuit_noise_model=resolved_noise_model,
         )
     dem = circuit.detector_error_model(
         decompose_errors=False, allow_gauge_detectors=False
@@ -393,6 +402,7 @@ def build_bb_dem_graph(
     return BBDemGraph(
         code_name=code.name,
         circuit_schema_version=CIRCUIT_SCHEMA_VERSION,
+        circuit_noise_model=resolved_noise_model,
         rounds=rounds,
         detector_frames=detector_frames,
         ell=code.ell,

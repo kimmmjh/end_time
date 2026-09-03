@@ -35,8 +35,9 @@ defines the code.  Two families of constraint make a schedule legal:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Iterable, Sequence
+import math
+from dataclasses import dataclass, replace
+from typing import Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -61,6 +62,180 @@ SCHEDULE_DEPTH = 7
 # ``rounds`` mean noisy extraction cycles and adds a separate perfect closing
 # frame; version-1 checkpoints therefore must not be mixed with this graph.
 CIRCUIT_SCHEMA_VERSION = 2
+
+# ``legacy`` preserves every circuit/noise location used by schema-v2 results
+# produced before the paper profiles were added.  ``standard`` and ``si1000``
+# implement Tables II and III of arXiv:2607.05897 on this repository's BB
+# R-H-CX-H-M extraction circuit.  The paper studies different tile-code
+# schedules; selecting a profile reproduces its channels, not its code layout.
+BB_CIRCUIT_NOISE_MODELS = ("legacy", "standard", "si1000")
+
+
+@dataclass(frozen=True)
+class BBCircuitNoiseProfile:
+    """Resolved physical error rates for one BB circuit noise model.
+
+    ``base_error_rate`` is the user-facing ``p``.  The remaining rates are
+    derived from it for the paper profiles and remain independently
+    configurable only for ``legacy``.  The two idle channels are kept
+    separate because Table III specifies that they fire independently and
+    stack during measurement/reset ticks.
+    """
+
+    name: str
+    base_error_rate: float
+    reset_error_rate: float
+    one_qubit_error_rate: float
+    two_qubit_error_rate: float
+    swap_error_rate: float
+    measurement_error_rate: float
+    gate_idle_error_rate: float
+    resonator_idle_error_rate: float
+    full_tick_idle: bool
+
+    def without_noise(self) -> "BBCircuitNoiseProfile":
+        """Keep the operation/tick layout while setting every channel to zero."""
+
+        return replace(
+            self,
+            base_error_rate=0.0,
+            reset_error_rate=0.0,
+            one_qubit_error_rate=0.0,
+            two_qubit_error_rate=0.0,
+            swap_error_rate=0.0,
+            measurement_error_rate=0.0,
+            gate_idle_error_rate=0.0,
+            resonator_idle_error_rate=0.0,
+        )
+
+
+def normalize_bb_circuit_noise_model(name: str) -> str:
+    """Return a canonical BB circuit profile name, accepting useful aliases."""
+
+    normalized = str(name).strip().lower().replace("-", "_")
+    aliases = {
+        "legacy": "legacy",
+        "custom": "legacy",
+        "standard": "standard",
+        "paper_standard": "standard",
+        "table_ii": "standard",
+        "table2": "standard",
+        "si1000": "si1000",
+        "paper_si1000": "si1000",
+        "table_iii": "si1000",
+        "table3": "si1000",
+    }
+    try:
+        return aliases[normalized]
+    except KeyError as exc:
+        raise ValueError(
+            "circuit_noise_model must be one of "
+            f"{', '.join(BB_CIRCUIT_NOISE_MODELS)}, got {name!r}."
+        ) from exc
+
+
+def _rates_match(actual: float, expected: float) -> bool:
+    return math.isclose(float(actual), float(expected), rel_tol=1e-12, abs_tol=1e-15)
+
+
+def resolve_bb_circuit_noise_profile(
+    name: str,
+    *,
+    base_error_rate: float,
+    measurement_error_rate: float | None = None,
+    idle_error_rate: float | None = None,
+) -> BBCircuitNoiseProfile:
+    """Resolve ``legacy``, Table-II standard, or Table-III SI1000 rates.
+
+    The paper models have one free physical parameter.  Optional measurement
+    and idle arguments are accepted only when they equal the rate fixed by the
+    selected table; this catches commands that look like a paper run while
+    silently overriding part of its noise model.
+    """
+
+    model = normalize_bb_circuit_noise_model(name)
+    p = float(base_error_rate)
+    _validate_probability("base_error_rate", p)
+
+    if model == "legacy":
+        q = p if measurement_error_rate is None else float(measurement_error_rate)
+        idle = 0.0 if idle_error_rate is None else float(idle_error_rate)
+        _validate_probability("measurement_error_rate", q)
+        _validate_probability("idle_error_rate", idle)
+        if p > 0.75:
+            raise ValueError(
+                "legacy base_error_rate must be at most 0.75 because it uses "
+                "DEPOLARIZE1 after Hadamards."
+            )
+        if idle > 0.75:
+            raise ValueError(
+                "legacy idle_error_rate must be at most 0.75 for DEPOLARIZE1."
+            )
+        return BBCircuitNoiseProfile(
+            name=model,
+            base_error_rate=p,
+            reset_error_rate=p,
+            one_qubit_error_rate=p,
+            two_qubit_error_rate=p,
+            swap_error_rate=p,
+            measurement_error_rate=q,
+            gate_idle_error_rate=idle,
+            resonator_idle_error_rate=0.0,
+            full_tick_idle=False,
+        )
+
+    if model == "standard":
+        q = p
+        idle = p
+        if p > 0.75:
+            raise ValueError(
+                "standard base_error_rate must be at most 0.75 because Table II "
+                "uses DEPOLARIZE1(p) for idle faults."
+            )
+        one_qubit = 0.0
+        reset = p
+        swap = p
+        resonator = 0.0
+    else:
+        # Modified SI1000 from Table III.  The measurement channel is the most
+        # restrictive probability and requires 5p <= 1.
+        if p > 0.2:
+            raise ValueError(
+                "si1000 base_error_rate must be at most 0.2 because Table III "
+                "uses X_ERROR(5p) before measurement."
+            )
+        q = 5.0 * p
+        idle = p / 10.0
+        one_qubit = p / 10.0
+        reset = 2.0 * p
+        swap = 1.5 * p
+        resonator = 2.0 * p
+
+    if measurement_error_rate is not None and not _rates_match(
+        measurement_error_rate, q
+    ):
+        raise ValueError(
+            f"{model} fixes measurement_error_rate={q:g} from p={p:g}; "
+            f"got {float(measurement_error_rate):g}. Use legacy for custom rates."
+        )
+    if idle_error_rate is not None and not _rates_match(idle_error_rate, idle):
+        raise ValueError(
+            f"{model} fixes gate idle rate={idle:g} from p={p:g}; "
+            f"got {float(idle_error_rate):g}. Use legacy for custom rates."
+        )
+
+    return BBCircuitNoiseProfile(
+        name=model,
+        base_error_rate=p,
+        reset_error_rate=reset,
+        one_qubit_error_rate=one_qubit,
+        two_qubit_error_rate=p,
+        swap_error_rate=swap,
+        measurement_error_rate=q,
+        gate_idle_error_rate=idle,
+        resonator_idle_error_rate=resonator,
+        full_tick_idle=True,
+    )
 
 
 def _require_stim() -> None:
@@ -285,48 +460,153 @@ def _check_support_from_layers(
     return hx, hz
 
 
-def _append_cycle(
+def _append_legacy_cycle(
     circuit: "stim.Circuit",
     *,
     layout: BBCircuitLayout,
     layers: Sequence[Sequence[tuple[int, int]]],
-    gate_error_rate: float,
-    measurement_error_rate: float,
-    idle_error_rate: float,
+    noise: BBCircuitNoiseProfile,
 ) -> None:
-    """Append one ancilla-based BB syndrome-extraction cycle."""
+    """Append the pre-profile circuit exactly, preserving old checkpoints."""
 
     cells = layout.cells
     x_ancillas = [layout.x_ancilla_base + cell for cell in range(cells)]
     z_ancillas = [layout.z_ancilla_base + cell for cell in range(cells)]
     ancillas = x_ancillas + z_ancillas
     data = list(range(2 * cells))
-    noisy = gate_error_rate > 0.0
+    noisy = noise.base_error_rate > 0.0
 
     circuit.append("R", ancillas)
     if noisy:
-        circuit.append("X_ERROR", ancillas, gate_error_rate)
+        circuit.append("X_ERROR", ancillas, noise.reset_error_rate)
     circuit.append("H", x_ancillas)
     if noisy:
-        circuit.append("DEPOLARIZE1", x_ancillas, gate_error_rate)
+        circuit.append("DEPOLARIZE1", x_ancillas, noise.one_qubit_error_rate)
 
     for layer in layers:
         targets = [qubit for pair in layer for qubit in pair]
         circuit.append("CX", targets)
         if noisy:
-            circuit.append("DEPOLARIZE2", targets, gate_error_rate)
-        if idle_error_rate > 0.0:
+            circuit.append("DEPOLARIZE2", targets, noise.two_qubit_error_rate)
+        if noise.gate_idle_error_rate > 0.0:
             busy = set(targets)
             idle = [qubit for qubit in data if qubit not in busy]
             if idle:
-                circuit.append("DEPOLARIZE1", idle, idle_error_rate)
+                circuit.append(
+                    "DEPOLARIZE1", idle, noise.gate_idle_error_rate
+                )
 
     circuit.append("H", x_ancillas)
     if noisy:
-        circuit.append("DEPOLARIZE1", x_ancillas, gate_error_rate)
-    if measurement_error_rate > 0.0:
-        circuit.append("X_ERROR", ancillas, measurement_error_rate)
+        circuit.append("DEPOLARIZE1", x_ancillas, noise.one_qubit_error_rate)
+    if noise.measurement_error_rate > 0.0:
+        circuit.append("X_ERROR", ancillas, noise.measurement_error_rate)
     circuit.append("M", ancillas)
+
+
+def _append_idle_noise(
+    circuit: "stim.Circuit",
+    targets: Sequence[int],
+    noise: BBCircuitNoiseProfile,
+    *,
+    measurement_or_reset_tick: bool = False,
+) -> None:
+    """Apply the paper's independent idle channels to inactive qubits."""
+
+    if not targets:
+        return
+    if noise.gate_idle_error_rate > 0.0:
+        circuit.append("DEPOLARIZE1", targets, noise.gate_idle_error_rate)
+    if measurement_or_reset_tick and noise.resonator_idle_error_rate > 0.0:
+        # Table III states that resonator idle stacks independently with gate
+        # idle on measurement/reset ticks, so do not combine the probabilities.
+        circuit.append(
+            "DEPOLARIZE1", targets, noise.resonator_idle_error_rate
+        )
+
+
+def _append_paper_cycle(
+    circuit: "stim.Circuit",
+    *,
+    layout: BBCircuitLayout,
+    layers: Sequence[Sequence[tuple[int, int]]],
+    noise: BBCircuitNoiseProfile,
+) -> None:
+    """Append one tick-aware Table-II/Table-III BB extraction cycle.
+
+    X-basis preparation/measurement is expressed using the repository's
+    physical ``R-H`` and ``H-M`` sequence.  Therefore an X flip after ``R`` is
+    equivalent to Table II's Z flip after ``InitX``, and an X flip after the
+    final H is equivalent to its Z flip before ``MeasX``.  Table II defines no
+    active 1Q-gate channel, while Table III applies DEP1(p/10) after each H.
+    """
+
+    cells = layout.cells
+    x_ancillas = [layout.x_ancilla_base + cell for cell in range(cells)]
+    z_ancillas = [layout.z_ancilla_base + cell for cell in range(cells)]
+    ancillas = x_ancillas + z_ancillas
+    data = list(range(2 * cells))
+    all_qubits = data + ancillas
+
+    # Reset tick.  Data qubits are inactive; under SI1000 they receive both
+    # gate-idle and resonator-idle noise independently.
+    circuit.append("R", ancillas)
+    if noise.reset_error_rate > 0.0:
+        circuit.append("X_ERROR", ancillas, noise.reset_error_rate)
+    _append_idle_noise(
+        circuit, data, noise, measurement_or_reset_tick=True
+    )
+    circuit.append("TICK")
+
+    # X-basis preparation tick.
+    circuit.append("H", x_ancillas)
+    if noise.one_qubit_error_rate > 0.0:
+        circuit.append("DEPOLARIZE1", x_ancillas, noise.one_qubit_error_rate)
+    _append_idle_noise(circuit, data + z_ancillas, noise)
+    circuit.append("TICK")
+
+    for layer in layers:
+        targets = [qubit for pair in layer for qubit in pair]
+        circuit.append("CX", targets)
+        if noise.two_qubit_error_rate > 0.0:
+            circuit.append("DEPOLARIZE2", targets, noise.two_qubit_error_rate)
+        busy = set(targets)
+        _append_idle_noise(
+            circuit, [qubit for qubit in all_qubits if qubit not in busy], noise
+        )
+        circuit.append("TICK")
+
+    # X-basis measurement rotation tick.
+    circuit.append("H", x_ancillas)
+    if noise.one_qubit_error_rate > 0.0:
+        circuit.append("DEPOLARIZE1", x_ancillas, noise.one_qubit_error_rate)
+    _append_idle_noise(circuit, data + z_ancillas, noise)
+    circuit.append("TICK")
+
+    # Measurement tick.  The pre-measurement X channel is a classical readout
+    # flip in the measured basis after the X ancillas' final H.
+    if noise.measurement_error_rate > 0.0:
+        circuit.append("X_ERROR", ancillas, noise.measurement_error_rate)
+    circuit.append("M", ancillas)
+    _append_idle_noise(
+        circuit, data, noise, measurement_or_reset_tick=True
+    )
+    circuit.append("TICK")
+
+
+def _append_cycle(
+    circuit: "stim.Circuit",
+    *,
+    layout: BBCircuitLayout,
+    layers: Sequence[Sequence[tuple[int, int]]],
+    noise: BBCircuitNoiseProfile,
+) -> None:
+    """Append one cycle using the selected circuit noise profile."""
+
+    if noise.name == "legacy":
+        _append_legacy_cycle(circuit, layout=layout, layers=layers, noise=noise)
+    else:
+        _append_paper_cycle(circuit, layout=layout, layers=layers, noise=noise)
 
 
 def _append_logical_sheets(
@@ -370,8 +650,9 @@ def generate_bb_memory_circuit(
     *,
     rounds: int,
     gate_error_rate: float,
-    measurement_error_rate: float,
-    idle_error_rate: float = 0.0,
+    measurement_error_rate: float | None = None,
+    idle_error_rate: float | None = None,
+    circuit_noise_model: str = "legacy",
     schedule: dict[str, tuple[int, int, int]] | None = None,
     check_schedule: bool = True,
 ) -> "stim.Circuit":
@@ -389,12 +670,19 @@ def generate_bb_memory_circuit(
     final noisy cycle cannot become undetectable logical errors.  Consequently
     the circuit returns ``rounds + 1`` detector frames.
 
-    Gate noise follows the toric convention in :mod:`src.stim_utils`: a bit
-    flip after reset, one-qubit depolarizing after each Hadamard, two-qubit
-    depolarizing after each CNOT layer and a readout flip before measurement.
-    ``idle_error_rate`` additionally depolarizes data qubits that sit out a
-    CNOT layer; it defaults to zero to match the toric circuits, but a BB cycle
-    is seven layers deep, so a non-zero value is the more realistic setting.
+    ``circuit_noise_model='legacy'`` preserves the original toric-style
+    convention: a bit flip after reset, one-qubit depolarizing after each
+    Hadamard, two-qubit depolarizing after each CNOT and a configurable readout
+    flip, with optional data-only CNOT-layer idle noise.
+
+    ``standard`` and ``si1000`` implement Tables II and III of
+    arXiv:2607.05897 on this seven-layer periodic-BB schedule. Both track every
+    inactive data and ancilla qubit on every physical tick. Standard uses p
+    for preparation, CNOT, measurement and idle channels and has ideal H
+    gates. Modified SI1000 uses reset=2p, H/gate-idle=p/10, CNOT=p,
+    measurement=5p and an additional resonator-idle=2p on measurement/reset
+    ticks. The reference and closing cycles remain perfect under every
+    profile; the selected model controls only the requested noisy cycles.
 
     Set ``check_schedule=False`` only to explore alternative CNOT orderings.
     The layer-collision check still runs, but the determinism condition is
@@ -405,19 +693,12 @@ def generate_bb_memory_circuit(
     _require_stim()
     if isinstance(code, str):
         code = BBCodeSpec.from_name(code)
-    _validate_probability("gate_error_rate", gate_error_rate)
-    _validate_probability("measurement_error_rate", measurement_error_rate)
-    _validate_probability("idle_error_rate", idle_error_rate)
-    if gate_error_rate > 0.75:
-        raise ValueError(
-            "gate_error_rate must be at most 0.75 because the BB circuit uses "
-            "DEPOLARIZE1 after Hadamards."
-        )
-    if idle_error_rate > 0.75:
-        raise ValueError(
-            "idle_error_rate must be at most 0.75 for a one-qubit depolarizing "
-            "channel."
-        )
+    noise = resolve_bb_circuit_noise_profile(
+        circuit_noise_model,
+        base_error_rate=gate_error_rate,
+        measurement_error_rate=measurement_error_rate,
+        idle_error_rate=idle_error_rate,
+    )
     if rounds < 1:
         raise ValueError(f"rounds must be positive, got {rounds}.")
 
@@ -448,9 +729,7 @@ def generate_bb_memory_circuit(
         circuit,
         layout=layout,
         layers=layers,
-        gate_error_rate=0.0,
-        measurement_error_rate=0.0,
-        idle_error_rate=0.0,
+        noise=noise.without_noise(),
     )
     _append_logical_sheets(circuit, code)
 
@@ -459,9 +738,7 @@ def generate_bb_memory_circuit(
             circuit,
             layout=layout,
             layers=layers,
-            gate_error_rate=gate_error_rate,
-            measurement_error_rate=measurement_error_rate,
-            idle_error_rate=idle_error_rate,
+            noise=noise,
         )
         _append_detector_frame(circuit, layout=layout, time_index=time_index)
 
@@ -472,9 +749,7 @@ def generate_bb_memory_circuit(
         circuit,
         layout=layout,
         layers=layers,
-        gate_error_rate=0.0,
-        measurement_error_rate=0.0,
-        idle_error_rate=0.0,
+        noise=noise.without_noise(),
     )
     _append_detector_frame(circuit, layout=layout, time_index=rounds)
 
@@ -503,12 +778,16 @@ def assert_detectors_deterministic(circuit: "stim.Circuit") -> None:
 
 
 __all__ = [
+    "BB_CIRCUIT_NOISE_MODELS",
     "BBCircuitLayout",
+    "BBCircuitNoiseProfile",
     "CIRCUIT_SCHEMA_VERSION",
     "DEFAULT_SCHEDULE",
     "SCHEDULE_DEPTH",
     "assert_detectors_deterministic",
     "generate_bb_memory_circuit",
+    "normalize_bb_circuit_noise_model",
+    "resolve_bb_circuit_noise_profile",
     "search_schedules",
     "validate_schedule",
 ]

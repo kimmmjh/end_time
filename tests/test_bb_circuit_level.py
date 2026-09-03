@@ -13,10 +13,12 @@ from src.bb_circuit_data import BBCircuitGenerator
 from src.bb_code import BBCodeSpec
 from src.bb_dem import build_bb_dem_graph
 from src.bb_stim_utils import (
+    BB_CIRCUIT_NOISE_MODELS,
     CIRCUIT_SCHEMA_VERSION,
     DEFAULT_SCHEDULE,
     assert_detectors_deterministic,
     generate_bb_memory_circuit,
+    resolve_bb_circuit_noise_profile,
     search_schedules,
     validate_schedule,
 )
@@ -63,6 +65,138 @@ def test_circuit_reproduces_the_code_and_has_deterministic_detectors(name):
     assert circuit.num_detectors == (3 + 1) * code.num_checks
     assert circuit.num_observables == 2 * code.k
     assert_detectors_deterministic(circuit)
+
+
+def _ticks_with_noise(circuit):
+    ticks = []
+    current = []
+    for instruction in circuit:
+        if instruction.name == "TICK":
+            if any(
+                item.name in {"X_ERROR", "DEPOLARIZE1", "DEPOLARIZE2"}
+                for item in current
+            ):
+                ticks.append(current)
+            current = []
+        else:
+            current.append(instruction)
+    return ticks
+
+
+def _target_ids(instruction):
+    return {int(target.value) for target in instruction.targets_copy()}
+
+
+def test_paper_noise_profile_rates_are_fixed_by_one_base_p():
+    p = 0.003
+    standard = resolve_bb_circuit_noise_profile(
+        "standard", base_error_rate=p
+    )
+    assert standard.name == "standard"
+    assert standard.reset_error_rate == p
+    assert standard.one_qubit_error_rate == 0.0
+    assert standard.two_qubit_error_rate == p
+    assert standard.measurement_error_rate == p
+    assert standard.gate_idle_error_rate == p
+    assert standard.resonator_idle_error_rate == 0.0
+
+    si1000 = resolve_bb_circuit_noise_profile("si1000", base_error_rate=p)
+    assert np.isclose(si1000.reset_error_rate, 2 * p)
+    assert np.isclose(si1000.one_qubit_error_rate, p / 10)
+    assert np.isclose(si1000.two_qubit_error_rate, p)
+    assert np.isclose(si1000.swap_error_rate, 1.5 * p)
+    assert np.isclose(si1000.measurement_error_rate, 5 * p)
+    assert np.isclose(si1000.gate_idle_error_rate, p / 10)
+    assert np.isclose(si1000.resonator_idle_error_rate, 2 * p)
+
+    with pytest.raises(ValueError, match="fixes measurement_error_rate"):
+        resolve_bb_circuit_noise_profile(
+            "si1000", base_error_rate=p, measurement_error_rate=p
+        )
+    with pytest.raises(ValueError, match="at most 0.2"):
+        resolve_bb_circuit_noise_profile("si1000", base_error_rate=0.201)
+
+
+@pytest.mark.parametrize("profile", BB_CIRCUIT_NOISE_MODELS)
+def test_every_noise_profile_builds_a_valid_multiround_dem(profile):
+    code = BBCodeSpec.from_name("bb72")
+    circuit = generate_bb_memory_circuit(
+        code,
+        rounds=1,
+        gate_error_rate=0.003,
+        circuit_noise_model=profile,
+    )
+    assert circuit.num_detectors == 2 * code.num_checks
+    assert circuit.detector_error_model(decompose_errors=False).num_errors > 0
+    assert_detectors_deterministic(circuit)
+
+
+def test_standard_idle_noise_covers_every_inactive_qubit_on_every_tick():
+    code = BBCodeSpec.from_name("bb72")
+    circuit = generate_bb_memory_circuit(
+        code,
+        rounds=1,
+        gate_error_rate=0.003,
+        circuit_noise_model="standard",
+    )
+    noisy_ticks = _ticks_with_noise(circuit)
+    # reset + H + seven CNOT layers + H + measurement
+    assert len(noisy_ticks) == 11
+    all_qubits = set(range(2 * code.n))
+    operation_names = {"R", "H", "CX", "M"}
+    for tick in noisy_ticks:
+        active = set().union(
+            *(
+                _target_ids(instruction)
+                for instruction in tick
+                if instruction.name in operation_names
+            )
+        )
+        idle_noise = set().union(
+            *(
+                _target_ids(instruction)
+                for instruction in tick
+                if instruction.name == "DEPOLARIZE1"
+            ),
+            set(),
+        )
+        assert idle_noise == all_qubits - active
+
+
+def test_si1000_has_stacked_resonator_idle_and_one_qubit_noise():
+    p = 0.003
+    code = BBCodeSpec.from_name("bb72")
+    circuit = generate_bb_memory_circuit(
+        code,
+        rounds=1,
+        gate_error_rate=p,
+        circuit_noise_model="si1000",
+    )
+    noisy_ticks = _ticks_with_noise(circuit)
+    assert len(noisy_ticks) == 11
+
+    reset_tick, first_h_tick, *_, final_h_tick, measurement_tick = noisy_ticks
+    for tick in (reset_tick, measurement_tick):
+        dep1_rates = sorted(
+            instruction.gate_args_copy()[0]
+            for instruction in tick
+            if instruction.name == "DEPOLARIZE1"
+        )
+        assert np.allclose(dep1_rates, [p / 10, 2 * p])
+
+    # During an H tick, active X ancillas get the 1Q channel while every other
+    # qubit gets gate-idle at the same p/10, so Stim may fuse them into one
+    # instruction covering the complete register.
+    for tick in (first_h_tick, final_h_tick):
+        dep1_targets = set().union(
+            *(
+                _target_ids(instruction)
+                for instruction in tick
+                if instruction.name == "DEPOLARIZE1"
+                and np.isclose(instruction.gate_args_copy()[0], p / 10)
+            )
+        )
+        assert dep1_targets == set(range(2 * code.n))
 
 
 def test_determinism_condition_matches_stim():
@@ -177,6 +311,17 @@ def test_reused_graph_must_match_the_exact_circuit_noise():
             graph=graph,
             gate_error_rate=NOISE["gate_error_rate"] * 2,
             measurement_error_rate=NOISE["measurement_error_rate"],
+        )
+
+    with pytest.raises(ValueError, match="incompatible"):
+        BBCircuitGenerator(
+            "bb72",
+            rounds=1,
+            batch_size=1,
+            seed=10,
+            graph=graph,
+            gate_error_rate=NOISE["gate_error_rate"],
+            circuit_noise_model="standard",
         )
 
 
@@ -397,6 +542,7 @@ def _dummy_experiment_config() -> dict[str, object]:
     return {
         "architecture": "bb_neural_bp_circuit",
         "circuit_schema_version": CIRCUIT_SCHEMA_VERSION,
+        "circuit_noise_model": "legacy",
         "code": "bb72",
         "graph_fingerprint": "test-graph",
         "rounds": 1,

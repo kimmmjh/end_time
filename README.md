@@ -107,9 +107,9 @@ Reported `Accuracy` is block logical success, not qubit accuracy. Logs also
 separate syndrome-nonconverged (flagged) failures from syndrome-converged but
 logical (unflagged) failures.
 
-The current ten Perlmutter jobs run the corrected **circuit-level** BB neural-BP
-campaign described below. Every job requests four GPUs and launches four
-independent experiments concurrently.
+The current ten Perlmutter jobs run the corrected **circuit-level no-OSD** BB
+neural-BP campaign described below. Every job requests four GPUs and launches
+four independent experiments concurrently.
 
 | Script | Four concurrent experiments |
 | --- | --- |
@@ -131,12 +131,13 @@ for i in {0..9}; do sbatch "run_bb_${i}.slurm"; done
 ```
 
 The first phase is 100 epochs with 128 online-data batches per epoch and can be
-continued from `model.pt`. BB72 uses six noisy cycles and batch size 16; BB144
-uses twelve noisy cycles and batch size 8. The default model is T=12,
-hidden-width 32, orbit-embedding width 8, and normalized min-sum scale 0.625.
-Validation runs every ten epochs. It uses posterior-seeded OSD-0 for checkpoint
-selection because OSD-CS7 is too expensive to run repeatedly on these large
-space-time graphs; up to 4,096 OSD shots are used in the final evaluation.
+continued only from a compatible no-OSD `model.pt`. BB72 uses six noisy cycles
+and batch size 16; BB144 uses twelve noisy cycles and batch size 8. The default
+model is T=12, hidden-width 32, orbit-embedding width 8, and normalized min-sum
+scale 0.625. `--bb_osd_eval_shots=0` prevents OSD construction and execution.
+Validation runs every ten epochs, checkpoints are selected by raw Neural-BP2
+paired gain against raw vanilla BP2, and the final raw evaluation uses 4,096
+Stim shots.
 
 The threshold sweeps use `q=p` and zero idle error. Job 9 separately tests
 `idle=p` and `q=2p`. `global` sharing remains translation equivariant but has
@@ -152,6 +153,29 @@ The timestamped model directories are under each result directory's
 `outputs/YYYY-MM-DD/`. There is no `exp_<index>` layer in the Slurm layout.
 The shared launch logic and canonical settings are in
 `scripts/run_bb_slurm_batch.sh`.
+
+For the same no-OSD comparison outside Slurm, use the direct-GPU runner:
+
+```bash
+# Split the BB72 sweep across two physical GPUs.
+bash run_bb_circuit_no_osd.sh 0 bb72 low
+bash run_bb_circuit_no_osd.sh 1 bb72 high
+
+# The same interface also supports BB144.
+bash run_bb_circuit_no_osd.sh 0 bb144 low
+bash run_bb_circuit_no_osd.sh 1 bb144 high
+```
+
+`low` uses base `p=0.001,0.002,0.003,0.004`; `high` uses
+`p=0.005,0.006,0.008,0.010`; `all` runs all eight points sequentially. The
+optional fourth argument selects `legacy`, `standard`, or `si1000` (default:
+`legacy`). The
+runner keeps the circuit, model, optimizer, and seeds matched to the OSD
+campaign but sets `--bb_osd_eval_shots=0`. Consequently no OSD object or CPU
+post-processing is used during validation/final evaluation, and
+`best_model.pt` is selected by raw Neural BP2 paired gain against vanilla BP2.
+Each invocation creates `resdir_<script-pid>/exp_<index>` and stops after the
+first failed experiment.
 
 The completed BB72 and BB144 depolarizing sweeps are summarized in
 [`results/analysis/bb_neural_bp_depolarizing_orbit.md`](results/analysis/bb_neural_bp_depolarizing_orbit.md),
@@ -170,11 +194,13 @@ python main.py --code=bb144 --architecture=bb_neural_bp \
   --bb_osd_eval_shots=0 --lr=0.0003 --amp_dtype=none --seed=14401004
 ```
 
-Each neural model starts exactly as vanilla BP4 because its final residual
-layer is zero initialized and relaxation starts at one. `model.pt` is the
-latest resumable checkpoint; `best_model.pt` is selected by held-out block
-logical accuracy. Generator RNG state, optimizer state, and plot history are
-saved, and an incompatible BB graph/model checkpoint is rejected.
+Each neural model starts exactly as its vanilla BP stage because its final
+residual layer is zero initialized and relaxation starts at one: BP4 for code
+capacity and normalized min-sum BP2 for circuit noise. `model.pt` is the latest
+resumable checkpoint. `best_model.pt` uses the configured paired selection
+metric: Neural+OSD gain when OSD evaluation is enabled, or raw Neural BP gain
+when it is disabled. Generator RNG state, optimizer state, and plot history
+are saved, and an incompatible BB graph/model checkpoint is rejected.
 
 ## BB circuit-level neural BP
 
@@ -195,7 +221,8 @@ reused; the circuit decoder is `models/_equivariant_neural_bp2.py`.
 
 ```bash
 python main.py --code=bb144 --architecture=bb_neural_bp --noise_model=circuit \
-  --p=0.001 --measurement_error_rate=0.001 --rounds=12 \
+  --bb_circuit_noise_model=legacy \
+  --p=0.001 --measurement_error_rate=0.001 --bb_idle_error_rate=0 --rounds=12 \
   --bp_iterations=12 --bp_residual_hidden_dim=32 --bp_orbit_embedding_dim=8 \
   --bp_parameter_sharing=orbit --loss_fn=bb_coset \
   --epochs=300 --batch_size=8 --batches=512 --eval_batches=32 --eval_every=5 \
@@ -203,15 +230,60 @@ python main.py --code=bb144 --architecture=bb_neural_bp --noise_model=circuit \
   --lr=0.0003 --amp_dtype=none --save_model
 ```
 
-`--p` is the gate error rate; `--measurement_error_rate` defaults to it, and
-`--rounds` is the number of **noisy** extraction cycles and defaults to the code
-distance.  The circuit adds a perfect reference cycle before them and a
-separate perfect closing cycle after them, so a run with `--rounds=R` returns
-`R+1` detector frames and `(R+1)*n` detector bits for these BB constructions.
-The closing frame is required to expose faults late in the last noisy cycle.
-`--bb_idle_error_rate` additionally depolarizes data qubits that sit out one of
-the seven CNOT layers; it defaults to zero to match the simplified toric noise
-model.
+`--p` is the base physical error rate, and `--rounds` is the number of **noisy**
+extraction cycles and defaults to the code distance. The circuit adds a perfect
+reference cycle before them and a separate perfect closing cycle after them, so
+a run with `--rounds=R` returns `R+1` detector frames and `(R+1)*n` detector bits
+for these BB constructions. The closing frame is required to expose faults late
+in the last noisy cycle.
+
+### Selectable BB circuit noise profiles
+
+`--bb_circuit_noise_model` selects one of three profiles:
+
+| Profile | Reset | H / 1Q | CNOT | Measurement | Idle |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `legacy` | `X_ERROR(p)` | `DEP1(p)` | `DEP2(p)` | configurable `q` | configurable data-only CNOT-layer idle, default 0 |
+| `standard` | basis flip `p` | ideal | `DEP2(p)` | basis flip `p` | `DEP1(p)` on every inactive qubit every tick |
+| `si1000` | `X_ERROR(2p)` | `DEP1(p/10)` | `DEP2(p)` | `X_ERROR(5p)` | gate idle `DEP1(p/10)` every tick plus resonator idle `DEP1(2p)` on M/R ticks |
+
+`standard` and `si1000` implement Tables II and III of
+[arXiv:2607.05897](https://arxiv.org/abs/2607.05897) on this repository's
+periodic-BB `R-H-CX-H-M` schedule. The two SI1000 idle channels are emitted as
+independent Stim instructions so they stack as specified. Table III also gives
+native SWAP an error rate `1.5p`; that rate is recorded in metadata, but this
+non-routed BB circuit contains no SWAP gates. Reproducing the paper's tile-code
+thresholds additionally requires its open-boundary code families and routed or
+unrouted schedules; selecting the channel alone does not reproduce those
+circuits.
+
+The paper profiles have only one free noise parameter, so their other rates are
+derived from `--p`. Incompatible explicit `--measurement_error_rate` or
+`--bb_idle_error_rate` values are rejected. Use `legacy` when intentionally
+varying those rates independently.
+
+```bash
+# Table II standard model
+python main.py --code=bb72 --architecture=bb_neural_bp --noise_model=circuit \
+  --bb_circuit_noise_model=standard --p=0.003 --rounds=6 \
+  --loss_fn=bb_coset --epochs=100 --batch_size=16 --batches=128 \
+  --eval_batches=64 --eval_every=10 --final_eval_batches=256 \
+  --bb_osd_eval_shots=0 --amp_dtype=none --save_model
+
+# Table III modified SI1000
+python main.py --code=bb72 --architecture=bb_neural_bp --noise_model=circuit \
+  --bb_circuit_noise_model=si1000 --p=0.003 --rounds=6 \
+  --loss_fn=bb_coset --epochs=100 --batch_size=16 --batches=128 \
+  --eval_batches=64 --eval_every=10 --final_eval_batches=256 \
+  --bb_osd_eval_shots=0 --amp_dtype=none --save_model
+```
+
+The sequential GPU runner accepts the same selection as its fourth argument:
+
+```bash
+bash run_bb_circuit_no_osd.sh 0 bb72 low standard
+bash run_bb_circuit_no_osd.sh 1 bb72 high si1000
+```
 
 This corrected convention is circuit schema version 2.  Checkpoints and
 reported points made by the earlier implementation, where `R` contained only

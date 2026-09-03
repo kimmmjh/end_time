@@ -26,6 +26,11 @@ def _graph_fingerprint(graph: Any) -> str:
 
     digest = hashlib.sha256()
     digest.update(graph.code_name.encode("utf-8"))
+    # Keep schema-v2 legacy fingerprints byte-for-byte compatible with saved
+    # checkpoints. New profiles already have distinct DEM fingerprints; add
+    # their names as an explicit domain separator as well.
+    if graph.circuit_noise_model != "legacy":
+        digest.update(graph.circuit_noise_model.encode("utf-8"))
     digest.update(
         np.asarray(
             [
@@ -110,6 +115,7 @@ def run_bb_circuit_experiment(args: Any) -> str:
         "gate_error_rate": args.p,
         "measurement_error_rate": args.measurement_error_rate,
         "idle_error_rate": args.bb_idle_error_rate,
+        "circuit_noise_model": args.bb_circuit_noise_model,
         "batch_size": args.batch_size,
     }
     train_generator = BBCircuitGenerator(
@@ -124,6 +130,7 @@ def run_bb_circuit_experiment(args: Any) -> str:
         graph=train_generator.graph,
     )
     graph = train_generator.graph
+    noise_profile = train_generator.noise_profile
 
     model = EquivariantNeuralBP2(
         graph,
@@ -154,7 +161,7 @@ def run_bb_circuit_experiment(args: Any) -> str:
         r"[^A-Za-z0-9_.-]+",
         "_",
         (
-            f"circuit_{code.name}_bb_neural_bp2_p{args.p:g}_"
+            f"circuit_{code.name}_{noise_profile.name}_bb_neural_bp2_p{args.p:g}_"
             f"q{args.measurement_error_rate:g}_r{rounds}_f{graph.detector_frames}_"
             f"it{args.bp_iterations}_h{args.bp_residual_hidden_dim}_"
             f"emb{args.bp_orbit_embedding_dim}_"
@@ -183,9 +190,16 @@ def run_bb_circuit_experiment(args: Any) -> str:
         "rounds": rounds,
         "detector_frames": graph.detector_frames,
         "noise_model": "circuit",
+        "circuit_noise_model": noise_profile.name,
+        "base_error_rate": noise_profile.base_error_rate,
         "gate_error_rate": args.p,
-        "measurement_error_rate": args.measurement_error_rate,
-        "idle_error_rate": args.bb_idle_error_rate,
+        "reset_error_rate": noise_profile.reset_error_rate,
+        "one_qubit_error_rate": noise_profile.one_qubit_error_rate,
+        "two_qubit_error_rate": noise_profile.two_qubit_error_rate,
+        "swap_error_rate": noise_profile.swap_error_rate,
+        "measurement_error_rate": noise_profile.measurement_error_rate,
+        "idle_error_rate": noise_profile.gate_idle_error_rate,
+        "resonator_idle_error_rate": noise_profile.resonator_idle_error_rate,
         "graph_fingerprint": _graph_fingerprint(graph),
         "num_detectors": graph.num_detectors,
         "num_mechanisms": graph.num_mechanisms,
@@ -222,6 +236,18 @@ def run_bb_circuit_experiment(args: Any) -> str:
 
     logging.info("Device: %s | Seed: %d", device, actual_seed)
     logging.info("Decoding graph: %s", graph.summary())
+    logging.info(
+        "Circuit noise: %s | p=%g | reset=%g | 1Q=%g | 2Q=%g | "
+        "measurement=%g | gate idle=%g | resonator idle=%g",
+        noise_profile.name,
+        noise_profile.base_error_rate,
+        noise_profile.reset_error_rate,
+        noise_profile.one_qubit_error_rate,
+        noise_profile.two_qubit_error_rate,
+        noise_profile.measurement_error_rate,
+        noise_profile.gate_idle_error_rate,
+        noise_profile.resonator_idle_error_rate,
+    )
     logging.info(
         "Architecture: normalised min-sum BP2 + orbit-shared neural residual | "
         "iterations=%d | hidden=%d | embedding=%d | sharing=%s",

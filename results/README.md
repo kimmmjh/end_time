@@ -9,7 +9,8 @@ results/
 │   ├── phenomenological/{cnn3d,convgru,pymatching}/
 │   └── circuit/{convgru_mwpm,convgru_weighted_mwpm}/
 ├── bb/
-│   └── code_capacity/depolarizing/orbit/{bb72,bb144}/
+│   ├── code_capacity/depolarizing/orbit/{bb72,bb144}/
+│   └── circuit/{q_equals_p_idle0,noise_balance}/
 ├── analysis/
 ├── plots/
 └── local_smoke/
@@ -117,3 +118,49 @@ The main figures are
 [`plots/bb_campaign_2026_08_ablations.png`](plots/bb_campaign_2026_08_ablations.png)
 and
 [`plots/bb_campaign_2026_08_decoders.png`](plots/bb_campaign_2026_08_decoders.png).
+
+## August–September 2026 BB circuit-level campaign
+
+The corrected circuit-schema-v2 campaign is archived by purpose:
+
+```text
+bb/circuit/
+├── q_equals_p_idle0/
+│   ├── orbit/{bb72,bb144,replicates}/
+│   └── ablations/{sharing,iterations,mechanism,loss_auxiliary}/
+└── noise_balance/orbit/
+```
+
+The archive contains 40 histories: 35 completed all 100 epochs plus a fresh
+4,096-shot selected-best OSD-0 evaluation, while five BB144 runs reached the
+24-hour Slurm limit and are retained as resumable partial runs. The primary
+reference sweep contains eight complete BB72 points (`p=0.001` through
+`0.010`) and four complete BB144 points (`p=0.001` through `0.004`). The four
+higher-p BB144 reference points are partial.
+
+The new campaign also contains three training seeds per code at `p=0.004`,
+global-versus-orbit sharing, T=6/12/24, learned-residual and relaxation
+component ablations, auxiliary-loss ablations, and `idle=p`/`q=2p` noise
+controls. The headline comparison is Neural-BP posterior + OSD-0 versus
+vanilla-BP posterior + the same OSD-0 post-processor; plain BP remains a
+convergence diagnostic.
+
+The complete extraction and interpretation are in
+[`analysis/bb_circuit_campaign_2026_08.csv`](analysis/bb_circuit_campaign_2026_08.csv)
+and
+[`analysis/bb_circuit_campaign_2026_08.md`](analysis/bb_circuit_campaign_2026_08.md).
+Interrupted-run provenance and resume information are in
+[`analysis/bb_circuit_campaign_2026_08_partial.csv`](analysis/bb_circuit_campaign_2026_08_partial.csv).
+Rebuild the summaries and plots with:
+
+```bash
+python scripts/summarize_bb_circuit_campaign.py
+```
+
+The figures are
+[`plots/bb_circuit_campaign_2026_08.png`](plots/bb_circuit_campaign_2026_08.png)
+and
+[`plots/bb_circuit_campaign_2026_08_ablations.png`](plots/bb_circuit_campaign_2026_08_ablations.png).
+This is still not a threshold estimate: BB144 high-p completion, more training
+seeds, a larger fixed test bank, and stronger OSD-CS/LSD comparisons remain
+necessary.
