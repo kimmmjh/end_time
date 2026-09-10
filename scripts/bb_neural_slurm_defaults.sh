@@ -38,3 +38,44 @@ BB_CIRCUIT_NO_OSD_BB144_TRAINING_ARGS="$BB_CIRCUIT_NO_OSD_TRAINING_CORE_ARGS --c
 
 BB_CIRCUIT_NO_OSD_BB72_ARGS="$BB_CIRCUIT_NO_OSD_BB72_TRAINING_ARGS $BB_CIRCUIT_DEFAULT_MODEL_ARGS"
 BB_CIRCUIT_NO_OSD_BB144_ARGS="$BB_CIRCUIT_NO_OSD_BB144_TRAINING_ARGS $BB_CIRCUIT_DEFAULT_MODEL_ARGS"
+
+# September Relay campaign: retain the archived circuit, optimizer, loss,
+# batch sizes and evaluation budgets. Iterations/sharing/Relay settings are
+# supplied once by the variant builder below (no repeated argparse options).
+BB_RELAY_MODEL_CORE_ARGS="--bp_residual_hidden_dim=32 --bp_orbit_embedding_dim=8 --bp_normalisation=0.625 --bp_residual_scale=2.0 --bp_max_relaxation_delta=0.5 --bp_deep_supervision_weight=0.2 --bp_gradient_clip=1.0 --bb_syndrome_loss_weight=1.0 --bb_logical_loss_weight=1.0 --bb_pauli_loss_weight=0.1 --bb_weight_decay=0.0001"
+
+bb_relay_experiment_args() {
+    if (($# != 4)); then
+        echo "Usage: bb_relay_experiment_args code variant p seed" >&2
+        return 2
+    fi
+    local code="$1" variant="$2" p="$3" seed="$4"
+    local training iterations=12 legs=4 solutions=2 sharing=orbit
+    local memory_first=0.125 memory_min=-0.24 memory_max=0.66
+    case "$code" in
+        bb72) training="$BB_CIRCUIT_NO_OSD_BB72_TRAINING_ARGS" ;;
+        bb144) training="$BB_CIRCUIT_NO_OSD_BB144_TRAINING_ARGS" ;;
+        *) echo "Unknown Relay campaign code: $code" >&2; return 2 ;;
+    esac
+    case "$variant" in
+        relay) ;;
+        legacy_t12) legs=0 ;;
+        legacy_t48) legs=0; iterations=48 ;;
+        zero_memory) memory_first=0; memory_min=0; memory_max=0 ;;
+        # Match the mean of U[-0.24,0.66], keeping first-leg gamma=0.125.
+        constant_memory) memory_min=0.21; memory_max=0.21 ;;
+        one_leg) legs=1; iterations=48; solutions=1 ;;
+        twelve_legs) legs=12; iterations=4 ;;
+        first_solution) solutions=1 ;;
+        global) sharing=global ;;
+        *) echo "Unknown Relay campaign variant: $variant" >&2; return 2 ;;
+    esac
+    printf '%s %s --bp_iterations=%s --bp_parameter_sharing=%s --bp_relay_legs=%s' \
+        "$training" "$BB_RELAY_MODEL_CORE_ARGS" "$iterations" "$sharing" "$legs"
+    if ((legs > 0)); then
+        printf ' --bp_relay_solutions=%s --bp_relay_memory_strength=%s --bp_relay_memory_min=%s --bp_relay_memory_max=%s' \
+            "$solutions" "$memory_first" "$memory_min" "$memory_max"
+    fi
+    printf ' --p=%s --measurement_error_rate=%s --bb_idle_error_rate=0 --seed=%s\n' \
+        "$p" "$p" "$seed"
+}

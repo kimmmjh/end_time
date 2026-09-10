@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_raw_global
+#SBATCH --job-name=bbc_relay_legacy12
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -10,28 +10,36 @@
 #SBATCH --gpus-per-task=1
 #SBATCH --output=slurm-%x-%j.out
 
-set -uo pipefail
+set -euo pipefail
 
-module load python/3.10 || exit 1
-source "$PSCRATCH/envs/nde/bin/activate" || exit 1
-ROOT="$HOME/end_time"
-cd "$ROOT" || exit 1
-source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
-source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
+# Preview locally: BB_DRY_RUN=1 bash run_bb_5.slurm
+if [[ "${BB_DRY_RUN:-0}" == 1 ]]; then
+    ROOT="${BB_REPO_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)}"
+else
+    module load python/3.10
+    source "$PSCRATCH/envs/nde/bin/activate"
+    ROOT="${BB_REPO_ROOT:-$HOME/end_time}"
+fi
+cd "$ROOT"
+source "$ROOT/scripts/run_bb_slurm_batch.sh"
+source "$ROOT/scripts/bb_neural_slurm_defaults.sh"
+BB_CAMPAIGN="bb_neural_relay_2026_09"
 
-# OSD is fully disabled. Evaluation compares raw Neural BP2 with raw
-# vanilla BP2, and checkpoints are selected by raw paired gain.
-
-# Global sharing uses one residual rule for every DEM edge. Orbit sharing remains
-# the equivariant default; this tests whether distinguishing space-time edge
-# types is actually useful. Baseline orbit runs use the same seeds.
-GLOBAL_MODEL_ARGS="--bp_iterations=12 --bp_residual_hidden_dim=32 --bp_orbit_embedding_dim=8 --bp_parameter_sharing=global --bp_normalisation=0.625 --bp_residual_scale=2.0 --bp_max_relaxation_delta=0.5 --bp_deep_supervision_weight=0.2 --bp_gradient_clip=1.0 --bb_syndrome_loss_weight=1.0 --bb_logical_loss_weight=1.0 --bb_pauli_loss_weight=0.1 --bb_weight_decay=0.0001"
-
+# Fresh legacy T=12 anchors at the same seeds as Relay and the raw archive.
+# All runs: schema v2, legacy q=p, idle=0, 100 epochs, OSD disabled.
+# Full design and comparison caveats: docs/bb_neural_relay_campaign.md
 experiments=(
-    "$BB_CIRCUIT_NO_OSD_BB72_TRAINING_ARGS $GLOBAL_MODEL_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0 --seed=7201003"
-    "$BB_CIRCUIT_NO_OSD_BB72_TRAINING_ARGS $GLOBAL_MODEL_ARGS --p=0.005 --measurement_error_rate=0.005 --bb_idle_error_rate=0 --seed=7201005"
-    "$BB_CIRCUIT_NO_OSD_BB144_TRAINING_ARGS $GLOBAL_MODEL_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0 --seed=14401003"
-    "$BB_CIRCUIT_NO_OSD_BB144_TRAINING_ARGS $GLOBAL_MODEL_ARGS --p=0.005 --measurement_error_rate=0.005 --bb_idle_error_rate=0 --seed=14401005"
+    "$(bb_relay_experiment_args bb72 legacy_t12 0.003 7201003)"
+    "$(bb_relay_experiment_args bb72 legacy_t12 0.004 7201004)"
+    "$(bb_relay_experiment_args bb144 legacy_t12 0.003 14401003)"
+    "$(bb_relay_experiment_args bb144 legacy_t12 0.004 14401004)"
+)
+
+BB_EXPERIMENT_LABELS=(
+    "bb72_legacy_t12_p0.003_seed7201003"
+    "bb72_legacy_t12_p0.004_seed7201004"
+    "bb144_legacy_t12_p0.003_seed14401003"
+    "bb144_legacy_t12_p0.004_seed14401004"
 )
 
 run_bb_experiments "${experiments[@]}"

@@ -373,6 +373,33 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--bp_relay_legs",
+        type=int,
+        default=0,
+        help=(
+            "BB circuit only: enable Neural Relay BP with this many legs; "
+            "0 disables it. bp_iterations is per leg."
+        ),
+    )
+    parser.add_argument(
+        "--bp_relay_solutions",
+        type=int,
+        default=1,
+        help="Stop each evaluation shot after this many successful Relay legs.",
+    )
+    parser.add_argument(
+        "--bp_relay_memory_strength", type=float, default=0.125,
+        help="Variable memory strength in the first Relay leg.",
+    )
+    parser.add_argument(
+        "--bp_relay_memory_min", type=float, default=-0.24,
+        help="Lower bound for per-variable memory in later Relay legs.",
+    )
+    parser.add_argument(
+        "--bp_relay_memory_max", type=float, default=0.66,
+        help="Upper bound for per-variable memory in later Relay legs.",
+    )
+    parser.add_argument(
         "--bb_idle_error_rate",
         type=float,
         default=None,
@@ -413,6 +440,21 @@ def main() -> None:
     if bb_architecture and args.code not in {"bb72", "bb144"}:
         parser.error("--architecture=bb_neural_bp requires --code=bb72 or bb144.")
     bb_circuit = bb_architecture and args.noise_model == "circuit"
+    if args.bp_relay_legs < 0:
+        parser.error("--bp_relay_legs must be non-negative.")
+    if args.bp_relay_legs:
+        if not bb_circuit:
+            parser.error("--bp_relay_legs requires BB neural BP with --noise_model=circuit.")
+        if not 1 <= args.bp_relay_solutions <= args.bp_relay_legs:
+            parser.error("--bp_relay_solutions must be in [1, bp_relay_legs].")
+        for option in (
+            "bp_relay_memory_strength", "bp_relay_memory_min", "bp_relay_memory_max"
+        ):
+            value = getattr(args, option)
+            if not np.isfinite(value) or not -1 < value < 1:
+                parser.error(f"--{option} must be finite and in (-1, 1).")
+        if args.bp_relay_memory_min > args.bp_relay_memory_max:
+            parser.error("--bp_relay_memory_min must not exceed --bp_relay_memory_max.")
     if bb_circuit:
         try:
             bb_noise_profile = resolve_bb_circuit_noise_profile(

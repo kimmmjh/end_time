@@ -3,6 +3,8 @@
 # Shared launcher for run_bb_*.slurm. The calling script must define ROOT and
 # an experiments array, then call run_bb_experiments "${experiments[@]}".
 # BB_PYTHON_ENTRYPOINT may override main.py for inference-only benchmarks.
+# BB_DRY_RUN=1 prints expanded commands without an allocation or filesystem
+# writes. Optional BB_CAMPAIGN and BB_EXPERIMENT_LABELS describe the experiment.
 
 _BB_STEP_PIDS=()
 _BB_RESULT_DIRECTORY=""
@@ -37,8 +39,8 @@ run_bb_experiments() {
     local experiment_count="$#"
     local cpus_per_task="${SLURM_CPUS_PER_TASK:-16}"
     local gpus_per_task="${BB_GPUS_PER_TASK:-1}"
-    local entrypoint="${BB_PYTHON_ENTRYPOINT:-$ROOT/main.py}"
-    local index params pid exit_code
+    local entrypoint
+    local index params pid exit_code label
     local failures=0
     local -a argv=()
     local -a step_resources=(
@@ -50,10 +52,7 @@ run_bb_experiments() {
         echo "Error: ROOT must be set before calling run_bb_experiments." >&2
         return 2
     fi
-    if [[ -z "${SLURM_JOB_ID:-}" ]]; then
-        echo "Error: this launcher must run inside a Slurm allocation." >&2
-        return 2
-    fi
+    entrypoint="${BB_PYTHON_ENTRYPOINT:-$ROOT/main.py}"
     if ((experiment_count < 1 || experiment_count > 4)); then
         echo "Error: expected 1-4 experiments, got $experiment_count." >&2
         return 2
@@ -70,6 +69,21 @@ run_bb_experiments() {
         return 1
     fi
 
+    if [[ "${BB_DRY_RUN:-0}" == 1 ]]; then
+        for params in "$@"; do
+            argv=()
+            read -r -a argv <<< "$params"
+            printf 'python -u %q ' "$entrypoint"
+            printf '%q ' "${argv[@]}"
+            echo
+        done
+        return 0
+    fi
+    if [[ -z "${SLURM_JOB_ID:-}" ]]; then
+        echo "Error: this launcher must run inside a Slurm allocation." >&2
+        return 2
+    fi
+
     _BB_RESULT_DIRECTORY="$ROOT/resdir_${SLURM_JOB_ID}"
     if [[ -e "$_BB_RESULT_DIRECTORY" ]]; then
         echo "Error: result directory already exists: $_BB_RESULT_DIRECTORY" >&2
@@ -83,6 +97,7 @@ run_bb_experiments() {
         echo "Job name: ${SLURM_JOB_NAME:-unknown}"
         echo "Node list: ${SLURM_NODELIST:-unknown}"
         echo "Experiments: $experiment_count"
+        echo "Campaign: ${BB_CAMPAIGN:-unspecified}"
     } > "$_BB_RESULT_DIRECTORY/job_metadata.txt"
     cp "$0" "$_BB_RESULT_DIRECTORY/submitted_script.slurm" 2>/dev/null || true
     cp "$ROOT/scripts/run_bb_slurm_batch.sh" \
@@ -94,6 +109,18 @@ run_bb_experiments() {
     fi
     cp "$entrypoint" "$_BB_RESULT_DIRECTORY/entrypoint_snapshot.py" \
         2>/dev/null || true
+    # The active decoder may be uncommitted during a research campaign.
+    # Preserve its implementation as well as the exact shell command.
+    if [[ "${BB_CAMPAIGN:-}" == "bb_neural_relay_2026_09" ]]; then
+        mkdir -p "$_BB_RESULT_DIRECTORY/source_snapshot/models" \
+            "$_BB_RESULT_DIRECTORY/source_snapshot/src"
+        for params in models/_equivariant_neural_bp2.py models/_neural_relay_bp2.py \
+            src/_bb_circuit_experiment.py src/_bb_circuit_trainer.py \
+            src/_bb_circuit_loss.py src/_bb_circuit_metrics.py \
+            src/bb_circuit_data.py src/bb_dem.py src/bb_stim_utils.py src/bb_code.py; do
+            cp "$ROOT/$params" "$_BB_RESULT_DIRECTORY/source_snapshot/$params" || return 1
+        done
+    fi
     if command -v git >/dev/null 2>&1 && \
        git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         git -C "$ROOT" rev-parse HEAD > "$_BB_RESULT_DIRECTORY/git_commit.txt"
@@ -106,9 +133,12 @@ run_bb_experiments() {
     trap _bb_stop_steps INT TERM
 
     index=0
+    printf 'experiment_index\tlabel\targuments\n' > experiments.tsv
     for params in "$@"; do
         argv=()
         read -r -a argv <<< "$params"
+        label="${BB_EXPERIMENT_LABELS[$index]:-experiment_$index}"
+        printf '%s\t%s\t%s\n' "$index" "$label" "$params" >> experiments.tsv
 
         {
             printf 'python -u %q ' "$entrypoint"
@@ -116,7 +146,7 @@ run_bb_experiments() {
             echo
         } > "command_exp_${index}.txt"
 
-        echo "Starting experiment $index: $params"
+        echo "Starting experiment $index ($label): $params"
         srun --exclusive --nodes=1 --ntasks=1 \
             "${step_resources[@]}" \
             python -u "$entrypoint" "${argv[@]}" \

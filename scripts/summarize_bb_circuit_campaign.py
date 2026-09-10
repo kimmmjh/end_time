@@ -613,7 +613,10 @@ def collect_results() -> tuple[list[CircuitResult], list[PartialCircuitResult]]:
             data = json.loads(history.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
             raise ValueError(f"Could not read {history}: {error}") from error
-        if data.get("config", {}).get("architecture") != "bb_neural_bp_circuit":
+        config = data.get("config", {})
+        if config.get("architecture") != "bb_neural_bp_circuit":
+            continue
+        if config.get("checkpoint_selection_metric") != "neural_osd_paired_gain":
             continue
         requested_epochs = sum(
             int(phase.get("epochs", 0)) for phase in data.get("phases", [])

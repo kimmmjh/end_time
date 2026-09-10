@@ -8,7 +8,8 @@ circuit detector sampler instead, so reported accuracy is measured on fresh
 exact circuit shots rather than on latent DEM labels.
 
 Every evaluation is paired.  The same shots are decoded by the neural model and
-by vanilla normalised min-sum, and -- when OSD scoring is enabled -- by the same
+by non-neural normalised min-sum (with the same Relay memory when enabled),
+and -- when OSD scoring is enabled -- by the same
 ordered-statistics post-processor driven from each posterior in turn.  Because
 the neural residual is zero-initialised, an untrained model reproduces the
 vanilla decoder bitwise, so the paired gain starts at exactly zero.
@@ -38,6 +39,7 @@ from ._bb_circuit_metrics import (
 )
 from .bb_circuit_data import BBCircuitGenerator
 from models._equivariant_neural_bp2 import EquivariantNeuralBP2
+from models._neural_relay_bp2 import NeuralRelayBP2
 
 Z_95 = 1.959963984540054
 
@@ -62,6 +64,10 @@ class CircuitEvaluation:
     vanilla_osd_accuracy: float | None = None
     osd_paired_gain: float | None = None
     osd_paired_gain_error: float | None = None
+    neural_mean_bp_iterations: float | None = None
+    vanilla_mean_bp_iterations: float | None = None
+    neural_mean_relay_legs: float | None = None
+    vanilla_mean_relay_legs: float | None = None
 
 
 def _paired_gain(
@@ -270,6 +276,24 @@ class BBCircuitTrainer:
             for key in required
             if saved_value(key) != self.experiment_config.get(key)
         ]
+        # Missing Relay metadata means the original single-pass decoder. Its
+        # checkpoints remain resumable, but cannot silently become Relay runs.
+        current_legs = self.experiment_config.get("bp_relay_legs", 0)
+        saved_legs = saved.get("bp_relay_legs", 0)
+        if saved_legs != current_legs:
+            mismatches.append(
+                f"bp_relay_legs: checkpoint={saved_legs}, current={current_legs}"
+            )
+        if saved_legs or current_legs:
+            for key in (
+                "bp_relay_solutions", "bp_relay_memory_strength",
+                "bp_relay_memory_min", "bp_relay_memory_max",
+            ):
+                if saved.get(key) != self.experiment_config.get(key):
+                    mismatches.append(
+                        f"{key}: checkpoint={saved.get(key)!r}, "
+                        f"current={self.experiment_config.get(key)!r}"
+                    )
         if mismatches:
             raise ValueError(
                 "Checkpoint is incompatible with this BB circuit graph/model. "
@@ -394,7 +418,7 @@ class BBCircuitTrainer:
             totals["mechanism"] += float(output.mechanism.detach())
         return {key: value / self.batches for key, value in totals.items()}
 
-    def _decode_hard(self, detectors: Tensor, *, neural: bool) -> np.ndarray:
+    def _decode_hard(self, detectors: Tensor, *, neural: bool) -> tuple[np.ndarray, Tensor]:
         posterior = self.model(detectors, neural=neural)
         return EquivariantNeuralBP2.hard_decision(posterior).cpu().numpy(), posterior
 
@@ -413,18 +437,49 @@ class BBCircuitTrainer:
         osd_neural: list[np.ndarray] = []
         osd_vanilla: list[np.ndarray] = []
         osd_budget = self.osd_eval_shots
+        relay_totals = np.zeros(4, dtype=np.float64)
+        if isinstance(self.model, NeuralRelayBP2):
+            # Evaluation randomness is isolated from training RNG. Both paths
+            # receive the SAME per-shot/per-leg memory, even when their early
+            # stopping decisions differ. Restarting this stream also makes
+            # validation memory reproducible across checkpoints.
+            memory_generator = torch.Generator(device=self.device)
+            memory_generator.manual_seed(
+                int(self.experiment_config.get("seed", 0)) % (2**63 - 1)
+            )
 
         for _ in range(batches):
             batch = self.eval_generator.sample_circuit(device=self.device)
             detectors = batch.detectors.cpu().numpy().astype(np.uint8)
             observables = batch.observables.cpu().numpy().astype(np.uint8)
 
-            hard_neural, posterior_neural = self._decode_hard(
-                batch.detectors, neural=True
-            )
-            hard_vanilla, posterior_vanilla = self._decode_hard(
-                batch.detectors, neural=False
-            )
+            if isinstance(self.model, NeuralRelayBP2):
+                memory = self.model.sample_memory(
+                    detectors.shape[0], generator=memory_generator
+                )
+                neural_result = self.model.decode(
+                    batch.detectors, neural=True, memory=memory
+                )
+                vanilla_result = self.model.decode(
+                    batch.detectors, neural=False, memory=memory
+                )
+                hard_neural = neural_result.correction.cpu().numpy()
+                hard_vanilla = vanilla_result.correction.cpu().numpy()
+                posterior_neural = neural_result.posterior
+                posterior_vanilla = vanilla_result.posterior
+                relay_totals += [
+                    neural_result.iterations.sum().item(),
+                    vanilla_result.iterations.sum().item(),
+                    neural_result.legs.sum().item(),
+                    vanilla_result.legs.sum().item(),
+                ]
+            else:
+                hard_neural, posterior_neural = self._decode_hard(
+                    batch.detectors, neural=True
+                )
+                hard_vanilla, posterior_vanilla = self._decode_hard(
+                    batch.detectors, neural=False
+                )
             neural_outcome = score_corrections(
                 hard_neural, detectors=detectors, observables=observables, **scoring
             )
@@ -494,6 +549,15 @@ class BBCircuitTrainer:
                 "osd_paired_gain_error": osd_error,
             }
 
+        relay_fields: dict[str, float] = {}
+        if isinstance(self.model, NeuralRelayBP2):
+            relay_fields = dict(zip(
+                (
+                    "neural_mean_bp_iterations", "vanilla_mean_bp_iterations",
+                    "neural_mean_relay_legs", "vanilla_mean_relay_legs",
+                ),
+                (relay_totals / neural.size).tolist(),
+            ))
         return CircuitEvaluation(
             shots=int(neural.size),
             neural_accuracy=float(neural.mean()),
@@ -508,6 +572,7 @@ class BBCircuitTrainer:
             harmed=harmed,
             osd_shots=sum(array.size for array in osd_neural),
             **osd_fields,
+            **relay_fields,
         )
 
     # ------------------------------------------------------------------
@@ -637,6 +702,9 @@ class BBCircuitTrainer:
 
     @staticmethod
     def _format(evaluation: CircuitEvaluation, epoch: int, prefix: str) -> str:
+        baseline = (
+            "Relay BP" if evaluation.neural_mean_relay_legs is not None else "Vanilla BP"
+        )
         line = (
             f"[{prefix}] Epoch: {epoch} | "
             f"Accuracy: {evaluation.neural_accuracy:.8f} | "
@@ -644,12 +712,21 @@ class BBCircuitTrainer:
             f"Syndrome Convergence: {evaluation.neural_converged:.8f} | "
             f"Flagged: {evaluation.neural_flagged:.8f} | "
             f"Unflagged Logical: {evaluation.neural_unflagged:.8f} | "
-            f"Vanilla BP Accuracy: {evaluation.vanilla_accuracy:.8f} | "
+            f"{baseline} Accuracy: {evaluation.vanilla_accuracy:.8f} | "
             f"Paired Gain: {evaluation.paired_gain:+.8f} "
             f"+/- {evaluation.paired_gain_error:.8f} | "
             f"Rescued: {evaluation.rescued} | Harmed: {evaluation.harmed} | "
             f"Eval Samples: {evaluation.shots}"
         )
+        if evaluation.neural_mean_relay_legs is not None:
+            line += (
+                f" | Mean BP Iterations (Neural/Baseline): "
+                f"{evaluation.neural_mean_bp_iterations:.3f}/"
+                f"{evaluation.vanilla_mean_bp_iterations:.3f}"
+                f" | Mean Relay Legs (Neural/Baseline): "
+                f"{evaluation.neural_mean_relay_legs:.3f}/"
+                f"{evaluation.vanilla_mean_relay_legs:.3f}"
+            )
         if evaluation.neural_osd_accuracy is not None:
             line += (
                 f" | Neural+OSD: {evaluation.neural_osd_accuracy:.8f}"

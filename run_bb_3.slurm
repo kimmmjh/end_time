@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_raw144_high
+#SBATCH --job-name=bbc_relay144_high
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -10,24 +10,36 @@
 #SBATCH --gpus-per-task=1
 #SBATCH --output=slurm-%x-%j.out
 
-set -uo pipefail
+set -euo pipefail
 
-module load python/3.10 || exit 1
-source "$PSCRATCH/envs/nde/bin/activate" || exit 1
-ROOT="$HOME/end_time"
-cd "$ROOT" || exit 1
-source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
-source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
+# Preview locally: BB_DRY_RUN=1 bash run_bb_3.slurm
+if [[ "${BB_DRY_RUN:-0}" == 1 ]]; then
+    ROOT="${BB_REPO_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)}"
+else
+    module load python/3.10
+    source "$PSCRATCH/envs/nde/bin/activate"
+    ROOT="${BB_REPO_ROOT:-$HOME/end_time}"
+fi
+cd "$ROOT"
+source "$ROOT/scripts/run_bb_slurm_batch.sh"
+source "$ROOT/scripts/bb_neural_slurm_defaults.sh"
+BB_CAMPAIGN="bb_neural_relay_2026_09"
 
-# OSD is fully disabled. Evaluation compares raw Neural BP2 with raw
-# vanilla BP2, and checkpoints are selected by raw paired gain.
-
-# High-p BB144 sweep. Together with run_bb_2 this spans p=0.001--0.010.
+# Relay reference, BB144 high-p. Historical OSD runs here are partial.
+# All runs: schema v2, legacy q=p, idle=0, 100 epochs, OSD disabled.
+# Full design and comparison caveats: docs/bb_neural_relay_campaign.md
 experiments=(
-    "$BB_CIRCUIT_NO_OSD_BB144_ARGS --p=0.005 --measurement_error_rate=0.005 --bb_idle_error_rate=0 --seed=14401005"
-    "$BB_CIRCUIT_NO_OSD_BB144_ARGS --p=0.006 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=14401006"
-    "$BB_CIRCUIT_NO_OSD_BB144_ARGS --p=0.008 --measurement_error_rate=0.008 --bb_idle_error_rate=0 --seed=14401008"
-    "$BB_CIRCUIT_NO_OSD_BB144_ARGS --p=0.010 --measurement_error_rate=0.010 --bb_idle_error_rate=0 --seed=14401010"
+    "$(bb_relay_experiment_args bb144 relay 0.005 14401005)"
+    "$(bb_relay_experiment_args bb144 relay 0.006 14401006)"
+    "$(bb_relay_experiment_args bb144 relay 0.008 14401008)"
+    "$(bb_relay_experiment_args bb144 relay 0.010 14401010)"
+)
+
+BB_EXPERIMENT_LABELS=(
+    "bb144_relay_p0.005_seed14401005"
+    "bb144_relay_p0.006_seed14401006"
+    "bb144_relay_p0.008_seed14401008"
+    "bb144_relay_p0.010_seed14401010"
 )
 
 run_bb_experiments "${experiments[@]}"

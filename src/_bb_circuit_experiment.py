@@ -13,6 +13,7 @@ import numpy as np
 import torch
 
 from models._equivariant_neural_bp2 import EquivariantNeuralBP2
+from models._neural_relay_bp2 import NeuralRelayBP2
 
 from ._bb_circuit_loss import CircuitDegeneracyAwareLoss
 from ._bb_circuit_trainer import BBCircuitTrainer
@@ -132,7 +133,16 @@ def run_bb_circuit_experiment(args: Any) -> str:
     graph = train_generator.graph
     noise_profile = train_generator.noise_profile
 
-    model = EquivariantNeuralBP2(
+    relay_kwargs = {
+        "relay_legs": args.bp_relay_legs,
+        "relay_solutions": args.bp_relay_solutions,
+        "relay_memory_strength": args.bp_relay_memory_strength,
+        "relay_memory_min": args.bp_relay_memory_min,
+        "relay_memory_max": args.bp_relay_memory_max,
+    }
+    relay_enabled = args.bp_relay_legs > 0
+    model_class = NeuralRelayBP2 if relay_enabled else EquivariantNeuralBP2
+    model = model_class(
         graph,
         iterations=args.bp_iterations,
         hidden_dim=args.bp_residual_hidden_dim,
@@ -142,6 +152,7 @@ def run_bb_circuit_experiment(args: Any) -> str:
         residual_scale=args.bp_residual_scale,
         max_relaxation_delta=args.bp_max_relaxation_delta,
         gradient_checkpoint=not args.bp_no_gradient_checkpoint,
+        **(relay_kwargs if relay_enabled else {}),
     ).to(device)
     criterion = CircuitDegeneracyAwareLoss(
         check_matrix=graph.check_matrix,
@@ -170,6 +181,10 @@ def run_bb_circuit_experiment(args: Any) -> str:
             f"ds{args.bp_deep_supervision_weight:g}_lr{learning_rate:g}_"
             f"bs{args.batch_size}_b{args.batches}_eb{args.eval_batches}_"
             f"ee{args.eval_every}_feb{final_eval_batches}_seed{actual_seed}"
+            + (
+                f"_relay{args.bp_relay_legs}_sol{args.bp_relay_solutions}"
+                if relay_enabled else ""
+            )
             + ("_resume" if args.load_model else "")
         ),
     )
@@ -181,7 +196,11 @@ def run_bb_circuit_experiment(args: Any) -> str:
     )
 
     experiment_config = {
-        "architecture": "bb_neural_bp_circuit",
+        "architecture": (
+            "bb_neural_relay_bp_circuit" if relay_enabled else "bb_neural_bp_circuit"
+        ),
+        "baseline_decoder": "relay_min_sum" if relay_enabled else "normalized_min_sum",
+        **{f"bp_{key}": value for key, value in relay_kwargs.items()},
         "circuit_schema_version": CIRCUIT_SCHEMA_VERSION,
         "code": code.name,
         "n": code.n,
@@ -256,12 +275,19 @@ def run_bb_circuit_experiment(args: Any) -> str:
         args.bp_orbit_embedding_dim,
         args.bp_parameter_sharing,
     )
-    logging.info(
-        "Plain belief propagation is a weak decoder on a quantum LDPC detector "
-        "error model. Enable --bb_osd_eval_shots to also report the "
-        "Neural-BP+OSD versus BP+OSD comparison that the classical literature "
-        "uses as its baseline."
-    )
+    if relay_enabled:
+        logging.info(
+            "Relay: legs=%d | iterations per leg=%d | target successful legs=%d | "
+            "memory first=%g, later=[%g,%g] | baseline=Relay min-sum with the "
+            "same memory draws, no neural residual/relaxation. Training uses "
+            "full unrolling; evaluation retains valid candidates and stops per shot.",
+            args.bp_relay_legs,
+            args.bp_iterations,
+            args.bp_relay_solutions,
+            args.bp_relay_memory_strength,
+            args.bp_relay_memory_min,
+            args.bp_relay_memory_max,
+        )
     logging.info("Output directory: %s", output_directory)
 
     trainer = BBCircuitTrainer(

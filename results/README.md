@@ -10,18 +10,32 @@ results/
 │   └── circuit/{convgru_mwpm,convgru_weighted_mwpm}/
 ├── bb/
 │   ├── code_capacity/depolarizing/orbit/{bb72,bb144}/
-│   └── circuit/{q_equals_p_idle0,noise_balance}/
+│   └── circuit/{q_equals_p_idle0,no_osd,noise_balance}/
 ├── analysis/
 ├── plots/
 └── local_smoke/
 ```
+
+## Curated figures
+
+Headline results:
+
+- [`plots/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.png`](plots/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.png): toric phenomenological threshold study
+- [`plots/bb_campaign_2026_08_decoders.png`](plots/bb_campaign_2026_08_decoders.png): BB code-capacity decoder comparison
+- [`plots/bb_circuit_campaign_2026_08.png`](plots/bb_circuit_campaign_2026_08.png): BB circuit-level Neural+OSD reference sweep
+
+Supporting and diagnostic figures:
+
+- [`plots/bb_campaign_2026_08_ablations.png`](plots/bb_campaign_2026_08_ablations.png): code-capacity ablations
+- [`plots/bb_circuit_campaign_2026_08_ablations.png`](plots/bb_circuit_campaign_2026_08_ablations.png): circuit-level ablations
+- [`plots/bb_circuit_raw_vs_osd_2026_09.png`](plots/bb_circuit_raw_vs_osd_2026_09.png): raw-versus-OSD diagnostic; the two pipelines use separately selected checkpoints
 
 The current curated ConvGRU/PyMatching threshold plot can be reproduced from
 its selected-point CSV:
 
 ```bash
 python scripts/plot_threshold.py \
-  results/plots/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.csv \
+  results/analysis/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.csv \
   --out results/plots/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.png \
   --title "Phenomenological Threshold: ConvGRU vs PyMatching"
 ```
@@ -66,14 +80,9 @@ The extracted data and interpretation are in
 [`analysis/bb_neural_bp_depolarizing_orbit.csv`](analysis/bb_neural_bp_depolarizing_orbit.csv)
 and
 [`analysis/bb_neural_bp_depolarizing_orbit.md`](analysis/bb_neural_bp_depolarizing_orbit.md).
-Recreate the comparison figure with:
-
-```bash
-python scripts/plot_bb_results.py
-```
-
-The generated figure is
-[`plots/bb_neural_bp_vs_vanilla_bp.png`](plots/bb_neural_bp_vs_vanilla_bp.png).
+Its early BP-only figure has been retired because the newer same-bank decoder
+comparison below contains the Neural/vanilla curves together with the stronger
+OSD and LSD baselines.
 
 ## August 2026 BB campaign
 
@@ -128,6 +137,7 @@ bb/circuit/
 ├── q_equals_p_idle0/
 │   ├── orbit/{bb72,bb144,replicates}/
 │   └── ablations/{sharing,iterations,mechanism,loss_auxiliary}/
+├── no_osd/q_equals_p_idle0/orbit/{bb72,bb144}/
 └── noise_balance/orbit/
 ```
 
@@ -164,3 +174,45 @@ and
 This is still not a threshold estimate: BB144 high-p completion, more training
 seeds, a larger fixed test bank, and stronger OSD-CS/LSD comparisons remain
 necessary.
+
+## September 2026 BB circuit-level no-OSD diagnostic
+
+The two raw-decoder jobs are archived as
+`bb/circuit/no_osd/q_equals_p_idle0/orbit/bb72/resdir_57890809` and
+`bb/circuit/no_osd/q_equals_p_idle0/orbit/bb144/resdir_57890812`. All eight
+points (`p=0.001` through `0.004` for each code) completed 100 epochs and a
+fresh 4,096-shot selected-best evaluation. They use raw Neural BP2 versus raw
+vanilla BP2 on paired Stim samples; no OSD evaluation or repair is present.
+
+The extracted data and interpretation are in
+[`analysis/bb_circuit_no_osd_2026_09.csv`](analysis/bb_circuit_no_osd_2026_09.csv)
+and
+[`analysis/bb_circuit_no_osd_2026_09.md`](analysis/bb_circuit_no_osd_2026_09.md).
+The empty partial-run inventory is
+[`analysis/bb_circuit_no_osd_2026_09_partial.csv`](analysis/bb_circuit_no_osd_2026_09_partial.csv).
+Rebuild the raw summary tables with:
+
+```bash
+python scripts/summarize_bb_circuit_no_osd.py
+```
+
+The separate raw-only figure has been retired because the combined figure below
+contains the same raw failure and paired-gain curves. These points are a
+convergence diagnostic, not a threshold curve: raw success is almost identical
+to syndrome convergence, and BB144 collapses for `p>=0.002` without a global
+repair stage.
+
+The common `p=0.001`--`0.004` raw and OSD-assisted results are overlaid in
+[`plots/bb_circuit_raw_vs_osd_2026_09.png`](plots/bb_circuit_raw_vs_osd_2026_09.png),
+with the merged values in
+[`analysis/bb_circuit_raw_vs_osd_2026_09.csv`](analysis/bb_circuit_raw_vs_osd_2026_09.csv).
+Recreate both with:
+
+```bash
+python scripts/plot_bb_circuit_raw_vs_osd.py
+```
+
+This overlay is descriptive rather than a clean OSD ablation. The raw campaign
+selects checkpoints by raw paired gain, while the older OSD campaign selects
+them by OSD paired gain. A causal before/after comparison requires applying OSD
+to the same frozen checkpoint on the same saved test bank.

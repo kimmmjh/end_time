@@ -107,42 +107,47 @@ Reported `Accuracy` is block logical success, not qubit accuracy. Logs also
 separate syndrome-nonconverged (flagged) failures from syndrome-converged but
 logical (unflagged) failures.
 
-The current ten Perlmutter jobs run the corrected **circuit-level no-OSD** BB
-neural-BP campaign described below. Every job requests four GPUs and launches
-four independent experiments concurrently.
+The current ten Perlmutter jobs run the **Neural Relay BP2 circuit-level
+no-OSD campaign**: 40 experiments with the existing check-message residual and
+relaxation, variable memory, and candidate selection across Relay legs. The
+full configuration and historical comparison rules are in
+[`docs/bb_neural_relay_campaign.md`](docs/bb_neural_relay_campaign.md).
 
 | Script | Four concurrent experiments |
 | --- | --- |
-| `run_bb_0.slurm` | BB72 threshold sweep, p=0.001/0.002/0.003/0.004 |
-| `run_bb_1.slurm` | BB72 threshold sweep, p=0.005/0.006/0.008/0.010 |
-| `run_bb_2.slurm` | BB144 on the same low-p grid as job 0 |
-| `run_bb_3.slurm` | BB144 on the same high-p grid as job 1 |
-| `run_bb_4.slurm` | two extra training seeds per code at p=0.004 |
-| `run_bb_5.slurm` | global-sharing controls at p=0.003/0.005, both codes |
-| `run_bb_6.slurm` | T=6 and T=24 controls at p=0.004, both codes |
-| `run_bb_7.slurm` | residual-only and learned-relaxation-only controls |
-| `run_bb_8.slurm` | no mechanism auxiliary BCE and no deep supervision |
-| `run_bb_9.slurm` | idle-noise and doubled-readout-noise controls at p=0.003 |
+| `run_bb_0.slurm` | BB72 Relay, p=0.001/0.002/0.003/0.004 |
+| `run_bb_1.slurm` | BB72 Relay, p=0.005/0.006/0.008/0.010 |
+| `run_bb_2.slurm` | BB144 Relay on the low-p grid |
+| `run_bb_3.slurm` | BB144 Relay on the high-p grid |
+| `run_bb_4.slurm` | two extra Relay training seeds per code at p=0.004 |
+| `run_bb_5.slurm` | fresh legacy T=12 anchors at p=0.003/0.004, both codes |
+| `run_bb_6.slurm` | legacy T=48 compute controls at p=0.003/0.004, both codes |
+| `run_bb_7.slurm` | zero memory and mean-matched constant memory, both codes |
+| `run_bb_8.slurm` | Relay R=1,T=48 and R=12,T=4, both codes |
+| `run_bb_9.slurm` | first-solution stopping and global-sharing Relay, both codes |
 
-Submit selected jobs, or submit the full suite with:
+The reference is R=4 legs, T=12 iterations per leg, S=2 successful legs sought,
+with first memory 0.125 and later memory sampled from [-0.24,0.66]. All runs use
+schema-v2 legacy noise with `q=p`, idle=0, hidden width 32, embedding width 8,
+min-sum scaling 0.625, 100 epochs, 128 batches per epoch, and learning rate 3e-4.
+BB72 retains six noisy cycles and batch size 16; BB144 retains twelve noisy
+cycles and batch size 8. Seeds and training/evaluation sample budgets match the
+archived circuit campaign. Validation uses 1,024 shots every ten epochs and
+final evaluation uses 4,096 fresh shots. `--bb_osd_eval_shots=0` disables OSD.
+
+Relay evaluation compares against non-neural Relay BP on the same shots and
+memory draws. Legacy controls compare against legacy BP. Compare absolute LER
+across these runs; their paired gains have different baselines. R=4,T=12 trains
+through 48 steps per sample, while inference stops adaptively. These sweeps
+are not threshold estimates. Old OSD-selected results are a separate pipeline
+comparison, not an OSD ablation on the same frozen checkpoint.
+
+Preview locally without an allocation, or submit all jobs on Perlmutter:
 
 ```bash
+BB_DRY_RUN=1 bash run_bb_0.slurm
 for i in {0..9}; do sbatch "run_bb_${i}.slurm"; done
 ```
-
-The first phase is 100 epochs with 128 online-data batches per epoch and can be
-continued only from a compatible no-OSD `model.pt`. BB72 uses six noisy cycles
-and batch size 16; BB144 uses twelve noisy cycles and batch size 8. The default
-model is T=12, hidden-width 32, orbit-embedding width 8, and normalized min-sum
-scale 0.625. `--bb_osd_eval_shots=0` prevents OSD construction and execution.
-Validation runs every ten epochs, checkpoints are selected by raw Neural-BP2
-paired gain against raw vanilla BP2, and the final raw evaluation uses 4,096
-Stim shots.
-
-The threshold sweeps use `q=p` and zero idle error. Job 9 separately tests
-`idle=p` and `q=2p`. `global` sharing remains translation equivariant but has
-far fewer trainable group embeddings than `orbit`, so job 5 is a useful
-parameter-sharing control rather than a parameter-count-matched comparison.
 
 All jobs use account `m5328_g`, `$PSCRATCH/envs/nde`, and `$HOME/end_time`.
 Each allocation launches four `srun --exclusive` steps with one GPU and 16 CPU
@@ -154,7 +159,8 @@ The timestamped model directories are under each result directory's
 The shared launch logic and canonical settings are in
 `scripts/run_bb_slurm_batch.sh`.
 
-For the same no-OSD comparison outside Slurm, use the direct-GPU runner:
+For the original single-pass no-OSD comparison outside Slurm, use the
+direct-GPU runner (this runner does not enable Relay):
 
 ```bash
 # Split the BB72 sweep across two physical GPUs.
@@ -182,12 +188,13 @@ The completed BB72 and BB144 depolarizing sweeps are summarized in
 with a machine-readable CSV and a Neural BP versus vanilla BP4 comparison
 plot in `results/analysis/` and `results/plots/`.
 
-Before submitting all ten jobs, time one BB144 T=24 circuit batch on a GPU:
+Before a full Relay campaign, time a BB144 R=4,T=12 circuit batch on a GPU:
 
 ```bash
 python main.py --code=bb144 --architecture=bb_neural_bp \
   --noise_model=circuit --rounds=12 --p=0.004 --measurement_error_rate=0.004 \
-  --loss_fn=bb_coset --bp_iterations=24 --bp_residual_hidden_dim=32 \
+  --loss_fn=bb_coset --bp_iterations=12 --bp_residual_hidden_dim=32 \
+  --bp_relay_legs=4 --bp_relay_solutions=2 \
   --bp_orbit_embedding_dim=8 --bp_parameter_sharing=orbit \
   --epochs=1 --batches=2 --batch_size=8 \
   --eval_batches=1 --eval_every=1 --final_eval_batches=1 \
@@ -203,6 +210,12 @@ when it is disabled. Generator RNG state, optimizer state, and plot history
 are saved, and an incompatible BB graph/model checkpoint is rejected.
 
 ## BB circuit-level neural BP
+
+Optional **Neural Relay BP2** keeps the learned check-message residual and
+relaxation, adds variable memory, and searches across multiple BP legs without
+OSD. Enable it with `--bp_relay_legs=4`; `--bp_iterations` is then the budget
+per leg. See [the implementation and experiment guide](docs/bb_neural_relay_bp.md)
+for training, candidate selection, paired evaluation and checkpoint semantics.
 
 The code-capacity path above assumes one perfect syndrome.  `--noise_model=circuit`
 instead decodes a full Stim memory experiment, and that changes the decoder

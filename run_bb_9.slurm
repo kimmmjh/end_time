@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_raw_noise
+#SBATCH --job-name=bbc_relay_candidates
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -10,26 +10,36 @@
 #SBATCH --gpus-per-task=1
 #SBATCH --output=slurm-%x-%j.out
 
-set -uo pipefail
+set -euo pipefail
 
-module load python/3.10 || exit 1
-source "$PSCRATCH/envs/nde/bin/activate" || exit 1
-ROOT="$HOME/end_time"
-cd "$ROOT" || exit 1
-source "$ROOT/scripts/run_bb_slurm_batch.sh" || exit 1
-source "$ROOT/scripts/bb_neural_slurm_defaults.sh" || exit 1
+# Preview locally: BB_DRY_RUN=1 bash run_bb_9.slurm
+if [[ "${BB_DRY_RUN:-0}" == 1 ]]; then
+    ROOT="${BB_REPO_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)}"
+else
+    module load python/3.10
+    source "$PSCRATCH/envs/nde/bin/activate"
+    ROOT="${BB_REPO_ROOT:-$HOME/end_time}"
+fi
+cd "$ROOT"
+source "$ROOT/scripts/run_bb_slurm_batch.sh"
+source "$ROOT/scripts/bb_neural_slurm_defaults.sh"
+BB_CAMPAIGN="bb_neural_relay_2026_09"
 
-# OSD is fully disabled. Evaluation compares raw Neural BP2 with raw
-# vanilla BP2, and checkpoints are selected by raw paired gain.
-
-# The sweep uses q=p and no idle faults. These runs test two omitted hardware
-# effects at p=0.003: one idle depolarizing location per inactive data/layer,
-# or a readout rate twice the gate rate.
+# R=4,T=12: first-solution stopping versus global parameter sharing.
+# All runs: schema v2, legacy q=p, idle=0, 100 epochs, OSD disabled.
+# Full design and comparison caveats: docs/bb_neural_relay_campaign.md
 experiments=(
-    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0.003 --seed=7201003"
-    "$BB_CIRCUIT_NO_OSD_BB72_ARGS --p=0.003 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=7201003"
-    "$BB_CIRCUIT_NO_OSD_BB144_ARGS --p=0.003 --measurement_error_rate=0.003 --bb_idle_error_rate=0.003 --seed=14401003"
-    "$BB_CIRCUIT_NO_OSD_BB144_ARGS --p=0.003 --measurement_error_rate=0.006 --bb_idle_error_rate=0 --seed=14401003"
+    "$(bb_relay_experiment_args bb72 first_solution 0.004 7201004)"
+    "$(bb_relay_experiment_args bb72 global 0.004 7201004)"
+    "$(bb_relay_experiment_args bb144 first_solution 0.004 14401004)"
+    "$(bb_relay_experiment_args bb144 global 0.004 14401004)"
+)
+
+BB_EXPERIMENT_LABELS=(
+    "bb72_first_solution_p0.004_seed7201004"
+    "bb72_global_p0.004_seed7201004"
+    "bb144_first_solution_p0.004_seed14401004"
+    "bb144_global_p0.004_seed14401004"
 )
 
 run_bb_experiments "${experiments[@]}"
