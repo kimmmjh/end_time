@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_relay_legacy48
+#SBATCH --job-name=bbcnn_bb144_d2
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -22,24 +22,26 @@ else
 fi
 cd "$ROOT"
 source "$ROOT/scripts/run_bb_slurm_batch.sh"
-source "$ROOT/scripts/bb_neural_slurm_defaults.sh"
-BB_CAMPAIGN="bb_neural_relay_2026_09"
+source "$ROOT/scripts/bb_tanner_cnn_slurm_defaults.sh"
+BB_CAMPAIGN="bb_tanner_cnn_2026_09"
+BB_PYTHON_ENTRYPOINT="$ROOT/main.py"
 
-# Legacy T=48: match Relay 4x12 training depth and maximum inference iterations.
-# All runs: schema v2, legacy q=p, idle=0, 100 epochs, OSD disabled.
-# Full design and comparison caveats: docs/bb_neural_relay_campaign.md
+# Default depth=2 CNN: check -> qubit -> check -> qubit.
+# Depolarizing code capacity; each run reports CNN and CNN+direct OSD-0.
+# 100 epochs, validation 4096 shots every 5 epochs, final test 65536 shots.
+# Matrix, seeds and submission instructions: docs/bb_tanner_cnn.md
 experiments=(
-    "$(bb_relay_experiment_args bb72 legacy_t48 0.003 7201003)"
-    "$(bb_relay_experiment_args bb72 legacy_t48 0.004 7201004)"
-    "$(bb_relay_experiment_args bb144 legacy_t48 0.003 14401003)"
-    "$(bb_relay_experiment_args bb144 legacy_t48 0.004 14401004)"
+    "$(bb_tanner_cnn_experiment_args bb144 2 0.02 14401020)"
+    "$(bb_tanner_cnn_experiment_args bb144 2 0.04 14401040)"
+    "$(bb_tanner_cnn_experiment_args bb144 2 0.06 14401060)"
+    "$(bb_tanner_cnn_experiment_args bb144 2 0.08 14401080)"
 )
 
 BB_EXPERIMENT_LABELS=(
-    "bb72_legacy_t48_p0.003_seed7201003"
-    "bb72_legacy_t48_p0.004_seed7201004"
-    "bb144_legacy_t48_p0.003_seed14401003"
-    "bb144_legacy_t48_p0.004_seed14401004"
+    "bb144_tanner_cnn_depth2_p0.02_seed14401020"
+    "bb144_tanner_cnn_depth2_p0.04_seed14401040"
+    "bb144_tanner_cnn_depth2_p0.06_seed14401060"
+    "bb144_tanner_cnn_depth2_p0.08_seed14401080"
 )
 
 run_bb_experiments "${experiments[@]}"

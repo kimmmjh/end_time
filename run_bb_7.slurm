@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_relay_memory
+#SBATCH --job-name=bbcnn_bb72_d1
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -22,24 +22,26 @@ else
 fi
 cd "$ROOT"
 source "$ROOT/scripts/run_bb_slurm_batch.sh"
-source "$ROOT/scripts/bb_neural_slurm_defaults.sh"
-BB_CAMPAIGN="bb_neural_relay_2026_09"
+source "$ROOT/scripts/bb_tanner_cnn_slurm_defaults.sh"
+BB_CAMPAIGN="bb_tanner_cnn_2026_09"
+BB_PYTHON_ENTRYPOINT="$ROOT/main.py"
 
-# R=4,T=12,S=2: zero memory versus mean-matched constant later gamma=0.21.
-# All runs: schema v2, legacy q=p, idle=0, 100 epochs, OSD disabled.
-# Full design and comparison caveats: docs/bb_neural_relay_campaign.md
+# Local depth=1 control, matching depth=2 seeds, data streams and budgets.
+# Depolarizing code capacity; each run reports CNN and CNN+direct OSD-0.
+# 100 epochs, validation 4096 shots every 5 epochs, final test 65536 shots.
+# Matrix, seeds and submission instructions: docs/bb_tanner_cnn.md
 experiments=(
-    "$(bb_relay_experiment_args bb72 zero_memory 0.004 7201004)"
-    "$(bb_relay_experiment_args bb72 constant_memory 0.004 7201004)"
-    "$(bb_relay_experiment_args bb144 zero_memory 0.004 14401004)"
-    "$(bb_relay_experiment_args bb144 constant_memory 0.004 14401004)"
+    "$(bb_tanner_cnn_experiment_args bb72 1 0.02 7201020)"
+    "$(bb_tanner_cnn_experiment_args bb72 1 0.04 7201040)"
+    "$(bb_tanner_cnn_experiment_args bb72 1 0.06 7201060)"
+    "$(bb_tanner_cnn_experiment_args bb72 1 0.08 7201080)"
 )
 
 BB_EXPERIMENT_LABELS=(
-    "bb72_zero_memory_p0.004_seed7201004"
-    "bb72_constant_memory_p0.004_seed7201004"
-    "bb144_zero_memory_p0.004_seed14401004"
-    "bb144_constant_memory_p0.004_seed14401004"
+    "bb72_tanner_cnn_depth1_p0.02_seed7201020"
+    "bb72_tanner_cnn_depth1_p0.04_seed7201040"
+    "bb72_tanner_cnn_depth1_p0.06_seed7201060"
+    "bb72_tanner_cnn_depth1_p0.08_seed7201080"
 )
 
 run_bb_experiments "${experiments[@]}"

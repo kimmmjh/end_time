@@ -2,8 +2,9 @@
 
 As of September 23, `run_bb_0.slurm` through `run_bb_4.slurm` run **evaluation
 only** via `scripts/evaluate_bb_circuit_bp.py`. They replace the corresponding
-Neural Relay training jobs. Jobs 5–9 remain the earlier neural ablations; they
-are not part of this ordinary-BP sweep.
+Neural Relay training jobs. As of September 24, jobs 5–9 run the separate
+[Tanner CNN code-capacity campaign](bb_tanner_cnn.md#slurm-campaign-jobs-59);
+they are not part of this ordinary-BP sweep.
 
 ## Experiments
 

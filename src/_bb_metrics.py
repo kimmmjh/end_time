@@ -68,14 +68,28 @@ def bb_shot_outcomes(
 
     if logits.ndim != 3 or logits.shape[-1] != 4:
         raise ValueError(f"Expected logits [B,n,4], got {tuple(logits.shape)}.")
-    correction = logits.argmax(dim=-1)
+    return bb_correction_outcomes(
+        logits.argmax(dim=-1), syndrome, pauli, hx=hx, hz=hz,
+        logicals_x=logicals_x, logicals_z=logicals_z,
+    )
+
+
+def bb_correction_outcomes(
+    correction: Tensor, syndrome: Tensor, pauli: Tensor, *,
+    hx: Tensor, hz: Tensor, logicals_x: Tensor, logicals_z: Tensor,
+) -> BBShotOutcomes:
+    """Score explicit Pauli corrections (including marginal hard decisions)."""
+    if correction.ndim != 2 or correction.shape != pauli.shape:
+        raise ValueError("correction and pauli must have identical [batch,n] shapes.")
+    if not torch.all((correction >= 0) & (correction <= 3) & (correction == correction.long())):
+        raise ValueError("correction must contain Pauli labels 0,1,2,3.")
     correction_x, correction_z = pauli_to_xz(correction)
     error_x, error_z = pauli_to_xz(pauli)
 
-    hx = torch.as_tensor(hx, device=logits.device, dtype=torch.bool)
-    hz = torch.as_tensor(hz, device=logits.device, dtype=torch.bool)
-    logicals_x = torch.as_tensor(logicals_x, device=logits.device, dtype=torch.bool)
-    logicals_z = torch.as_tensor(logicals_z, device=logits.device, dtype=torch.bool)
+    hx = torch.as_tensor(hx, device=correction.device, dtype=torch.bool)
+    hz = torch.as_tensor(hz, device=correction.device, dtype=torch.bool)
+    logicals_x = torch.as_tensor(logicals_x, device=correction.device, dtype=torch.bool)
+    logicals_z = torch.as_tensor(logicals_z, device=correction.device, dtype=torch.bool)
 
     predicted_syndrome = torch.cat(
         (
@@ -85,7 +99,7 @@ def bb_shot_outcomes(
         dim=1,
     )
     syndrome_converged = (
-        predicted_syndrome == syndrome.to(device=logits.device, dtype=torch.bool)
+        predicted_syndrome == syndrome.to(device=correction.device, dtype=torch.bool)
     ).all(dim=1)
 
     residual_x = torch.logical_xor(error_x, correction_x)
@@ -168,5 +182,6 @@ __all__ = [
     "BBShotOutcomes",
     "aggregate_bb_outcomes",
     "bb_shot_outcomes",
+    "bb_correction_outcomes",
     "paired_success_gain",
 ]

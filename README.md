@@ -1,8 +1,8 @@
 # TheEND time: equivariant neural QEC decoders
 
 This repository contains translation-equivariant toric-code decoders and an
-orbit-equivariant neural belief-propagation decoder for bivariate-bicycle (BB)
-codes. The toric path supports code-capacity, phenomenological, and Stim-based
+orbit-equivariant neural belief-propagation decoder and joint Tanner CNN for
+bivariate-bicycle (BB) codes. The toric path supports code-capacity, phenomenological, and Stim-based
 circuit noise. The BB path supports code capacity, which decodes four-state
 Pauli beliefs on the code Tanner graph, and Stim-based circuit noise, which
 decodes binary beliefs on the detector error model. BB phenomenological noise
@@ -18,7 +18,7 @@ Circuit-level generation requires Stim 1.15 or newer.
 
 ## BB code-capacity neural BP
 
-The BB path currently provides the published `[[72,12,6]]` and
+The BB neural BP path currently provides the published `[[72,12,6]]` and
 `[[144,12,12]]` constructions. It has one perfect syndrome measurement, so
 there is no physical-time axis, CNN, ConvGRU, pooling, or MWPM:
 
@@ -107,46 +107,39 @@ Reported `Accuracy` is block logical success, not qubit accuracy. Logs also
 separate syndrome-nonconverged (flagged) failures from syndrome-converged but
 logical (unflagged) failures.
 
-The current ten Perlmutter jobs run the **Neural Relay BP2 circuit-level
-no-OSD campaign**: 40 experiments with the existing check-message residual and
-relaxation, variable memory, and candidate selection across Relay legs. The
-full configuration and historical comparison rules are in
-[`docs/bb_neural_relay_campaign.md`](docs/bb_neural_relay_campaign.md).
+## Current Slurm experiments
+
+Jobs 0–4 evaluate **ordinary circuit-level BP** with paired iteration caps
+12/1000; jobs 5–9 train the **joint Tanner CNN under code-capacity noise**, with
+paired CNN/CNN+direct OSD-0 evaluation. Each job launches four experiments.
+The noise models and p definitions differ, so these are separate comparisons.
+See the [ordinary BP campaign](docs/bb_plain_bp_campaign.md) and
+[Tanner CNN architecture and campaign](docs/bb_tanner_cnn.md).
 
 | Script | Four concurrent experiments |
 | --- | --- |
-| `run_bb_0.slurm` | BB72 Relay, p=0.001/0.002/0.003/0.004 |
-| `run_bb_1.slurm` | BB72 Relay, p=0.005/0.006/0.008/0.010 |
-| `run_bb_2.slurm` | BB144 Relay on the low-p grid |
-| `run_bb_3.slurm` | BB144 Relay on the high-p grid |
-| `run_bb_4.slurm` | two extra Relay training seeds per code at p=0.004 |
-| `run_bb_5.slurm` | fresh legacy T=12 anchors at p=0.003/0.004, both codes |
-| `run_bb_6.slurm` | legacy T=48 compute controls at p=0.003/0.004, both codes |
-| `run_bb_7.slurm` | zero memory and mean-matched constant memory, both codes |
-| `run_bb_8.slurm` | Relay R=1,T=48 and R=12,T=4, both codes |
-| `run_bb_9.slurm` | first-solution stopping and global-sharing Relay, both codes |
+| `run_bb_0.slurm` | BB72 ordinary BP, p=.001/.002/.003/.004 |
+| `run_bb_1.slurm` | BB72 ordinary BP, p=.005/.006/.008/.010 |
+| `run_bb_2.slurm` | BB144 ordinary BP on the low-p grid |
+| `run_bb_3.slurm` | BB144 ordinary BP on the high-p grid |
+| `run_bb_4.slurm` | Two extra ordinary BP sample seeds per code at p=.004 |
+| `run_bb_5.slurm` | BB72 Tanner CNN depth=2, p=.02/.04/.06/.08 |
+| `run_bb_6.slurm` | BB144 Tanner CNN depth=2, p=.02/.04/.06/.08 |
+| `run_bb_7.slurm` | BB72 Tanner CNN depth=1, matching job 5 p/seed grid |
+| `run_bb_8.slurm` | BB144 Tanner CNN depth=1, matching job 6 p/seed grid |
+| `run_bb_9.slurm` | Two extra CNN training/test seeds per code, depth=2, p=.06 |
 
-The reference is R=4 legs, T=12 iterations per leg, S=2 successful legs sought,
-with first memory 0.125 and later memory sampled from [-0.24,0.66]. All runs use
-schema-v2 legacy noise with `q=p`, idle=0, hidden width 32, embedding width 8,
-min-sum scaling 0.625, 100 epochs, 128 batches per epoch, and learning rate 3e-4.
-BB72 retains six noisy cycles and batch size 16; BB144 retains twelve noisy
-cycles and batch size 8. Seeds and training/evaluation sample budgets match the
-archived circuit campaign. Validation uses 1,024 shots every ten epochs and
-final evaluation uses 4,096 fresh shots. `--bb_osd_eval_shots=0` disables OSD.
+The CNN uses width 64, 100 epochs, 128 batches of 64 training shots per epoch,
+and learning rate 3e-4. Validation uses 4,096 shots every five epochs; final
+evaluation uses 65,536 fresh shots. Raw CNN validation LER selects one checkpoint
+for both decoding branches. The earlier Relay design is retained in
+[its campaign notes](docs/bb_neural_relay_campaign.md).
 
-Relay evaluation compares against non-neural Relay BP on the same shots and
-memory draws. Legacy controls compare against legacy BP. Compare absolute LER
-across these runs; their paired gains have different baselines. R=4,T=12 trains
-through 48 steps per sample, while inference stops adaptively. These sweeps
-are not threshold estimates. Old OSD-selected results are a separate pipeline
-comparison, not an OSD ablation on the same frozen checkpoint.
-
-Preview locally without an allocation, or submit all jobs on Perlmutter:
+Preview locally without an allocation, or submit the CNN jobs on Perlmutter:
 
 ```bash
-BB_DRY_RUN=1 bash run_bb_0.slurm
-for i in {0..9}; do sbatch "run_bb_${i}.slurm"; done
+BB_DRY_RUN=1 bash run_bb_5.slurm
+for i in 5 6 7 8 9; do sbatch "run_bb_${i}.slurm"; done
 ```
 
 All jobs use account `m5328_g`, `$PSCRATCH/envs/nde`, and `$HOME/end_time`.
@@ -154,10 +147,10 @@ Each allocation launches four `srun --exclusive` steps with one GPU and 16 CPU
 cores each. Results are stored under
 `$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ...,
 `log_exp_3.txt`, per-experiment exit codes, and a completed/failed marker.
-The timestamped model directories are under each result directory's
-`outputs/YYYY-MM-DD/`. There is no `exp_<index>` layer in the Slurm layout.
-The shared launch logic and canonical settings are in
-`scripts/run_bb_slurm_batch.sh`.
+CNN model directories are under each result directory's `outputs/YYYY-MM-DD/`;
+ordinary BP evaluation files are under `exp_<index>/`. The shared launcher is
+`scripts/run_bb_slurm_batch.sh`, with CNN settings in
+`scripts/bb_tanner_cnn_slurm_defaults.sh`.
 
 For the original single-pass no-OSD comparison outside Slurm, use the
 direct-GPU runner (this runner does not enable Relay):

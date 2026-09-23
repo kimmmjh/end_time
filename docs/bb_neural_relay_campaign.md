@@ -1,9 +1,10 @@
 # September 2026 Neural Relay BP Slurm campaign
 
-**September 23:** jobs 0–4 have been replaced by the
-[ordinary BP evaluation sweep](bb_plain_bp_campaign.md). Jobs 5–9 still run neural
-ablations. The matrix below documents the earlier Relay campaign; its commands
-no longer launch all of those experiments from the current working tree.
+**September 24:** jobs 0–4 now run the
+[ordinary BP evaluation sweep](bb_plain_bp_campaign.md), and jobs 5–9 run the
+[Tanner CNN code-capacity campaign](bb_tanner_cnn.md#slurm-campaign-jobs-59).
+The matrix below documents the earlier Relay campaign; the current Slurm
+scripts no longer launch those Relay experiments.
 
 `run_bb_0.slurm` through `run_bb_9.slurm` originally launched this campaign in place of
 the previous raw-BP campaign. Ten allocations run four independent experiments

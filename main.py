@@ -21,6 +21,7 @@ from models.pooling_layers import TranslationalEquivariantPooling2D
 from src import Trainer
 from src._bb_experiment import run_bb_experiment
 from src._bb_circuit_experiment import run_bb_circuit_experiment
+from src._bb_tanner_cnn_experiment import run_bb_tanner_cnn_experiment
 from src.bb_stim_utils import (
     BB_CIRCUIT_NOISE_MODELS,
     resolve_bb_circuit_noise_profile,
@@ -87,6 +88,7 @@ def main() -> None:
             "convgru_mwpm",
             "convgru_weighted_mwpm",
             "bb_neural_bp",
+            "bb_tanner_cnn",
         ],
         help=(
             "Decoder architecture. cnn3d treats time as a third spatial axis; "
@@ -98,7 +100,9 @@ def main() -> None:
             "edge probabilities before MWPM."
             " bb_neural_bp uses BP4 on the BB code Tanner graph for capacity "
             "noise and binary BP2 on Stim's detector-error-model graph for "
-            "circuit noise, with cyclic edge-orbit parameter sharing."
+            "circuit noise, with cyclic edge-orbit parameter sharing. "
+            "bb_tanner_cnn uses sparse periodic convolutions on the joint Hx/Hz "
+            "graph for code capacity, evaluated both raw and with direct OSD-0."
         ),
     )
     parser.add_argument(
@@ -171,6 +175,11 @@ def main() -> None:
     parser.add_argument("--bb_logical_loss_weight", type=float, default=1.0)
     parser.add_argument("--bb_pauli_loss_weight", type=float, default=0.1)
     parser.add_argument("--bb_weight_decay", type=float, default=1e-4)
+    parser.add_argument("--bb_cnn_width", type=int, default=64,
+                        help="Feature channels for bb_tanner_cnn.")
+    parser.add_argument("--bb_cnn_depth", type=int, default=2,
+                        help="Tanner CNN depth: 1 is check->qubit; each extra block adds qubit->check->qubit.")
+    parser.add_argument("--bb_cnn_gradient_clip", type=float, default=1.0)
     parser.add_argument(
         "--matching_correlations",
         action="store_true",
@@ -447,10 +456,12 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    bb_architecture = args.architecture == "bb_neural_bp"
+    bb_architecture = args.architecture in {"bb_neural_bp", "bb_tanner_cnn"}
     if bb_architecture and args.code not in {"bb72", "bb144"}:
-        parser.error("--architecture=bb_neural_bp requires --code=bb72 or bb144.")
-    bb_circuit = bb_architecture and args.noise_model == "circuit"
+        parser.error("BB neural architectures require --code=bb72 or bb144.")
+    if args.architecture == "bb_tanner_cnn" and args.noise_model != "capacity":
+        parser.error("bb_tanner_cnn currently supports --noise_model=capacity only.")
+    bb_circuit = args.architecture == "bb_neural_bp" and args.noise_model == "circuit"
     if args.bp_relay_legs < 0:
         parser.error("--bp_relay_legs must be non-negative.")
     if args.bp_relay_legs:
@@ -575,6 +586,20 @@ def main() -> None:
         parser.error("BB loss weights and --bb_weight_decay must be non-negative.")
 
     if bb_architecture:
+        if args.architecture == "bb_tanner_cnn":
+            if rounds != 1 or args.measurement_error_rate != 0 or args.bb_idle_error_rate != 0:
+                parser.error("Tanner CNN capacity experiments require rounds=1 and zero measurement/idle noise.")
+            if args.loss_fn != "bb_coset":
+                parser.error("bb_tanner_cnn requires --loss_fn=bb_coset.")
+            if args.bb_cnn_width < 1 or args.bb_cnn_depth < 1:
+                parser.error("--bb_cnn_width and --bb_cnn_depth must be positive.")
+            if not np.isfinite(args.bb_cnn_gradient_clip) or args.bb_cnn_gradient_clip <= 0:
+                parser.error("--bb_cnn_gradient_clip must be finite and positive.")
+            if args.matching_correlations or args.bb_osd_eval_shots != 0:
+                parser.error("Tanner CNN always evaluates direct OSD-0 on the full paired sample; "
+                             "matching and BB circuit OSD options do not apply.")
+            run_bb_tanner_cnn_experiment(args)
+            return
         if args.noise_model == "phenomenological":
             parser.error(
                 "BB neural BP supports --noise_model=capacity (four-state BP4 "
@@ -641,9 +666,9 @@ def main() -> None:
         return
 
     if args.code != "toric":
-        parser.error("--code=bb72/bb144 requires --architecture=bb_neural_bp.")
+        parser.error("--code=bb72/bb144 requires --architecture=bb_neural_bp or bb_tanner_cnn.")
     if args.loss_fn == "bb_coset":
-        parser.error("--loss_fn=bb_coset is only valid with bb_neural_bp.")
+        parser.error("--loss_fn=bb_coset is only valid with a BB neural architecture.")
 
     matching_architectures = {"convgru_mwpm", "convgru_weighted_mwpm"}
     if args.architecture in matching_architectures and args.noise_model != "circuit":

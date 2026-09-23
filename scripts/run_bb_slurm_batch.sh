@@ -122,6 +122,17 @@ run_bb_experiments() {
             cp "$ROOT/$params" "$_BB_RESULT_DIRECTORY/source_snapshot/$params" || return 1
         done
     fi
+    if [[ "${BB_CAMPAIGN:-}" == "bb_tanner_cnn_2026_09" ]]; then
+        cp "$ROOT/scripts/bb_tanner_cnn_slurm_defaults.sh" \
+            "$_BB_RESULT_DIRECTORY/tanner_cnn_defaults_snapshot.sh" || return 1
+        mkdir -p "$_BB_RESULT_DIRECTORY/source_snapshot/models" \
+            "$_BB_RESULT_DIRECTORY/source_snapshot/src"
+        for params in models/_bb_tanner_cnn.py src/_bb_tanner_cnn_experiment.py \
+            src/_direct_osd.py src/_bb_loss.py src/_bb_metrics.py \
+            src/bb_data_generator.py src/bb_code.py; do
+            cp "$ROOT/$params" "$_BB_RESULT_DIRECTORY/source_snapshot/$params" || return 1
+        done
+    fi
     if command -v git >/dev/null 2>&1 && \
        git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         git -C "$ROOT" rev-parse HEAD > "$_BB_RESULT_DIRECTORY/git_commit.txt"
