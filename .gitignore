@@ -29,3 +29,6 @@ htmlcov/
 # IDE settings
 .idea/
 .vscode/
+
+
+.sh
