@@ -187,12 +187,6 @@ class NeuralRelayBP2(EquivariantNeuralBP2):
             return posterior, torch.stack(history, dim=1)
         return posterior
 
-    def _syndrome_satisfied(self, correction: Tensor, syndrome: Tensor) -> Tensor:
-        parity = syndrome.new_zeros(syndrome.shape).index_add(
-            1, self.edge_detector, correction[:, self.edge_mechanism].to(syndrome.dtype)
-        ).remainder(2)
-        return (parity == syndrome).all(dim=1)
-
     @torch.no_grad()
     def decode(
         self, syndrome: Tensor, *, neural: bool = True, memory: Tensor | None = None

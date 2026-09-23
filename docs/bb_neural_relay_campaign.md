@@ -1,9 +1,25 @@
 # September 2026 Neural Relay BP Slurm campaign
 
-`run_bb_0.slurm` through `run_bb_9.slurm` now launch this campaign in place of
+**September 23:** jobs 0–4 have been replaced by the
+[ordinary BP evaluation sweep](bb_plain_bp_campaign.md). Jobs 5–9 still run neural
+ablations. The matrix below documents the earlier Relay campaign; its commands
+no longer launch all of those experiments from the current working tree.
+
+`run_bb_0.slurm` through `run_bb_9.slurm` originally launched this campaign in place of
 the previous raw-BP campaign. Ten allocations run four independent experiments
 each: **40 trainings**, all with OSD disabled. The circuit and data budgets are
 matched to the archived circuit-schema-v2 experiments.
+
+**September 22 evaluation update:** all newly launched circuit jobs also report
+ordinary BP at the model's per-leg depth (normally 12) and at max 1000 iterations,
+stopping each shot at its first valid syndrome. Shared script defaults pass
+`--bb_bp_reference_iterations=1000`. Non-Relay neural evaluation now uses the
+same stopping condition within its trained depth; training remains fully
+unrolled. Relay decoding and the primary checkpoint-selection baseline are
+unchanged. The extra BP reference increases evaluation work. Archived numbers
+retain their original semantics, and checkpoints without the new evaluation
+policy cannot resume their selection history. See
+[evaluation details](bb_neural_relay_bp.md#ordinary-bp-references-september-22-evaluation-policy).
 
 ## Common settings
 
@@ -52,8 +68,9 @@ replicate campaign. Controls use the reference seed for their code and p.
 
 The zero-memory control sets all gamma values to zero while retaining the
 Relay execution and candidate selection. The neural MLP still sees the carried
-posterior, and Relay uses corrected extrinsic clipping, so this is not identical
-to the legacy decoder. The constant-memory control uses first gamma=0.125 and
+posterior and restarts between legs, so this is not identical to single-pass
+BP. Both current paths use corrected extrinsic clipping. The constant-memory
+control uses first gamma=0.125 and
 later gamma=0.21, matching the reference distribution's mean without its
 per-variable disorder. The one-leg control necessarily uses S=1 and first-leg
 constant memory; job 8 compares complete budget allocations rather than
@@ -66,7 +83,8 @@ it is not a parameter-count-matched equivariance ablation.
    unflagged failures against
    `results/analysis/bb_circuit_no_osd_2026_09.csv`. The eight low-p reference
    rows match code, noise, rounds, seeds, optimizer settings and sample counts.
-   Job 5 repeats four of these legacy points with the current code/environment.
+   Job 5 reruns four points with the current clipping and stopping rules; it
+   does not reproduce the archived decoder exactly.
 2. **Historical OSD results:** use completed rows in
    `results/analysis/bb_circuit_campaign_2026_08.csv`, comparing their
    `neural_osd_logical_error_rate` with the new raw Relay LER. These are different
@@ -78,7 +96,7 @@ it is not a parameter-count-matched equivariance ablation.
    Do not subtract or pool the paired gains of these two different baselines.
 4. **Additional compute versus Relay:** compare jobs 0/2 with job 6 at p=.003/.004.
    All have 48 training steps per sample and the same inference cap. Early
-   stopping, candidate retention, resets and clipping differ. Use recorded mean
+   candidate retention and resets differ. Use recorded mean
    iterations/legs and wall times; equal iteration caps do not imply equal
    GPU latency or memory usage.
 

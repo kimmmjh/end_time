@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_relay_seeds
+#SBATCH --job-name=bbc_bp_seeds
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -23,23 +23,24 @@ fi
 cd "$ROOT"
 source "$ROOT/scripts/run_bb_slurm_batch.sh"
 source "$ROOT/scripts/bb_neural_slurm_defaults.sh"
-BB_CAMPAIGN="bb_neural_relay_2026_09"
+BB_CAMPAIGN="bb_plain_bp_2026_09"
+BB_PYTHON_ENTRYPOINT="$ROOT/scripts/evaluate_bb_circuit_bp.py"
 
-# Two extra p=0.004 seeds per code; three seeds including jobs 0/2.
-# All runs: schema v2, legacy q=p, idle=0, 100 epochs, OSD disabled.
-# Full design and comparison caveats: docs/bb_neural_relay_campaign.md
+# Ordinary BP only: first-valid stopping, paired caps 12/1000, 4096 shots.
+# Schema v2, legacy q=p, idle=0. No training, Relay, or OSD.
+# Experiment matrix and outputs: docs/bb_plain_bp_campaign.md
 experiments=(
-    "$(bb_relay_experiment_args bb72 relay 0.004 7202004)"
-    "$(bb_relay_experiment_args bb72 relay 0.004 7203004)"
-    "$(bb_relay_experiment_args bb144 relay 0.004 14402004)"
-    "$(bb_relay_experiment_args bb144 relay 0.004 14403004)"
+    "$(bb_plain_bp_experiment_args bb72 0.004 7202004 exp_0)"
+    "$(bb_plain_bp_experiment_args bb72 0.004 7203004 exp_1)"
+    "$(bb_plain_bp_experiment_args bb144 0.004 14402004 exp_2)"
+    "$(bb_plain_bp_experiment_args bb144 0.004 14403004 exp_3)"
 )
 
 BB_EXPERIMENT_LABELS=(
-    "bb72_relay_p0.004_seed7202004"
-    "bb72_relay_p0.004_seed7203004"
-    "bb144_relay_p0.004_seed14402004"
-    "bb144_relay_p0.004_seed14403004"
+    "bb72_plain_bp_p0.004_seed7202004"
+    "bb72_plain_bp_p0.004_seed7203004"
+    "bb144_plain_bp_p0.004_seed14402004"
+    "bb144_plain_bp_p0.004_seed14403004"
 )
 
 run_bb_experiments "${experiments[@]}"

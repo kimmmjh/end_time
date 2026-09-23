@@ -10,7 +10,9 @@ exact circuit shots rather than on latent DEM labels.
 Every evaluation is paired.  The same shots are decoded by the neural model and
 by non-neural normalised min-sum (with the same Relay memory when enabled),
 and -- when OSD scoring is enabled -- by the same
-ordered-statistics post-processor driven from each posterior in turn.  Because
+ordered-statistics post-processor on unconverged corrections. Ordinary BP
+references stop at the first valid syndrome, with both the model's iteration
+cap and a separately configured larger cap on the same shots. Because
 the neural residual is zero-initialised, an untrained model reproduces the
 vanilla decoder bitwise, so the paired gain starts at exactly zero.
 """
@@ -23,7 +25,7 @@ import logging
 import math
 import os
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +44,7 @@ from models._equivariant_neural_bp2 import EquivariantNeuralBP2
 from models._neural_relay_bp2 import NeuralRelayBP2
 
 Z_95 = 1.959963984540054
+BP_EVALUATION_POLICY = "first_syndrome_valid_v1"
 
 
 @dataclass
@@ -68,6 +71,7 @@ class CircuitEvaluation:
     vanilla_mean_bp_iterations: float | None = None
     neural_mean_relay_legs: float | None = None
     vanilla_mean_relay_legs: float | None = None
+    bp_baselines: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
 def _paired_gain(
@@ -112,6 +116,7 @@ class BBCircuitTrainer:
         osd_eval_shots: int = 0,
         osd_method: str = "OSD_CS",
         osd_order: int = 7,
+        bp_reference_iterations: int = 1000,
         load_model_path: str | os.PathLike[str] | None = None,
     ) -> None:
         for name, value in (
@@ -120,6 +125,7 @@ class BBCircuitTrainer:
             ("eval_batches", eval_batches),
             ("eval_every", eval_every),
             ("final_eval_batches", final_eval_batches),
+            ("bp_reference_iterations", bp_reference_iterations),
         ):
             if int(value) < 1:
                 raise ValueError(f"{name} must be positive, got {value}.")
@@ -147,6 +153,13 @@ class BBCircuitTrainer:
         self.experiment_config = copy.deepcopy(experiment_config)
         self.save_model = bool(save_model)
         self.osd_eval_shots = int(osd_eval_shots)
+        self.bp_reference_iterations = int(bp_reference_iterations)
+        for key, value in (
+            ("bp_evaluation_policy", BP_EVALUATION_POLICY),
+            ("bb_bp_reference_iterations", self.bp_reference_iterations),
+        ):
+            if self.experiment_config.setdefault(key, value) != value:
+                raise ValueError(f"experiment_config {key} does not match {value!r}.")
         expected_selection = (
             "neural_osd_paired_gain"
             if self.osd_eval_shots > 0
@@ -246,6 +259,8 @@ class BBCircuitTrainer:
             "num_edges",
             "num_orbits",
             "bp_iterations",
+            "bp_evaluation_policy",
+            "bb_bp_reference_iterations",
             "bp_residual_hidden_dim",
             "bp_orbit_embedding_dim",
             "bp_parameter_sharing",
@@ -296,9 +311,9 @@ class BBCircuitTrainer:
                     )
         if mismatches:
             raise ValueError(
-                "Checkpoint is incompatible with this BB circuit graph/model. "
-                "Version-1 circuits used different round semantics and must be "
-                "retrained.\n  "
+                "Checkpoint is incompatible with this BB circuit graph/model/evaluation. "
+                "Start a new experiment when changing decoding or selection semantics; "
+                "old best scores cannot be mixed with the new evaluation policy.\n  "
                 + "\n  ".join(mismatches)
             )
 
@@ -418,9 +433,20 @@ class BBCircuitTrainer:
             totals["mechanism"] += float(output.mechanism.detach())
         return {key: value / self.batches for key, value in totals.items()}
 
-    def _decode_hard(self, detectors: Tensor, *, neural: bool) -> tuple[np.ndarray, Tensor]:
-        posterior = self.model(detectors, neural=neural)
-        return EquivariantNeuralBP2.hard_decision(posterior).cpu().numpy(), posterior
+    def _postprocess_unconverged(
+        self, detectors: np.ndarray, correction: np.ndarray,
+        posterior: Tensor, converged: np.ndarray,
+    ) -> np.ndarray:
+        """Preserve first-valid BP solutions; OSD is only a fallback."""
+        result = correction.copy()
+        failed = np.flatnonzero(~converged)
+        if failed.size:
+            assert self._osd is not None
+            index = torch.as_tensor(failed, device=posterior.device)
+            result[failed] = self._osd.decode_batch(
+                detectors[failed], posterior=posterior[index].cpu().numpy()
+            )
+        return result
 
     @torch.no_grad()
     def evaluate(self, batches: int) -> CircuitEvaluation:
@@ -438,6 +464,9 @@ class BBCircuitTrainer:
         osd_vanilla: list[np.ndarray] = []
         osd_budget = self.osd_eval_shots
         relay_totals = np.zeros(4, dtype=np.float64)
+        bp_caps = tuple(sorted({self.model.iterations, self.bp_reference_iterations}))
+        bp_outcomes: dict[int, list[BBCircuitOutcomes]] = {cap: [] for cap in bp_caps}
+        bp_iterations = {cap: 0 for cap in bp_caps}
         if isinstance(self.model, NeuralRelayBP2):
             # Evaluation randomness is isolated from training RNG. Both paths
             # receive the SAME per-shot/per-leg memory, even when their early
@@ -452,6 +481,9 @@ class BBCircuitTrainer:
             batch = self.eval_generator.sample_circuit(device=self.device)
             detectors = batch.detectors.cpu().numpy().astype(np.uint8)
             observables = batch.observables.cpu().numpy().astype(np.uint8)
+            # This inherited method explicitly runs ordinary BP even for a
+            # Relay model. No learned parameters or random memory are used.
+            bp_results = self.model.decode_bp_budgets(batch.detectors, budgets=bp_caps)
 
             if isinstance(self.model, NeuralRelayBP2):
                 memory = self.model.sample_memory(
@@ -474,12 +506,16 @@ class BBCircuitTrainer:
                     vanilla_result.legs.sum().item(),
                 ]
             else:
-                hard_neural, posterior_neural = self._decode_hard(
-                    batch.detectors, neural=True
-                )
-                hard_vanilla, posterior_vanilla = self._decode_hard(
-                    batch.detectors, neural=False
-                )
+                neural_result = self.model.decode_bp(batch.detectors, neural=True)
+                vanilla_result = bp_results[self.model.iterations]
+                hard_neural = neural_result.correction.cpu().numpy()
+                hard_vanilla = vanilla_result.correction.cpu().numpy()
+                posterior_neural = neural_result.posterior
+                posterior_vanilla = vanilla_result.posterior
+                relay_totals[:2] += [
+                    neural_result.iterations.sum().item(),
+                    vanilla_result.iterations.sum().item(),
+                ]
             neural_outcome = score_corrections(
                 hard_neural, detectors=detectors, observables=observables, **scoring
             )
@@ -490,24 +526,30 @@ class BBCircuitTrainer:
             vanilla_success.append(vanilla_outcome.success)
             neural_converged.append(neural_outcome.syndrome_converged)
             vanilla_converged.append(vanilla_outcome.syndrome_converged)
+            for cap, result in bp_results.items():
+                bp_outcomes[cap].append(score_corrections(
+                    result.correction.cpu().numpy(), detectors=detectors,
+                    observables=observables, **scoring,
+                ))
+                bp_iterations[cap] += int(result.iterations.sum().item())
 
             if self._osd is not None and osd_budget > 0:
                 take = min(osd_budget, detectors.shape[0])
                 osd_budget -= take
                 sliced = detectors[:take]
                 neural_osd_outcome = score_corrections(
-                    self._osd.decode_batch(
-                        sliced,
-                        posterior=posterior_neural[:take].cpu().numpy(),
+                    self._postprocess_unconverged(
+                        sliced, hard_neural[:take], posterior_neural[:take],
+                        neural_outcome.syndrome_converged[:take],
                     ),
                     detectors=sliced,
                     observables=observables[:take],
                     **scoring,
                 )
                 vanilla_osd_outcome = score_corrections(
-                    self._osd.decode_batch(
-                        sliced,
-                        posterior=posterior_vanilla[:take].cpu().numpy(),
+                    self._postprocess_unconverged(
+                        sliced, hard_vanilla[:take], posterior_vanilla[:take],
+                        vanilla_outcome.syndrome_converged[:take],
                     ),
                     detectors=sliced,
                     observables=observables[:take],
@@ -549,15 +591,37 @@ class BBCircuitTrainer:
                 "osd_paired_gain_error": osd_error,
             }
 
-        relay_fields: dict[str, float] = {}
+        bp_fields: dict[str, dict[str, Any]] = {}
+        for cap, outcomes in bp_outcomes.items():
+            success = np.concatenate([row.success for row in outcomes])
+            converged = np.concatenate([row.syndrome_converged for row in outcomes])
+            bp_gain, bp_error, bp_rescued, bp_harmed = _paired_gain(neural, success)
+            bp_fields[f"bp_{cap}"] = {
+                "shots": int(success.size), "max_iterations": cap,
+                "early_stopping": True, "normalisation": self.model.normalisation,
+                "message_clip": self.model.message_clip,
+                "accuracy": float(success.mean()),
+                "logical_error_rate": float((~success).mean()),
+                "syndrome_convergence": float(converged.mean()),
+                "flagged_failure": float((~converged).mean()),
+                "unflagged_failure": float((converged & ~success).mean()),
+                "mean_bp_iterations": bp_iterations[cap] / success.size,
+                "paired_gain": bp_gain, "paired_gain_error": bp_error,
+                "rescued": bp_rescued, "harmed": bp_harmed,
+            }
+
+        relay_fields: dict[str, float] = {
+            "neural_mean_bp_iterations": float(relay_totals[0] / neural.size),
+            "vanilla_mean_bp_iterations": float(relay_totals[1] / neural.size),
+        }
         if isinstance(self.model, NeuralRelayBP2):
-            relay_fields = dict(zip(
+            relay_fields.update(dict(zip(
                 (
                     "neural_mean_bp_iterations", "vanilla_mean_bp_iterations",
                     "neural_mean_relay_legs", "vanilla_mean_relay_legs",
                 ),
                 (relay_totals / neural.size).tolist(),
-            ))
+            )))
         return CircuitEvaluation(
             shots=int(neural.size),
             neural_accuracy=float(neural.mean()),
@@ -571,6 +635,7 @@ class BBCircuitTrainer:
             rescued=rescued,
             harmed=harmed,
             osd_shots=sum(array.size for array in osd_neural),
+            bp_baselines=bp_fields,
             **osd_fields,
             **relay_fields,
         )
@@ -718,14 +783,25 @@ class BBCircuitTrainer:
             f"Rescued: {evaluation.rescued} | Harmed: {evaluation.harmed} | "
             f"Eval Samples: {evaluation.shots}"
         )
-        if evaluation.neural_mean_relay_legs is not None:
+        if evaluation.neural_mean_bp_iterations is not None:
             line += (
                 f" | Mean BP Iterations (Neural/Baseline): "
                 f"{evaluation.neural_mean_bp_iterations:.3f}/"
                 f"{evaluation.vanilla_mean_bp_iterations:.3f}"
+            )
+        if evaluation.neural_mean_relay_legs is not None:
+            line += (
                 f" | Mean Relay Legs (Neural/Baseline): "
                 f"{evaluation.neural_mean_relay_legs:.3f}/"
                 f"{evaluation.vanilla_mean_relay_legs:.3f}"
+            )
+        for name, row in evaluation.bp_baselines.items():
+            line += (
+                f" | {name} (first valid, max {row['max_iterations']}) "
+                f"LER: {row['logical_error_rate']:.8f}"
+                f", Convergence: {row['syndrome_convergence']:.8f}"
+                f", Mean Iterations: {row['mean_bp_iterations']:.3f}"
+                f", Paired Gain: {row['paired_gain']:+.8f}"
             )
         if evaluation.neural_osd_accuracy is not None:
             line += (

@@ -2,7 +2,7 @@
 
 from ._decoder import Decoder
 from ._equivariant_neural_bp import EquivariantNeuralBP4
-from ._equivariant_neural_bp2 import EquivariantNeuralBP2
+from ._equivariant_neural_bp2 import BPDecodeResult, EquivariantNeuralBP2
 from ._neural_relay_bp2 import NeuralRelayBP2, RelayDecodeResult
 from ._matching_residual_decoder import MatchingResidualDecoder
 from ._neural_weighted_matching import NeuralWeightedMatchingDecoder
@@ -13,6 +13,7 @@ __all__ = [
     "Decoder",
     "EquivariantNeuralBP4",
     "EquivariantNeuralBP2",
+    "BPDecodeResult",
     "NeuralRelayBP2",
     "RelayDecodeResult",
     "RecurrentEND2D",

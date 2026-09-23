@@ -1,5 +1,7 @@
 """Circuit-level BB decoding: schedule, detector error model and BP2 decoder."""
 
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 import scipy.sparse as sp
@@ -355,6 +357,48 @@ def test_orbits_are_invariant_under_cyclic_translation(small_graph):
             assert orbit_of[moved] == orbits
     # The translation must map the mechanism set onto itself.
     assert translated_hits == len(orbit_of)
+
+
+def _variable_update_model():
+    # Variable 0 connects to both checks; variables 1 and 2 have degree one.
+    return EquivariantNeuralBP2(SimpleNamespace(
+        num_detectors=2,
+        num_mechanisms=3,
+        num_observables=0,
+        edge_detector=np.array([0, 0, 1, 1]),
+        edge_mechanism=np.array([0, 1, 0, 2]),
+        edge_orbit=np.zeros(4, dtype=np.int64),
+        num_orbits=1,
+        prior_log_odds=np.array([4.0, 2.0, -3.0]),
+    ), message_clip=30.0)
+
+
+def test_variable_update_excludes_recipient_before_clipping():
+    model = _variable_update_model()
+    incoming = torch.tensor([
+        [18., -5., 18., 7.],
+        [-18., 5., -18., -7.],
+        [28., 30., 28., -30.],
+    ])
+    posterior, outgoing = model._variable_update(incoming)
+    assert torch.equal(posterior, torch.tensor([
+        [30., -3., 4.], [-30., 7., -10.], [30., 30., -30.],
+    ]))
+    # Each message contains only its prior and the OTHER check's contribution.
+    # Degree-one messages must equal their priors, even if the posterior clips.
+    assert torch.equal(outgoing, torch.tensor([
+        [22., 2., 22., -3.], [-14., 2., -14., -3.], [30., 2., 30., -3.],
+    ]))
+
+
+def test_variable_update_preserves_extrinsic_gradient_when_posterior_saturates():
+    model = _variable_update_model()
+    incoming = torch.tensor([[18., -5., 18., 7.]], requires_grad=True)
+    _, outgoing = model._variable_update(incoming)
+    outgoing[0, 0].backward()
+    # The outgoing message is still unsaturated although the posterior clips.
+    # It depends on the other check, and never on the recipient's own message.
+    assert torch.equal(incoming.grad, torch.tensor([[0., 0., 1., 0.]]))
 
 
 def test_untrained_model_is_bitwise_vanilla_min_sum(small_graph):

@@ -165,6 +165,7 @@ def test_paired_evaluation_uses_same_memory_and_isolates_training_rng():
     trainer.device = torch.device("cpu")
     trainer.experiment_config = {"seed": 91}
     trainer.osd_eval_shots = 0
+    trainer.bp_reference_iterations = 5
     trainer._osd = None
     trainer.eval_generator = SimpleNamespace(
         graph=graph(), sample_circuit=lambda **kwargs: SimpleNamespace(
@@ -182,6 +183,8 @@ def test_paired_evaluation_uses_same_memory_and_isolates_training_rng():
     assert evaluation.neural_mean_bp_iterations == evaluation.vanilla_mean_bp_iterations
     assert evaluation.neural_mean_relay_legs == evaluation.vanilla_mean_relay_legs
     assert evaluation.osd_shots == 0
+    assert set(evaluation.bp_baselines) == {"bp_2", "bp_5"}
+    assert all(row["shots"] == 4 for row in evaluation.bp_baselines.values())
 
 
 def test_checkpoint_rejects_changed_relay_semantics():

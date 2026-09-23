@@ -16,7 +16,7 @@ from models._equivariant_neural_bp2 import EquivariantNeuralBP2
 from models._neural_relay_bp2 import NeuralRelayBP2
 
 from ._bb_circuit_loss import CircuitDegeneracyAwareLoss
-from ._bb_circuit_trainer import BBCircuitTrainer
+from ._bb_circuit_trainer import BBCircuitTrainer, BP_EVALUATION_POLICY
 from .bb_circuit_data import BBCircuitGenerator
 from .bb_code import BBCodeSpec
 from .bb_stim_utils import CIRCUIT_SCHEMA_VERSION
@@ -225,6 +225,11 @@ def run_bb_circuit_experiment(args: Any) -> str:
         "num_edges": graph.num_edges,
         "num_orbits": graph.num_orbits,
         "bp_iterations": args.bp_iterations,
+        "bp_evaluation_policy": BP_EVALUATION_POLICY,
+        "bb_bp_reference_iterations": args.bb_bp_reference_iterations,
+        "checkpoint_selection_baseline": (
+            "relay_min_sum" if relay_enabled else f"bp_{args.bp_iterations}"
+        ),
         "bp_residual_hidden_dim": args.bp_residual_hidden_dim,
         "bp_orbit_embedding_dim": args.bp_orbit_embedding_dim,
         "bp_parameter_sharing": args.bp_parameter_sharing,
@@ -288,6 +293,12 @@ def run_bb_circuit_experiment(args: Any) -> str:
             args.bp_relay_memory_min,
             args.bp_relay_memory_max,
         )
+    logging.info(
+        "Ordinary BP references: max iterations %d and %d, first-valid stopping, "
+        "scale=%g, no Relay/MLP/OSD, identical circuit shots. "
+        "The additional reference is reported separately from checkpoint selection.",
+        args.bp_iterations, args.bb_bp_reference_iterations, args.bp_normalisation,
+    )
     logging.info("Output directory: %s", output_directory)
 
     trainer = BBCircuitTrainer(
@@ -310,6 +321,7 @@ def run_bb_circuit_experiment(args: Any) -> str:
         osd_eval_shots=args.bb_osd_eval_shots,
         osd_method=args.bb_osd_method,
         osd_order=args.bb_osd_order,
+        bp_reference_iterations=args.bb_bp_reference_iterations,
         load_model_path=args.load_model,
     )
     trainer.train()

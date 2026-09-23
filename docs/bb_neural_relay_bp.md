@@ -23,9 +23,9 @@ variable_to_check[v, c] = clip(total[v] - check_to_variable[c, v])
 
 The bias is included once per variable, not once per edge. Original priors stay
 fixed across the whole relay. The extrinsic sum excludes the recipient before
-clipping; the legacy decoder clips the posterior first. Consequently zero
-memory does not imply bitwise agreement with the legacy decoder in saturated
-states. Within the Relay model, zero-initialized neural and non-neural paths
+clipping. Since the September 17 fix, the non-Relay decoder also follows this
+order; older archived runs clipped the posterior first. Within the Relay model,
+zero-initialized neural and non-neural paths
 are identical when supplied the same memory draws.
 
 At each leg boundary, edge messages restart from the original priors (and zero
@@ -63,6 +63,7 @@ training iteration's hard decision.
 python main.py --code=bb72 --architecture=bb_neural_bp \
   --noise_model=circuit --rounds=6 --p=0.003 --measurement_error_rate=0.003 \
   --bp_iterations=12 --bp_residual_hidden_dim=32 --bp_orbit_embedding_dim=8 \
+  --bb_bp_reference_iterations=1000 \
   --bp_relay_legs=4 --bp_relay_solutions=2 \
   --bp_relay_memory_strength=0.125 \
   --bp_relay_memory_min=-0.24 --bp_relay_memory_max=0.66 \
@@ -71,8 +72,10 @@ python main.py --code=bb72 --architecture=bb_neural_bp \
   --bb_osd_eval_shots=0 --lr=0.0003 --amp_dtype=none --seed=7203001 --save_model
 ```
 
-This uses at most 48 BP iterations per evaluation shot, and exactly 48 during
-training. It is more expensive than a single T=12 run; begin with a small smoke
+The Relay decoder uses at most 48 BP iterations per evaluation shot, and exactly
+48 during training. Evaluation also runs ordinary BP with the separate
+1,000-iteration cap described below. It is more expensive than a single T=12 run;
+begin with a small smoke
 run before scheduling a campaign. Memory bounds must lie strictly inside
 `(-1,1)`, can include negative values, and are tunable starting settings rather
 than validated optima for this repository. All Relay options apply only to BB
@@ -95,9 +98,42 @@ argument on both `forward` and `decode` support reproducible custom comparisons.
 The JSON history and text log include mean iterations and mean legs for each
 decoder. These are operation counts, not wall-clock latency measurements.
 
-If OSD evaluation is explicitly enabled, it receives the selected candidate's
-posterior, or the final posterior for an unsuccessful relay. It remains an
-additional paired post-processing comparison.
+### Ordinary BP references (September 22 evaluation policy)
+
+Every validation and final evaluation also reports ordinary normalized min-sum
+BP at two caps: `--bp_iterations` (normally 12) and
+`--bb_bp_reference_iterations` (default 1000). Both use the same exact circuit
+shots as the neural and Relay decoders. A single ordinary-BP trajectory records
+both caps. Each shot stops at its first correction satisfying `H @ correction = s`;
+later updates cannot replace that correction. Shots that exhaust the cap retain
+their last hard decision and count as flagged failures. Logical labels are used
+only for scoring, so a syndrome-valid but logically wrong correction still stops.
+
+These references disable neural terms and Relay memory, including in Relay
+runs. They retain the configured normalization (default 0.625) and message clip
+(30); increasing the cap alone does not reproduce a paper's complete decoder.
+For Relay, the short reference uses the per-leg depth, not the total leg budget.
+If both caps are equal, a single reference is recorded. The extra reference can
+increase validation time substantially when many shots fail to converge.
+
+`history.json` stores `bp_baselines.bp_12` and `bp_baselines.bp_1000` under each
+evaluation with the default caps. Each row includes LER, syndrome convergence,
+flagged/unflagged failures, mean BP iterations, and paired neural gain with
+rescued/harmed counts. Text logs report both references. Names use the actual
+caps, such as `bp_48` for a 48-step model.
+
+Non-Relay Neural BP also stops at its first valid correction within its trained
+depth. Training still unrolls the full depth with gradients. Relay inference
+and its candidate selection are unchanged. Checkpoint selection retains its
+primary paired baseline: short-cap BP for non-Relay runs and matched Relay for
+Relay runs. The 1000-cap reference is additional reporting, not a new selection
+target.
+
+If OSD evaluation is enabled, only shots that failed to find a valid correction
+are sent to the existing posterior-reseed BP/OSD wrapper. Valid corrections are
+preserved. The wrapper itself is unchanged and is not a direct posterior-to-OSD
+handoff. This comparison uses the primary baseline; ordinary BP-1000 is reported
+without OSD.
 
 The neural update retains orbit parameter sharing. Independent random memory
 preserves translation symmetry in distribution, not for a fixed unpermuted
@@ -106,8 +142,10 @@ along with the syndrome and graph. Candidate ties can further require a
 specified tie-breaking convention.
 
 `--load_model` resumes only a compatible experiment: Relay legs, solution
-budget and memory settings must match. Old non-Relay checkpoints remain
-resumable with Relay disabled. The neural state-dictionary layout is shared,
+budget, memory settings, BP evaluation policy, and reference cap must match.
+The new policy is recorded as `bp_evaluation_policy=first_syndrome_valid_v1`.
+Checkpoints lacking it cannot resume their old selection history under this
+evaluation. The neural state-dictionary layout is shared,
 so a custom inference experiment can explicitly load old neural weights into
 `NeuralRelayBP2`; changing the decoder this way is a new evaluation, not a
 continuation of the old checkpoint-selection history.

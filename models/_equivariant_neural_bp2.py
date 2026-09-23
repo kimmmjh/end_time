@@ -25,16 +25,19 @@ detector error model rather than chosen:
     the orbits are resolved, and makes the ``global``/``orbit``/``edge``
     sharing ablation a change of index tensor rather than of architecture.
 
-The base algorithm is normalised min-sum, matching the ``bp_method="ms"``,
-``ms_scaling_factor=0.625`` configuration used by the classical ``ldpc``
-baselines, so a paired ``neural=False`` run is exactly the classical decoder's
-belief-propagation stage.  The residual head is zero-initialised and the
-relaxation starts at one, so an untrained model reproduces that baseline
-bitwise.
+The base algorithm is normalised min-sum, with the same scaling convention as
+``bp_method="ms", ms_scaling_factor=0.625`` in ``ldpc``. This implementation
+clips messages. ``forward`` unrolls a fixed training budget; ``decode_bp``
+stops each evaluation shot at its first syndrome-valid correction. Neither
+path is guaranteed to reproduce the library decoder's output. The residual head is
+zero-initialised and relaxation starts at one, so an untrained model reproduces
+this module's paired ``neural=False`` baseline bitwise.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from numbers import Integral
 from typing import Any
 
 import numpy as np
@@ -44,6 +47,14 @@ from torch.utils.checkpoint import checkpoint
 
 # Number of hand-built per-edge features fed to the residual network.
 EDGE_FEATURE_DIM = 8
+
+
+@dataclass
+class BPDecodeResult:
+    correction: Tensor
+    posterior: Tensor
+    converged: Tensor
+    iterations: Tensor
 
 
 class EquivariantNeuralBP2(nn.Module):
@@ -287,13 +298,15 @@ class EquivariantNeuralBP2(nn.Module):
             device=check_messages.device,
             dtype=check_messages.dtype,
         ).index_add(1, self.edge_mechanism, check_messages)
-        posterior = self.prior_log_odds.unsqueeze(0) + aggregate
-        posterior = posterior.clamp(-self.message_clip, self.message_clip)
+        total = self.prior_log_odds.unsqueeze(0) + aggregate
         index = self._expand_index(self.edge_mechanism, batch_size)
-        variable_messages = posterior.gather(1, index) - check_messages
+        # Exclude the recipient before clipping to preserve extrinsic messages
+        # and their gradients even when the full posterior saturates.
+        variable_messages = total.gather(1, index) - check_messages
         variable_messages = variable_messages.clamp(
             -self.message_clip, self.message_clip
         )
+        posterior = total.clamp(-self.message_clip, self.message_clip)
         return posterior, variable_messages
 
     def _residual(
@@ -443,5 +456,91 @@ class EquivariantNeuralBP2(nn.Module):
 
         return (posterior < 0).to(torch.uint8)
 
+    def _syndrome_satisfied(self, correction: Tensor, syndrome: Tensor) -> Tensor:
+        parity = syndrome.new_zeros(syndrome.shape).index_add(
+            1, self.edge_detector, correction[:, self.edge_mechanism].to(syndrome.dtype)
+        ).remainder(2)
+        return (parity == syndrome).all(dim=1)
 
-__all__ = ["EquivariantNeuralBP2", "EDGE_FEATURE_DIM"]
+    @torch.no_grad()
+    def decode_bp(
+        self, syndrome: Tensor, *, neural: bool = False, max_iterations: int | None = None
+    ) -> BPDecodeResult:
+        """Single-pass BP with first-valid stopping and a finite iteration cap.
+
+        This method never uses Relay memory, including on a Relay model.
+        Neural inference defaults to the trained iteration budget; training
+        continues to use ``forward`` and retains all unrolled gradients.
+        """
+        budget = self.iterations if max_iterations is None else max_iterations
+        return self.decode_bp_budgets(syndrome, budgets=(budget,), neural=neural)[budget]
+
+    @torch.no_grad()
+    def decode_bp_budgets(
+        self, syndrome: Tensor, *, budgets: tuple[int, ...], neural: bool = False
+    ) -> dict[int, BPDecodeResult]:
+        """Evaluate multiple BP caps in one trajectory on identical shots.
+
+        Each shot stops after the first update with ``H @ hard_decision == s``.
+        Converged corrections are frozen for all later caps. Unconverged shots
+        retain their last posterior with ``converged=False`` at each cap. No
+        logical labels enter decoding. Ordinary BP bypasses every learned term.
+        """
+        if not budgets or any(
+            not isinstance(cap, Integral) or isinstance(cap, bool) or cap < 1
+            for cap in budgets
+        ):
+            raise ValueError("budgets must contain positive integer iteration caps.")
+        caps = sorted(set(int(cap) for cap in budgets))
+        if (
+            syndrome.ndim != 2 or syndrome.shape[0] < 1
+            or syndrome.shape[1] != self.num_detectors
+        ):
+            raise ValueError(
+                f"syndrome must have shape (positive batch, {self.num_detectors})."
+            )
+        if syndrome.device != self.prior_log_odds.device:
+            raise ValueError("syndrome and model must be on the same device.")
+        syndrome = syndrome.to(dtype=self.prior_log_odds.dtype)
+        if not torch.all((syndrome == 0) | (syndrome == 1)):
+            raise ValueError("syndrome must contain only binary values.")
+
+        batch_size = syndrome.shape[0]
+        latest = self.prior_log_odds.unsqueeze(0).expand(batch_size, -1).clone()
+        converged = torch.zeros(batch_size, dtype=torch.bool, device=syndrome.device)
+        iterations = torch.zeros(batch_size, dtype=torch.long, device=syndrome.device)
+        active = torch.arange(batch_size, device=syndrome.device)
+        posterior = latest
+        variable = posterior[:, self.edge_mechanism]
+        check = torch.zeros_like(variable)
+        neural_flag = torch.tensor(bool(neural))
+        results: dict[int, BPDecodeResult] = {}
+
+        def snapshot() -> BPDecodeResult:
+            return BPDecodeResult(
+                correction=self.hard_decision(latest), posterior=latest.clone(),
+                converged=converged.clone(), iterations=iterations.clone(),
+            )
+
+        for step in range(1, caps[-1] + 1):
+            variable, check, posterior = self._iteration(
+                variable, check, posterior, syndrome[active], neural_flag
+            )
+            latest[active] = posterior
+            iterations[active] += 1
+            valid = self._syndrome_satisfied(self.hard_decision(posterior), syndrome[active])
+            converged[active[valid]] = True
+            if step in caps:
+                results[step] = snapshot()
+            keep = ~valid
+            active = active[keep]
+            if active.numel() == 0:
+                for cap in caps:
+                    if cap not in results:
+                        results[cap] = snapshot()
+                break
+            variable, check, posterior = variable[keep], check[keep], posterior[keep]
+        return results
+
+
+__all__ = ["EquivariantNeuralBP2", "BPDecodeResult", "EDGE_FEATURE_DIM"]

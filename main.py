@@ -345,6 +345,17 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--bb_bp_reference_iterations",
+        type=int,
+        default=1000,
+        help=(
+            "BB circuit evaluation: maximum iterations for the additional ordinary "
+            "BP reference. Both it and the bp_iterations reference stop at the "
+            "first syndrome-valid correction on the same shots. Training depth "
+            "and Relay leg budgets are controlled separately."
+        ),
+    )
+    parser.add_argument(
         "--bp_normalisation",
         type=float,
         default=0.625,
@@ -416,9 +427,9 @@ def main() -> None:
         help=(
             "Shots per evaluation additionally decoded through ordered "
             "statistics post-processing, reported as Neural-BP+OSD versus "
-            "BP+OSD on the same shots. Plain BP is a weak quantum LDPC "
-            "decoder, so this is the comparison the literature uses. When "
-            "enabled, best-checkpoint selection uses the paired OSD gain."
+            "BP+OSD on the same shots. Only unconverged shots enter the "
+            "posterior-reseeded BP/OSD wrapper. When enabled, best-checkpoint "
+            "selection uses the paired OSD gain."
         ),
     )
     parser.add_argument(
@@ -572,6 +583,8 @@ def main() -> None:
                 "is not implemented."
             )
         if args.noise_model == "circuit":
+            if args.bb_bp_reference_iterations < 1:
+                parser.error("--bb_bp_reference_iterations must be positive.")
             if args.loss_fn != "bb_coset":
                 parser.error(
                     "--architecture=bb_neural_bp requires --loss_fn=bb_coset."

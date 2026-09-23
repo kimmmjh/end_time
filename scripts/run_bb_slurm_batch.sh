@@ -111,7 +111,8 @@ run_bb_experiments() {
         2>/dev/null || true
     # The active decoder may be uncommitted during a research campaign.
     # Preserve its implementation as well as the exact shell command.
-    if [[ "${BB_CAMPAIGN:-}" == "bb_neural_relay_2026_09" ]]; then
+    if [[ "${BB_CAMPAIGN:-}" == "bb_neural_relay_2026_09" || \
+          "${BB_CAMPAIGN:-}" == "bb_plain_bp_2026_09" ]]; then
         mkdir -p "$_BB_RESULT_DIRECTORY/source_snapshot/models" \
             "$_BB_RESULT_DIRECTORY/source_snapshot/src"
         for params in models/_equivariant_neural_bp2.py models/_neural_relay_bp2.py \

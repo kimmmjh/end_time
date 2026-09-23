@@ -179,6 +179,7 @@ run_experiment() {
         --eval_every="$EVAL_EVERY"
         --final_eval_batches="$FINAL_EVAL_BATCHES"
         --bp_iterations=12
+        --bb_bp_reference_iterations=1000
         --bp_residual_hidden_dim=32
         --bp_orbit_embedding_dim=8
         --bp_parameter_sharing=orbit
