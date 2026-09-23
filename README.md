@@ -148,9 +148,12 @@ cores each. Results are stored under
 `$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ...,
 `log_exp_3.txt`, per-experiment exit codes, and a completed/failed marker.
 CNN model directories are under each result directory's `outputs/YYYY-MM-DD/`;
-ordinary BP evaluation files are under `exp_<index>/`. The shared launcher is
-`scripts/run_bb_slurm_batch.sh`, with CNN settings in
-`scripts/bb_tanner_cnn_slurm_defaults.sh`.
+ordinary BP evaluation files are under `exp_<index>/`. All ten `.slurm` scripts
+embed their argument defaults and launcher directly; no repository `.sh` helpers
+are needed. Python model/trainer sources are still loaded from the checkout at
+startup. Previously submitted pending jobs keep their old batch scripts;
+resubmit those jobs to use the standalone versions. Each result directory's
+`submitted_script.slurm` captures its settings and launcher together.
 
 For the original single-pass no-OSD comparison outside Slurm, use the
 direct-GPU runner (this runner does not enable Relay):

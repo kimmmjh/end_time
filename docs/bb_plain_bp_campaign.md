@@ -6,6 +6,11 @@ Neural Relay training jobs. As of September 24, jobs 5–9 run the separate
 [Tanner CNN code-capacity campaign](bb_tanner_cnn.md#slurm-campaign-jobs-59);
 they are not part of this ordinary-BP sweep.
 
+Jobs 0–4 now embed their argument defaults and four-task launcher directly in
+each `.slurm` file. They do not source any repository `.sh` files. The Python
+evaluator and its model/source modules are still loaded from the checkout at
+job startup; this change does not freeze the Python code at submission time.
+
 ## Experiments
 
 | Script | Code | p values / seeds |
@@ -52,6 +57,16 @@ for i in 0 1 2 3; do sbatch "run_bb_${i}.slurm"; done
 sbatch run_bb_4.slurm
 ```
 
+**Already queued jobs:** editing or pulling these files does not replace the
+batch script Slurm saved at submission. Pending jobs submitted with the old
+scripts still source the deleted helpers. To use the standalone scripts,
+cancel only the intended pending jobs and submit their updated `.slurm` files
+again. Requeuing the old job keeps its old script. Alternatively, retaining
+the original helper files at the old paths lets those pending scripts start.
+There is no need to cancel a Python evaluation that is already running solely
+because the new scripts no longer use shell helpers. See the
+[Slurm sbatch documentation](https://slurm.schedmd.com/sbatch.html).
+
 The existing allocation settings remain: account `m5328_g`, four tasks, one GPU
 per task, 16 CPUs per task, and 24 hours. Each decoder uses one Torch CPU thread
 and GPU tensor updates. Jobs load `python/3.10`, activate `$PSCRATCH/envs/nde`, and
@@ -87,5 +102,7 @@ Partial aggregates are updated every 16 batches and marked `status=running`.
 Only `status=complete` has the full requested shot count and saved outcomes.
 The script refuses to overwrite an existing experiment directory. Shared
 evaluation wall time includes scoring; it is not separate latency for each cap.
-The launcher retains commands, logs, source snapshots, and per-experiment exit
-codes. No model checkpoints or figures are created.
+The embedded launcher retains commands, logs, source snapshots, and
+per-experiment exit codes. `submitted_script.slurm` now includes the complete
+launcher and argument defaults; separate shell-helper snapshots are not needed.
+No model checkpoints or figures are created.

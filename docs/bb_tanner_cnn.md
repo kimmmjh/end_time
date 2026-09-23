@@ -163,7 +163,9 @@ checkpoint using its raw validation LER. Job 9 gives depth 2 three independent
 training/test seeds per code at p=.06 when combined with jobs 5/6; the other
 points have one seed, and depth 1 has no extra seed replication yet.
 
-All 20 runs share settings in `scripts/bb_tanner_cnn_slurm_defaults.sh`:
+All 20 runs use the following settings, embedded directly in each of the five
+`.slurm` files. They also include the complete four-task launcher and do not
+load any repository `.sh` helpers:
 
 - 100 epochs, 128 batches of 64 shots per epoch: 819,200 training shots.
 - Validation every 5 epochs, 64 batches: 4,096 fresh shots per validation.
@@ -197,11 +199,18 @@ for i in 7 8 9; do sbatch "run_bb_${i}.slurm"; done
 Each script retains account `m5328_g`, 24 hours, one node, and four concurrent
 `srun` tasks with one GPU and 16 CPUs each. It loads `python/3.10`, activates
 `$PSCRATCH/envs/nde`, and uses `$HOME/end_time` (override with `BB_REPO_ROOT`).
-Update the repository's model, trainer, shared helpers and scripts on the server
-together. GPU runtime for the full campaign has not been measured.
+Update the repository's model, trainer and `.slurm` scripts on the server
+together. Python sources are still read from that checkout at startup; they are
+not frozen when the job is submitted. GPU runtime for the full campaign has not
+been measured.
+
+If a job was already queued with the previous script, pulling this version does
+not replace Slurm's saved batch script. Cancel the intended pending job and
+submit the updated `.slurm` to remove its old shell-helper dependencies.
 
 Results are under `resdir_<SLURM_JOB_ID>/outputs/<date>/<timestamp>_capacity_.../`
 with the files described above. The allocation directory additionally contains
 `experiments.tsv`, exact commands, per-experiment logs/exit codes, completion or
-failure markers, and snapshots of the CNN defaults and decoder sources.
+failure markers, and decoder-source snapshots. `submitted_script.slurm`
+includes the CNN defaults and launcher; separate `.sh` snapshots are not used.
 Each label and model directory identifies the code, p, depth and seed.
