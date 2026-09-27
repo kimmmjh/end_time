@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit the retained September 27 CNN import and regenerate CSVs and two PNGs.
+"""Audit the September 27 CNN campaign and regenerate six CSVs and three PNGs.
 
 Reads archived server artifacts only; does not train or rerun any decoder.
 Original files are checked against the import manifest before analysis.
@@ -11,6 +11,7 @@ import csv
 import hashlib
 import json
 import math
+import shlex
 from pathlib import Path
 import sys
 
@@ -25,7 +26,7 @@ sys.path.insert(0, str(ROOT))
 from src.bb_code import BBCodeSpec
 
 ANALYSIS = ROOT / "results/analysis"
-CNN = ROOT / "results/bb/code_capacity/depolarizing/tanner_cnn/bb72/resdir_58793761"
+CNN = ROOT / "results/bb/code_capacity/depolarizing/tanner_cnn"
 PLOTS = ROOT / "results/plots/september_2026_update"
 STEM = "bb_update_2026_09_27"
 Z = 1.959963984540054
@@ -87,6 +88,10 @@ def paired(reference, candidate):
 
 def audit_manifest():
     rows = read_csv(ANALYSIS / "bb_import_2026_09_27_manifest.csv")
+    assert len(rows) == len({r["archive_file"] for r in rows})
+    assert {r["archive_file"] for r in rows} == {
+        p.relative_to(ROOT).as_posix() for p in CNN.rglob("*") if p.is_file()
+    }, "Manifest must cover every original archived CNN file"
     for row in rows:
         path = ROOT / row["archive_file"]
         assert path.stat().st_size == int(row["bytes"])
@@ -104,6 +109,14 @@ def check_job(job):
     # The manifest checks every retained archived file against its original hash.
     source = job / "source_snapshot/src/bb_code.py"
     assert sha256(source) == sha256(ROOT / "src/bb_code.py"), source
+    with (job / "experiments.tsv").open() as handle:
+        specs = list(csv.DictReader(handle, delimiter="\t"))
+    assert len(specs) == 4
+    for spec in specs:
+        args = dict(token[2:].split("=", 1) for token in shlex.split(spec["arguments"]) if "=" in token)
+        for key, value in dict(epochs="100", batch_size="64", batches="128", eval_batches="64",
+                               eval_every="5", final_eval_batches="1024", lr="0.0003").items():
+            assert args[key] == value, (job, key)
 
 
 def xz(pauli):
@@ -121,15 +134,26 @@ def score_pauli(correction, truth, syndrome, code):
 
 
 def cnn_results():
-    check_job(CNN)
-    code = BBCodeSpec.from_name("bb72")
-    finals, training, validation, histories = [], [], [], {}
+    jobs = sorted(CNN.glob("*/resdir_*"))
+    assert {j.name for j in jobs} == {f"resdir_{i}" for i in (58793761, 58793763, 58793764, 58793765, 58793766)}
+    for job in jobs:
+        check_job(job)
+    for name in ("models/_bb_tanner_cnn.py", "src/_bb_tanner_cnn_experiment.py",
+                 "src/_direct_osd.py", "src/_bb_metrics.py"):
+        assert len({sha256(job / "source_snapshot" / name) for job in jobs}) == 1, name
+    finals, training, validation, histories, banks = [], [], [], {}, {}
     for path in sorted(CNN.rglob("history.json")):
         h = json.loads(path.read_text())
         c, f, p = h["config"], h["final"], h["config"]["error_rate"]
-        assert c["cnn_width"] == 64 and c["cnn_depth"] == 2 and c["code"] == "bb72"
+        code = BBCodeSpec.from_name(c["code"])
+        depth = c["cnn_depth"]
+        key = (c["code"], p, c["seed"], depth)
+        assert key not in histories
+        assert c["cnn_width"] == 64 and depth in (1, 2)
+        assert c["parameter_count"] == {1: 54404, 2: 161284}[depth]
         assert c["noise_model"] == "capacity" and c["channel"] == "depolarizing"
         assert c["checkpoint_selection"] == "raw_logical_accuracy" and c["osd_extra_bp_iterations"] == 0
+        assert c["hard_decision"] == "component_marginal_gt_half" and c["osd"] == "direct_hard_centered_osd0_v1"
         assert c["graph_fingerprint"] == hashlib.sha256(code.hx.tobytes() + code.hz.tobytes()).hexdigest()
         assert [t["epoch"] for t in h["train"]] == list(range(100))
         assert [e["epoch"] for e in h["eval"]] == list(range(4, 100, 5))
@@ -141,14 +165,19 @@ def cnn_results():
             close(e["osd_minus_raw_gain"], e["raw"]["logical_error_rate"] - e["osd"]["logical_error_rate"])
             close(e["osd_minus_raw_gain"], e["rescued"] / e["shots"])
             assert e["harmed"] == 0 and e["osd"]["syndrome_convergence"] == 1.
+        assert all(e["shots"] == 4096 for e in h["eval"])
         with np.load(path.with_name("final_shots.npz"), allow_pickle=False) as bank:
             b = {key: bank[key] for key in bank.files}
         assert json.loads(str(b["metadata_json"])) == c
         for key in ("syndrome", "pauli", "raw_correction", "osd_correction"):
-            assert b[key].shape == (65536, 72)
+            assert b[key].shape == (65536, code.n)
+            assert b[key].dtype == np.uint8
         tx, tz = xz(b["pauli"])
         assert np.array_equal(b["syndrome"], np.concatenate(((tz @ code.hx.T) % 2, (tx @ code.hz.T) % 2), axis=1))
-        row = dict(code="bb72", p=p, seed=c["seed"], depth=2, width=64, parameters=c["parameter_count"],
+        key = (c["code"], p, c["seed"], depth)
+        bank_hash = hashlib.sha256(b["pauli"].tobytes() + b["syndrome"].tobytes()).hexdigest()
+        row = dict(code=c["code"], p=p, seed=c["seed"], depth=depth, width=64, parameters=c["parameter_count"],
+                   shot_bank_sha256=bank_hash,
                    epochs=100, training_shots=819200, shots=f["shots"], best_epoch_zero_based=h["best_epoch"],
                    best_epoch_one_based=h["best_epoch"] + 1,
                    first_loss=h["train"][0]["total"], last_loss=h["train"][-1]["total"],
@@ -157,6 +186,9 @@ def cnn_results():
                    selected_validation_raw_ler=selected["raw"]["logical_error_rate"],
                    last_validation_raw_ler=h["eval"][-1]["raw"]["logical_error_rate"],
                    last5_validation_raw_ler=float(np.mean([e["raw"]["logical_error_rate"] for e in h["eval"][-5:]])),
+                   first_validation_raw_ler=h["eval"][0]["raw"]["logical_error_rate"],
+                   first_validation_osd_ler=h["eval"][0]["osd"]["logical_error_rate"],
+                   last_validation_osd_ler=h["eval"][-1]["osd"]["logical_error_rate"],
                    osd_call_fraction=f["osd_call_fraction"], nn_batch_seconds=f["nn_batch_seconds"],
                    osd_with_transfer_seconds=f["osd_with_transfer_seconds"], source=path.relative_to(ROOT).as_posix())
         outcomes = {}
@@ -179,37 +211,92 @@ def cnn_results():
         row["osd_relative_ler_reduction"] = row["paired_gain"] / row["raw_ler"]
         close(row["rescued"], f["rescued"])
         finals.append(row)
-        histories[p] = h
+        histories[key] = h
+        banks[key] = dict(hash=bank_hash, **outcomes)
         for t in h["train"]:
-            training.append(dict(code="bb72", p=p, seed=c["seed"], **t))
+            training.append(dict(code=c["code"], p=p, seed=c["seed"], depth=depth, **t))
         for e in h["eval"]:
-            validation.append(dict(code="bb72", p=p, seed=c["seed"], epoch=e["epoch"], shots=e["shots"],
+            validation.append(dict(code=c["code"], p=p, seed=c["seed"], depth=depth, epoch=e["epoch"], shots=e["shots"],
                                    raw_ler=e["raw"]["logical_error_rate"], osd_ler=e["osd"]["logical_error_rate"],
                                    osd_call_fraction=e["osd_call_fraction"], paired_gain=e["osd_minus_raw_gain"],
                                    selected=e["epoch"] == h["best_epoch"]))
-    finals.sort(key=lambda r: r["p"])
+    order = lambda r: (int(r["code"][2:]), r["depth"], r["p"], r["seed"])
+    finals.sort(key=order)
     holm(finals)
-    assert [r["p"] for r in finals] == [.02, .04, .06, .08]
+    assert len(finals) == 20
+    for code in ("bb72", "bb144"):
+        for depth in (1, 2):
+            assert [r["p"] for r in finals if r["code"] == code and r["depth"] == depth and primary(r)] == [.02, .04, .06, .08]
     write_csv(f"{STEM}_cnn_final.csv", finals)
-    write_csv(f"{STEM}_cnn_train.csv", sorted(training, key=lambda r: (r["p"], r["epoch"])))
-    write_csv(f"{STEM}_cnn_validation.csv", sorted(validation, key=lambda r: (r["p"], r["epoch"])))
-    return finals, histories
+    write_csv(f"{STEM}_cnn_train.csv", sorted(training, key=lambda r: (*order(r), r["epoch"])))
+    write_csv(f"{STEM}_cnn_validation.csv", sorted(validation, key=lambda r: (*order(r), r["epoch"])))
+    return finals, histories, banks
+
+
+def primary(row):
+    return row["seed"] == int(row["code"][2:]) * 100000 + 1000 + round(row["p"] * 1000)
+
+
+def depth_comparison(banks):
+    rows = []
+    for (code, p, seed, depth), first in sorted(banks.items()):
+        if depth != 1:
+            continue
+        second = banks[(code, p, seed, 2)]
+        assert first["hash"] == second["hash"], "Depth comparison requires identical truth and syndrome banks"
+        for method in ("raw", "osd"):
+            a, b = first[method], second[method]
+            rescued, harmed = int((~a & b).sum()), int((a & ~b).sum())
+            n = a.size
+            gain = (rescued - harmed) / n
+            se = math.sqrt(((rescued + harmed) / n - gain * gain) / (n - 1))
+            rows.append(dict(code=code, p=p, seed=seed, method=method, shots=n,
+                             identical_shot_bank=True, shot_bank_sha256=first["hash"],
+                             depth1_ler=float((~a).mean()), depth2_ler=float((~b).mean()),
+                             rescued=rescued, harmed=harmed, paired_gain=gain,
+                             paired_gain_low=gain-Z*se, paired_gain_high=gain+Z*se,
+                             paired_gain_interval="paired normal approximation; shot uncertainty only",
+                             paired_exact_p=binomtest(rescued, rescued+harmed).pvalue if rescued+harmed else 1.))
+    assert len(rows) == 16
+    holm(rows)  # One family: eight code/p pairs times raw and OSD.
+    write_csv(f"{STEM}_cnn_depth_pairs.csv", rows)
+    return rows
+
+
+def seed_summary(finals):
+    rows = []
+    for code in ("bb72", "bb144"):
+        selected = [r for r in finals if r["code"] == code and r["depth"] == 2 and r["p"] == .06]
+        assert len(selected) == 3 and len({r["shot_bank_sha256"] for r in selected}) == 3
+        for method in ("raw", "osd"):
+            rates = np.array([r[f"{method}_ler"] for r in selected])
+            n = sum(r["shots"] for r in selected)
+            failures = sum(r[f"{method}_failures"] for r in selected)
+            rows.append(dict(code=code, p=.06, depth=2, method=method, seeds=3, shots=n,
+                             failures=failures, mean_ler=float(rates.mean()), pooled_ler=failures/n,
+                             min_ler=float(rates.min()), max_ler=float(rates.max()),
+                             sample_sd_ler=float(rates.std(ddof=1)),
+                             uncertainty="between-run SD includes training and test-bank variation; only three seeds"))
+    write_csv(f"{STEM}_cnn_seeds.csv", rows)
+    return rows
 
 
 def references(cnn):
-    old_neural = [r for r in read_csv(ANALYSIS / "bb_neural_bp_depolarizing_orbit.csv") if r["code"] == "bb72"]
-    classical = [r for r in read_csv(ANALYSIS / "bb_campaign_2026_08_classical.csv") if r["code"] == "bb72"]
+    old_neural = read_csv(ANALYSIS / "bb_neural_bp_depolarizing_orbit.csv")
+    classical = read_csv(ANALYSIS / "bb_campaign_2026_08_classical.csv")
     rows = []
     for new in cnn:
+        if new["depth"] != 2 or not primary(new):
+            continue
         for old in old_neural:
-            if float(old["p"]) != new["p"]:
+            if float(old["p"]) != new["p"] or old["code"] != new["code"]:
                 continue
             for tag, name in (("vanilla", "BP4 T12"), ("neural", "Neural BP4 T12")):
-                rows.append(dict(p=new["p"], method=name, ler=float(old[f"{tag}_logical_error_rate"]),
+                rows.append(dict(code=new["code"], p=new["p"], method=name, ler=float(old[f"{tag}_logical_error_rate"]),
                                  shots=int(old["eval_samples"]), source=old["source_resdir"], comparison="separate shot banks and training budgets"))
         for old in classical:
-            if float(old["p"]) == new["p"] and old["method"] in {"bposd_0", "bposd_cs7"}:
-                rows.append(dict(p=new["p"], method={"bposd_0": "CSS BP2+OSD-0", "bposd_cs7": "CSS BP2+OSD-CS7"}[old["method"]],
+            if old["code"] == new["code"] and float(old["p"]) == new["p"] and old["method"] in {"bposd_0", "bposd_cs7"}:
+                rows.append(dict(code=new["code"], p=new["p"], method={"bposd_0": "CSS BP2+OSD-0", "bposd_cs7": "CSS BP2+OSD-CS7"}[old["method"]],
                                  ler=float(old["logical_error_rate"]), shots=int(old["samples"]), source=old["source_file"],
                                  comparison="separate shot banks; X/Z split; different OSD convention and BP budget"))
     write_csv(f"{STEM}_capacity_references.csv", rows)
@@ -221,52 +308,98 @@ def error_curve(ax, rows, *, label, color, prefix="", **kwargs):
     y = np.array([r[prefix + "ler"] * 100 for r in rows])
     low = np.array([r[prefix + "ler_low"] * 100 for r in rows])
     high = np.array([r[prefix + "ler_high"] * 100 for r in rows])
-    ax.errorbar(x, y, yerr=np.maximum([y - low, high - y], 0), fmt="o-", capsize=3,
+    ax.errorbar(x, y, yerr=np.maximum([y - low, high - y], 0), marker="o", capsize=3,
                 color=color, label=label, **kwargs)
 
 
 def cnn_plot(rows, refs):
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5.7), sharey=True, layout="constrained")
-    error_curve(axes[0], rows, label="Tanner CNN", color="#BA6842", prefix="raw_")
-    for ax in axes:
-        error_curve(ax, rows, label="Tanner CNN + direct OSD-0", color="#007C83", prefix="osd_")
-    for ax, methods in zip(axes, (("BP4 T12", "Neural BP4 T12"), ("CSS BP2+OSD-0", "CSS BP2+OSD-CS7"))):
-        for name, color in zip(methods, ("#626B75", "#8F62A5")):
-            selected = [r for r in refs if r["method"] == name]
-            ax.plot([r["p"] * 100 for r in selected], [r["ler"] * 100 for r in selected], "s--", color=color, label=name + " (previous)")
-        ax.set(yscale="log", ylim=(.07, 80), xlabel="Depolarizing data-qubit error probability p (%)", xticks=[2, 4, 6, 8])
-        ax.grid(alpha=.18, which="both")
-        ax.legend(fontsize=8, loc="lower right")
-    axes[0].set(ylabel="Block LER (%)", title="Joint Pauli output / BP4 references")
-    axes[1].set(title="Separate X/Z BP-OSD references")
-    fig.suptitle("BB72 code capacity | Tanner CNN depth 2, width 64 | 65,536 fresh shots/point\n"
-                 "One raw-LER-selected checkpoint for CNN and CNN+OSD. Error bars: 95% Wilson.\n"
-                 "Previous curves use different samples, training budgets and OSD implementations.", fontsize=11)
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10), layout="constrained")
+    for idx, code in enumerate(("bb72", "bb144")):
+        for depth, color in ((1, "#BA6842"), (2, "#007C83")):
+            selected = [r for r in rows if r["code"] == code and r["depth"] == depth and primary(r)]
+            for method, style, label in (("raw", "-", "CNN"), ("osd", "--", "CNN + OSD-0")):
+                error_curve(axes[idx, 0], selected, label=f"Depth {depth} {label}", color=color,
+                            prefix=method+"_", linestyle=style)
+            if depth == 2:
+                error_curve(axes[idx, 1], selected, label="Depth 2 CNN + OSD-0", color=color, prefix="osd_")
+        for name, color, marker in (("BP4 T12", "#626B75", "s"), ("Neural BP4 T12", "#8F62A5", "s"),
+                                     ("CSS BP2+OSD-0", "#C59326", "^"), ("CSS BP2+OSD-CS7", "#CA6581", "^")):
+            selected = [r for r in refs if r["code"] == code and r["method"] == name]
+            axes[idx, 1].plot([r["p"]*100 for r in selected], [r["ler"]*100 for r in selected],
+                              marker=marker, ls="--", color=color, label=name)
+        for col, title in enumerate(("Depth ablation: identical test shots", "Capacity references: different budgets / banks")):
+            ax = axes[idx, col]
+            ax.set(title=f"{code.upper()} | {title}", yscale="log", ylim=((.06, 110) if idx == 0 else (.0002, 110)),
+                   xlabel="Depolarizing probability p (%)", ylabel="Block LER (%)", xticks=[2, 4, 6, 8])
+            ax.grid(alpha=.18, which="both")
+            ax.legend(fontsize=8, loc="lower right")
+    axes[1, 0].annotate("1 failure / 65,536 shots", xy=(2, 100/65536), xytext=(2.6, .002), fontsize=8,
+                         arrowprops=dict(arrowstyle="-", color=".5"))
+    fig.suptitle("Joint Tanner CNN | code capacity | 65,536 shots/point | 95% Wilson error bars\n"
+                 "Primary seeds shown; raw and OSD use the same raw-LER-selected checkpoint.\n"
+                 "Depth 1: 54,404 parameters; depth 2: 161,284. References differ in BP/OSD and training budgets.", fontsize=11)
     fig.savefig(PLOTS / "tanner_cnn.png", dpi=180)
     plt.close(fig)
 
 
 def training_plot(histories):
-    fig, axes = plt.subplots(2, 4, figsize=(16, 7.5), sharex=True, layout="constrained")
-    for col, (p, h) in enumerate(sorted(histories.items())):
-        x = [t["epoch"] + 1 for t in h["train"]]
-        for key, color in (("total", "#222222"), ("syndrome", "#C98427"), ("logical", "#5475A9")):
-            axes[0, col].plot(x, [t[key] for t in h["train"]], color=color, label=key, lw=1.3)
-        for tag, color, label in (("raw", "#BA6842", "CNN"), ("osd", "#007C83", "CNN+OSD")):
-            axes[1, col].plot([e["epoch"] + 1 for e in h["eval"]],
-                              [e[tag]["logical_error_rate"] * 100 for e in h["eval"]], "o-", ms=3, color=color, label=label + " validation")
-            axes[1, col].scatter(h["best_epoch"] + 1, h["final"][tag]["logical_error_rate"] * 100,
-                                 marker="D", s=55, color=color, edgecolors="black", zorder=5, label=label + " fresh test")
-        for ax in axes[:, col]:
-            ax.axvline(h["best_epoch"] + 1, ls=":", color=".4", lw=1)
-            ax.grid(alpha=.18)
-        axes[0, col].set(title=f"p={p:g} | selected epoch {h['best_epoch'] + 1}", yscale="log", ylabel="Training loss" if col == 0 else "")
-        axes[1, col].set(yscale="log", xlabel="Epoch (1-based)", ylabel="Block LER (%)" if col == 0 else "")
+    fig, axes = plt.subplots(4, 4, figsize=(17, 12), sharex=True, layout="constrained")
+    for idx, code in enumerate(("bb72", "bb144")):
+        for col, p in enumerate((.02, .04, .06, .08)):
+            loss_ax, ler_ax = axes[2*idx, col], axes[2*idx+1, col]
+            for (c, rate, seed, depth), h in histories.items():
+                if c != code or rate != p:
+                    continue
+                is_primary = primary(dict(code=c, seed=seed, p=rate))
+                color = {1: "#BA6842", 2: "#007C83"}[depth]
+                alpha = 1 if is_primary else .25
+                label = f"Depth {depth}" if is_primary else "_nolegend_"
+                loss_ax.plot([t["epoch"]+1 for t in h["train"]], [t["total"] for t in h["train"]],
+                             color=color, alpha=alpha, lw=1.2, label=label)
+                for method, style in (("raw", "-"), ("osd", "--")):
+                    ler_ax.plot([e["epoch"]+1 for e in h["eval"]], [e[method]["logical_error_rate"]*100 for e in h["eval"]],
+                                color=color, alpha=alpha, ls=style, lw=1.3,
+                                label=f"Depth {depth} {'CNN' if method == 'raw' else 'CNN+OSD'}" if is_primary else "_nolegend_")
+                    ler_ax.scatter(h["best_epoch"]+1, h["final"][method]["logical_error_rate"]*100,
+                                   marker="D", s=26, color=color, alpha=alpha,
+                                   edgecolors="black" if is_primary else "none", linewidths=.6, zorder=5)
+            loss_ax.set(title=f"{code.upper()} | p={p:g}", yscale="log", ylabel="Total training loss" if col == 0 else "")
+            # A symlog axis displays zero validation failures without fabricating
+            # a positive rate. Its linear region is below one validation failure.
+            ler_ax.set_yscale("symlog", linthresh=100/4096)
+            rates = [e[method]["logical_error_rate"]*100 for h in histories.values()
+                     if h["config"]["code"] == code and h["config"]["error_rate"] == p
+                     for e in [*h["eval"], h["final"]] for method in ("raw", "osd")]
+            ler_ax.set_ylim(min(rates)*.75, max(rates)*1.15)
+            ler_ax.set(xlabel="Epoch (1-based)", ylabel="Validation / test LER (%)" if col == 0 else "")
+            for ax in (loss_ax, ler_ax):
+                ax.grid(alpha=.18)
     axes[0, 0].legend(fontsize=8)
     fig.legend(*axes[1, 0].get_legend_handles_labels(), loc="outside lower center", ncol=4, fontsize=9)
-    fig.suptitle("BB72 Tanner CNN: all four completed 100-epoch runs\n"
-                 "Validation: 4,096 fresh shots each; diamonds: 65,536-shot selected-checkpoint test", fontsize=12)
+    fig.suptitle("Joint Tanner CNN | all 20 training runs | 100 epochs, 819,200 training shots/run\n"
+                 "Solid: raw validation; dashed: OSD validation; diamonds: selected-checkpoint fresh test.\n"
+                 "Faint p=0.06 curves: additional seeds. LER axes are linear below 1/4,096 and logarithmic above.", fontsize=11)
     fig.savefig(PLOTS / "tanner_cnn_training.png", dpi=170)
+    plt.close(fig)
+
+
+def seeds_plot(rows):
+    fig, axes = plt.subplots(1, 2, figsize=(11, 5), layout="constrained")
+    for ax, code in zip(axes, ("bb72", "bb144")):
+        selected = sorted((r for r in rows if r["code"] == code and r["depth"] == 2 and r["p"] == .06), key=lambda r: r["seed"])
+        for i, row in enumerate(selected):
+            x = np.array([0, 1]) + (i-1)*.14
+            y = np.array([row[f"{m}_ler"]*100 for m in ("raw", "osd")])
+            lo = np.array([row[f"{m}_ler_low"]*100 for m in ("raw", "osd")])
+            hi = np.array([row[f"{m}_ler_high"]*100 for m in ("raw", "osd")])
+            ax.errorbar(x, y, yerr=[y-lo, hi-y], fmt="o", capsize=4, label=f"Seed {row['seed']}")
+        ax.set(title=code.upper(), ylabel="Block LER (%)", xticks=[0, 1], xticklabels=["CNN", "CNN + OSD-0"],
+               xlim=(-.4, 1.4), yscale="log")
+        ax.grid(alpha=.18, which="both")
+        ax.legend(fontsize=9)
+    fig.suptitle("Depth 2 at p=0.06 | three independent training / test seeds per code\n"
+                 "65,536 shots per seed. Error bars describe shot uncertainty, not training-seed uncertainty.", fontsize=11)
+    fig.savefig(PLOTS / "tanner_cnn_seeds.png", dpi=180)
     plt.close(fig)
 
 
@@ -274,19 +407,28 @@ def main():
     ANALYSIS.mkdir(parents=True, exist_ok=True)
     PLOTS.mkdir(parents=True, exist_ok=True)
     audit = audit_manifest()
-    cnn, histories = cnn_results()
+    cnn, histories, banks = cnn_results()
+    depths = depth_comparison(banks)
+    seed_summary(cnn)
     refs = references(cnn)
     plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False})
     cnn_plot(cnn, refs)
     training_plot(histories)
+    seeds_plot(cnn)
     audit.update(cnn_experiments=len(cnn), cnn_final_shots=sum(r["shots"] for r in cnn),
                  cnn_saved_corrections_independently_rescored=True,
+                 cnn_decoder_and_evaluation_snapshots_identical=True,
+                 unique_final_shot_banks=len({b["hash"] for b in banks.values()}),
+                 unique_final_shots=len({b["hash"] for b in banks.values()}) * 65536,
+                 depth_pairs_with_identical_shots=len(depths)//2,
+                 depth_tests_holm_family_size=len(depths),
+                 raw_to_osd_tests_holm_family_size=len(cnn),
                  removed_plain_bp_jobs=[58793753, 58793754, 58793756, 58793757, 58793759])
     (ANALYSIS / f"{STEM}_audit.json").write_text(json.dumps(audit, indent=2) + "\n")
     print(json.dumps(audit, indent=2))
     for row in cnn:
-        print(f"CNN p={row['p']}: raw={row['raw_ler']:.6%}, OSD={row['osd_ler']:.6%}, selected epoch={row['best_epoch_one_based']}")
-    print("Wrote four analysis CSVs, audit JSON, and two PNGs. Markdown interpretation is maintained separately.")
+        print(f"{row['code']} depth={row['depth']} p={row['p']} seed={row['seed']}: raw={row['raw_ler']:.6%}, OSD={row['osd_ler']:.6%}, epoch={row['best_epoch_one_based']}")
+    print("Wrote six analysis CSVs, audit JSON, and three PNGs. Markdown interpretation is maintained separately.")
 
 
 if __name__ == "__main__":

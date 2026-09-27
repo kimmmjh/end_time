@@ -145,9 +145,11 @@ for i in 5 6 7 8 9; do sbatch "run_bb_${i}.slurm"; done
 ```
 
 All jobs use `$PSCRATCH/envs/nde` and `$HOME/end_time`, with four concurrent
-`srun --exclusive` steps. Jobs 0–4 use CPU account `m5328`, 32 CPUs and 32
-single-thread library workers per step. Jobs 5–9 use GPU account `m5328_g`,
-one GPU and 16 CPUs per step. Results are stored under
+`srun --exclusive` steps on GPU account `m5328_g`. Jobs 0–4 reserve one GPU
+and 32 logical CPUs (16 physical cores) per step, with 16 single-thread
+library workers. They consume GPU allocation hours but perform decoding on
+the node's host CPU; the reserved GPUs are idle. Jobs 5–9 perform CNN
+computation on one GPU with 16 Slurm CPUs per step. Results are stored under
 `$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ...,
 `log_exp_3.txt`, per-experiment exit codes, and a completed/failed marker.
 CNN model directories are under each result directory's `outputs/YYYY-MM-DD/`;

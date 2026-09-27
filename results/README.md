@@ -9,7 +9,7 @@ results/
 │   ├── phenomenological/{cnn3d,convgru,pymatching}/
 │   └── circuit/{convgru_mwpm,convgru_weighted_mwpm}/
 ├── bb/
-│   ├── code_capacity/depolarizing/{orbit,tanner_cnn}/{bb72,bb144}/
+│   ├── code_capacity/depolarizing/{orbit,tanner_cnn}/{bb72,bb144,replicates}/
 │   └── circuit/{q_equals_p_idle0,no_osd,noise_balance,neural_relay}/
 ├── analysis/
 ├── plots/{neural_relay,september_2026_update}/
@@ -20,14 +20,15 @@ results/
 
 Headline results:
 
-- [`september_2026_update/tanner_cnn.png`](plots/september_2026_update/tanner_cnn.png): new BB72 capacity CNN / CNN+OSD against earlier capacity references
+- [`september_2026_update/tanner_cnn.png`](plots/september_2026_update/tanner_cnn.png): BB72/BB144 capacity CNN depth-1/depth-2, raw/OSD, and previous capacity references
 - [`plots/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.png`](plots/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.png): toric phenomenological threshold study
 - [`plots/bb_campaign_2026_08_decoders.png`](plots/bb_campaign_2026_08_decoders.png): BB code-capacity decoder comparison
 - [`plots/bb_circuit_campaign_2026_08.png`](plots/bb_circuit_campaign_2026_08.png): BB circuit-level Neural+OSD reference sweep
 
 Supporting and diagnostic figures:
 
-- [`september_2026_update/tanner_cnn_training.png`](plots/september_2026_update/tanner_cnn_training.png): all four new CNN training/validation histories and selected-checkpoint tests
+- [`september_2026_update/tanner_cnn_training.png`](plots/september_2026_update/tanner_cnn_training.png): all 20 CNN training/validation histories and selected-checkpoint tests
+- [`september_2026_update/tanner_cnn_seeds.png`](plots/september_2026_update/tanner_cnn_seeds.png): three depth-2 seeds per code at p=.06, with shot confidence intervals
 - [`neural_relay/overview.png`](plots/neural_relay/overview.png): BB72/BB144 final LER, paired gain, and historical BP/OSD references
 - [`neural_relay/training_bb72.png`](plots/neural_relay/training_bb72.png): all eight BB72 training losses and paired validation gains
 - [`neural_relay/training_bb144.png`](plots/neural_relay/training_bb144.png): all eight BB144 training losses and paired validation gains
@@ -57,7 +58,7 @@ and averages them. The curated CSV selects the intended branch explicitly.
 Known partial runs are retained in `cnn3d/resdir_55562044`,
 `cnn3d/resdir_55860108`, and `convgru/resdir_1252167/exp_6`.
 
-## September 27, 2026: retained Tanner CNN results and baseline replacement
+## September 27, 2026: complete Tanner CNN campaign and baseline replacement
 
 The obsolete scale-0.625 plain-BP jobs `58793753`, `58793754`, `58793756`,
 `58793757`, `58793759` and their three aggregate CSVs/PNG were deleted at the
@@ -66,23 +67,33 @@ lists the exact removed directories. Previous Neural/Relay data is retained.
 The new [library BP/OSD campaign](../docs/bb_baseline_campaign.md) uses the paper
 circuit schedule, idle noise and logical-X memory task; new server results are pending.
 
-Tanner CNN `resdir_58793761` remains under
-[`bb/code_capacity/depolarizing/tanner_cnn/bb72/`](bb/code_capacity/depolarizing/tanner_cnn/bb72/).
-Its 50 original files are checked against the filtered
-[manifest](analysis/bb_import_2026_09_27_manifest.csv). Four BB72 depth-2/width-64
-models completed 100 epochs and 65,536 final shots each. All saved corrections
-are independently rescored. No BB144/depth-1/extra-seed CNN runs are included.
+Four new jobs (`58793763`--`58793766`) join retained job `58793761` under
+[`bb/code_capacity/depolarizing/tanner_cnn/`](bb/code_capacity/depolarizing/tanner_cnn/).
+They cover both BB72 and BB144, depth 1/2 at p=.02/.04/.06/.08, and three
+depth-2 seeds per code at p=.06. All 20 runs completed 100 epochs and 65,536
+final shots. The [manifest](analysis/bb_import_2026_09_27_manifest.csv) verifies
+all 250 original files (160,619,343 bytes). Saved raw/OSD corrections are
+independently rescored. Eight depth pairs share byte-identical truth/syndrome
+banks: 1,310,720 model-shot evaluations represent 786,432 unique final shots.
 
-Raw / CNN+OSD LER is 1.875% / .119% at p=.02, 13.034% / 1.891% at .04,
-33.841% / 8.684% at .06, and 56.607% / 21.596% at .08. CNN+OSD improves on
-previous CSS BP2+OSD but remains worse than previous joint BP4/Neural BP4;
-training budgets and sample banks differ. See the
-[Korean analysis](analysis/bb_update_2026_09_27.md) and
+Depth 2 improves on depth 1 at every point, for both raw and OSD output, with
+paired significance after Holm correction. At p=.06, primary-seed raw/OSD
+LER is 33.841%/8.684% for BB72 and 58.130%/3.600% for BB144. The three-seed
+OSD means are 8.546% and 3.497%, respectively. Raw failures are overwhelmingly
+syndrome-invalid. CNN+OSD still loses to previous Neural BP4 at all shared
+p=.04/.06/.08 points; the older neural model had 12 times the training samples.
+BB144 p=.02 has only one OSD failure, so its rare-event estimate remains broad.
+These are capacity results, not the pending circuit baseline results.
+
+See the [Korean analysis](analysis/bb_update_2026_09_27.md),
+[final results](analysis/bb_update_2026_09_27_cnn_final.csv),
+[paired depth comparison](analysis/bb_update_2026_09_27_cnn_depth_pairs.csv),
+[seed summary](analysis/bb_update_2026_09_27_cnn_seeds.csv), and
 [audit](analysis/bb_update_2026_09_27_audit.json).
 
-Only the two CNN PNGs remain in
-[`plots/september_2026_update/`](plots/september_2026_update/).
-Reproduce their audit, four analysis CSVs and two PNGs with:
+Three CNN PNGs are consolidated in
+[`plots/september_2026_update/`](plots/september_2026_update/); no PDF is generated.
+Reproduce the audit, six analysis CSVs and three PNGs with:
 
 ```bash
 python scripts/summarize_bb_september27.py
@@ -90,11 +101,11 @@ python scripts/summarize_bb_september27.py
 
 ## September 23, 2026: ordinary BP evaluation scripts
 
-`run_bb_0.slurm` through `run_bb_4.slurm` now launch a
-[standalone BP sweep](../docs/bb_plain_bp_campaign.md), without training, Relay,
-or OSD. Each experiment compares max-12 and max-1000 BP on 4096 saved circuit
-shots. Outputs are `resdir_<jobid>/exp_<index>/{results.json,summary.csv,shots.npz,outcomes.npz}`.
-The first completed server measurements were imported on September 27, above.
+The September 23 version of `run_bb_0.slurm` through `run_bb_4.slurm` launched
+a max-12/max-1000 BP sweep on 4,096 circuit shots without OSD. That campaign
+was superseded on September 27 and its invalid baseline data was deleted as
+recorded above. The current scripts launch the
+[library BP/OSD campaign](../docs/bb_baseline_campaign.md).
 
 ## September 22, 2026: BP baseline stopping and iteration caps
 

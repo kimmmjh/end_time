@@ -1,5 +1,11 @@
 # Joint Tanner CNN: raw and direct OSD-0
 
+The 20-run depth/seed campaign has completed. See the
+[September 27 result analysis](../results/analysis/bb_update_2026_09_27.md)
+and [consolidated comparison](../results/plots/september_2026_update/tanner_cnn.png).
+Depth 2 consistently improves on depth 1, but raw syndrome consistency and the
+gap to previous Neural BP4 remain unresolved. These are code-capacity results.
+
 `--architecture=bb_tanner_cnn` trains a feed-forward CNN on the BB joint
 `X checks — data qubits — Z checks` graph. This first implementation supports
 **code-capacity noise with one perfect syndrome**. Circuit and phenomenological

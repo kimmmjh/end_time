@@ -102,20 +102,24 @@ def test_real_circuit_run_saves_paired_counts_and_never_uses_neural_updates(tmp_
     assert (directory / "results.json").read_bytes() == before
 
 
-def test_library_slurm_default_statistics_cpu_resources_and_resume(tmp_path):
+def test_library_slurm_default_statistics_gpu_allocation_cpu_workers_and_resume(tmp_path):
     root = Path(__file__).resolve().parents[1]
     env = {key: value for key, value in os.environ.items() if not key.startswith("BB_BASELINE_")}
     env.update(BB_DRY_RUN="1", BB_REPO_ROOT=str(root))
     for job in range(5):
         script = root / f"run_bb_{job}.slurm"
         text = script.read_text()
-        assert "#SBATCH --constraint=cpu" in text and "#SBATCH --account=m5328\n" in text
-        assert "#SBATCH --gpus" not in text
+        assert "#SBATCH --constraint=gpu" in text and "#SBATCH --account=m5328_g\n" in text
+        assert "#SBATCH --cpus-per-task=32" in text
+        assert "#SBATCH --gpus-per-task=1" in text
+        assert "--hint=nomultithread" not in text
+        assert "srun --exclusive --exact --nodes=1 --ntasks=1" in text
+        assert "        --gpus-per-task=1\n" in text
         output = subprocess.check_output(["bash", str(script)], env=env, text=True)
         for command in output.splitlines():
             args = library_baseline.parse_args(shlex.split(command)[3:])
             assert args.shots == (1_000_000 if job == 4 else 100_000)
-            assert args.workers == 32 and not args.resume
+            assert args.workers == 16 and not args.resume
     env["BB_BASELINE_RESUME_ROOT"] = str(tmp_path / "previous_job")
     output = subprocess.check_output(["bash", str(root / "run_bb_0.slurm")], env=env, text=True)
     for i, command in enumerate(output.splitlines()):

@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name=bbc_base144_low
-#SBATCH --account=m5328
+#SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
-#SBATCH --constraint=cpu
+#SBATCH --constraint=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --cpus-per-task=32
-#SBATCH --hint=nomultithread
+#SBATCH --gpus-per-task=1
 #SBATCH --output=slurm-%x-%j.out
 
 set -euo pipefail
@@ -39,7 +39,7 @@ bb_baseline_experiment_args() {
         output_directory="$BB_BASELINE_RESUME_ROOT/$output_directory"
         resume_arg="--resume"
     fi
-    printf '%s\n' "--code=$code --p=$p --seed=$seed --rounds=$rounds --shots=${BB_BASELINE_SHOTS:-100000} --max-iterations=${BB_BASELINE_ITERATIONS:-1000} --detector-inputs x xz --workers=${BB_BASELINE_WORKERS:-32} --chunk-size=128 $resume_arg --out=$output_directory"
+    printf '%s\n' "--code=$code --p=$p --seed=$seed --rounds=$rounds --shots=${BB_BASELINE_SHOTS:-100000} --max-iterations=${BB_BASELINE_ITERATIONS:-1000} --detector-inputs x xz --workers=${BB_BASELINE_WORKERS:-16} --chunk-size=128 $resume_arg --out=$output_directory"
 }
 
 BB_CAMPAIGN="bb_library_bp_osd_2026_09_27"
@@ -48,6 +48,9 @@ BB_PYTHON_ENTRYPOINT="$ROOT/scripts/evaluate_bb_circuit_baselines.py"
 # Paired library BP, BP+OSD-0 and BP+OSD-CS3; X-only and joint X/Z input.
 # Paper eight-tick schedule, noisy idles, logical-X memory / logical-Z block LER.
 # CPU processes, original DEM priors, max 1000 BP iterations, no rescaling.
+# Uses GPU allocation hours; ldpc still decodes on the GPU node's host CPU.
+# Each step reserves 1 GPU + 32 logical CPUs (16 physical cores) for 16 workers.
+# This is not CUDA acceleration; the allocated GPU is idle for this baseline.
 # Experiment matrix and resumption: docs/bb_baseline_campaign.md
 
 experiments=(
@@ -103,6 +106,7 @@ run_bb_experiments() {
     local -a argv=()
     local -a step_resources=(
         --cpus-per-task="$cpus_per_task"
+        --gpus-per-task=1
         --mem=48G
     )
 
@@ -149,6 +153,9 @@ run_bb_experiments() {
         echo "Node list: ${SLURM_NODELIST:-unknown}"
         echo "Experiments: $experiment_count"
         echo "Campaign: ${BB_CAMPAIGN:-unspecified}"
+        echo "Allocation: GPU node; account ${SLURM_JOB_ACCOUNT:-m5328_g}"
+        echo "Decoder execution: host CPU (ldpc); no GPU kernels"
+        echo "Workers per experiment: ${BB_BASELINE_WORKERS:-16}"
     } > "$_BB_RESULT_DIRECTORY/job_metadata.txt"
     cp "$0" "$_BB_RESULT_DIRECTORY/submitted_script.slurm" 2>/dev/null || true
     cp "$entrypoint" "$_BB_RESULT_DIRECTORY/entrypoint_snapshot.py" \
@@ -187,7 +194,7 @@ run_bb_experiments() {
         } > "command_exp_${index}.txt"
 
         echo "Starting experiment $index ($label): $params"
-        srun --exclusive --nodes=1 --ntasks=1 \
+        srun --exclusive --exact --nodes=1 --ntasks=1 \
             "${step_resources[@]}" \
             python -u "$entrypoint" "${argv[@]}" \
             > "log_exp_${index}.txt" 2>&1 &

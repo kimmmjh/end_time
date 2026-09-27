@@ -76,10 +76,24 @@ method/input rows. Job 4 is the extra low-error statistics campaign; its samples
 are independent of jobs 0/2. Very small LER may still require more shots; assess
 failure counts and confidence intervals before comparing curves.
 
-Jobs 0–4 use **Perlmutter CPU nodes**, account `m5328`, 4 tasks/node, 32 physical
-CPUs/task, 32 single-thread processes/experiment, and a 24-hour limit. Each step
-requests 48 GiB. Native `ldpc` BP/OSD is CPU code. Jobs 5–9 remain the separate
-GPU Tanner CNN campaign. The allocation has not been submitted from this workspace.
+Jobs 0–4 use **Perlmutter GPU nodes and GPU allocation**, account `m5328_g`,
+because the project's CPU allocation is unavailable. The decoder still runs
+on the GPU node's **host CPU**: the current `ldpc` implementation does not
+launch GPU kernels. This changes where the job is scheduled and charged;
+it does not provide CUDA acceleration or change the baseline algorithm.
+
+Each node runs four concurrent experiments. Each step reserves one GPU,
+32 logical CPUs (16 physical cores), and 48 GiB, and uses 16 single-thread
+decoder processes. The four GPUs are reserved but idle for this baseline.
+The time limit remains 24 hours. The previous CPU-node script used 32 workers
+per experiment; fewer CPU cores here may increase wall time. Saved chunks
+can be resumed with a different worker count. Jobs 5–9 remain the separate
+Tanner CNN campaign, which does perform GPU computation.
+
+The CPU/GPU allocation pools are charged separately according to
+[NERSC's queue policy](https://docs.nersc.gov/jobs/policy/). The resource split
+follows the [Perlmutter four-task examples](https://docs.nersc.gov/systems/perlmutter/running-jobs/).
+No job has been submitted from this workspace.
 
 ```bash
 BB_DRY_RUN=1 bash run_bb_0.slurm
@@ -88,10 +102,16 @@ for i in 0 1 2 3 4; do sbatch "run_bb_${i}.slurm"; done
 
 All launch logic is embedded in each `.slurm`, with no repository `.sh` helpers.
 The environment is `$PSCRATCH/envs/nde`, repository `$HOME/end_time` or
-`BB_REPO_ROOT`. CPU allocation account availability depends on the project;
-`sbatch --account=YOUR_CPU_ACCOUNT run_bb_0.slurm` overrides the header if needed.
-The CPU/GPU account naming follows the
-[NERSC examples](https://docs.nersc.gov/jobs/interactive/).
+`BB_REPO_ROOT`. The GPU account defaults to the same `m5328_g` used by the
+CNN scripts; `sbatch --account=YOUR_GPU_ACCOUNT run_bb_0.slurm` overrides it
+if necessary. Merely changing the account would not switch node types:
+these scripts also request `--constraint=gpu` and one GPU per task.
+
+Running BP arithmetic on the GPU would require a separate decoder backend
+and validation of its numerics, stopping rule, and OSD handoff. The earlier
+Torch evaluator is not a drop-in replacement for this literature baseline:
+it uses a different circuit/observable task and does not supply the same
+paired library BP/OSD outputs.
 
 Overrides, applied before submission:
 
