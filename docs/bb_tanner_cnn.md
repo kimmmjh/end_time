@@ -2,7 +2,7 @@
 
 The 20-run depth/seed campaign has completed. See the
 [September 27 result analysis](../results/analysis/bb_update_2026_09_27.md)
-and [consolidated comparison](../results/plots/september_2026_update/tanner_cnn.png).
+and [consolidated comparison](../results/plots/bb/code_capacity/tanner_cnn/overview.png).
 Depth 2 consistently improves on depth 1, but raw syndrome consistency and the
 gap to previous Neural BP4 remain unresolved. These are code-capacity results.
 
@@ -140,83 +140,105 @@ control, or `--load_model=/path/to/model.pt` with matching options to continue.
 An independent-X/Z capacity channel is also supported through the existing
 `--bb_channel=independent_xz --x_error_rate=... --z_error_rate=...` options.
 
-## Slurm campaign: jobs 5–9
+## Slurm campaign: depth-2 continuation to 400 epochs
 
-`run_bb_5.slurm` through `run_bb_9.slurm` now launch 20 Tanner CNN experiments,
-replacing the earlier Relay ablation scripts. Jobs 0–4 still launch the ordinary
-circuit BP campaign. The CNN campaign uses **depolarizing code capacity**:
-`p` is the total probability of a non-identity data-qubit error,
-`P(I,X,Y,Z)=(1-p,p/3,p/3,p/3)`, with one perfect syndrome. These LERs must not
-replace or be overlaid as directly comparable points on the circuit-level BP
-curves. This initial sweep compares CNN depth and the effect of OSD; it does
-not yet establish superiority over a matched capacity BP+OSD baseline.
+Jobs **5, 6 and 9** now continue the 12 existing depth-2 CNN models from their
+latest 100-epoch checkpoints to **400 total epochs**. Jobs 7/8 retain the initial
+100-epoch depth-1 control commands; they are not part of this continuation.
+Jobs 0–4 retain the circuit-level library BP/OSD baseline campaign.
 
-| Script | Code | Depth | p values | Seeds in experiment order |
+| Script | Code | p values | Seeds in experiment order | Source job |
 | --- | --- | --- | --- | --- |
-| `run_bb_5.slurm` | BB72 | 2 | .02, .04, .06, .08 | 7201020, 7201040, 7201060, 7201080 |
-| `run_bb_6.slurm` | BB144 | 2 | .02, .04, .06, .08 | 14401020, 14401040, 14401060, 14401080 |
-| `run_bb_7.slurm` | BB72 | 1 | .02, .04, .06, .08 | same as job 5 |
-| `run_bb_8.slurm` | BB144 | 1 | .02, .04, .06, .08 | same as job 6 |
-| `run_bb_9.slurm` | BB72, BB72, BB144, BB144 | 2 | .06 for all | 7202060, 7203060, 14402060, 14403060 |
+| `run_bb_5.slurm` | BB72 | .02, .04, .06, .08 | 7201020, 7201040, 7201060, 7201080 | 58793761 |
+| `run_bb_6.slurm` | BB144 | .02, .04, .06, .08 | 14401020, 14401040, 14401060, 14401080 | 58793763 |
+| `run_bb_9.slurm` | BB72, BB72, BB144, BB144 | .06 for all | 7202060, 7203060, 14402060, 14403060 | 58793766 |
 
-Depth 1 is the six-neighbor local-filter control; depth 2 expands the receptive
-field with another qubit-to-check-to-qubit block. The width is fixed at 64, so
-depth 2 also has more parameters: this is a depth comparison, not a
-parameter-count-matched comparison. Jobs 5/7 and 6/8 share the sampler seeds,
-batch sizes and evaluation schedule, giving the same train/validation/test
-shots for each matching code/p pair. Each depth still selects its own
-checkpoint using its raw validation LER. Job 9 gives depth 2 three independent
-training/test seeds per code at p=.06 when combined with jobs 5/6; the other
-points have one seed, and depth 1 has no extra seed replication yet.
+All use **depolarizing code capacity**: `p` is the total probability of a
+non-identity data-qubit error, `P(I,X,Y,Z)=(1-p,p/3,p/3,p/3)`, with one perfect
+syndrome. The model remains width 64, depth 2, with the same loss, optimizer,
+OSD-0 policy and raw-validation-LER checkpoint selection.
 
-All 20 runs use the following settings, embedded directly in each of the five
-`.slurm` files. They also include the complete four-task launcher and do not
-load any repository `.sh` helpers:
+- Continue `model.pt` (latest epoch 100), retaining optimizer moments, sampler
+  states, RNG states and the previously selected best checkpoint. Do not resume
+  `best_model.pt`, which can be from an earlier epoch.
+- Add **300 epochs**, 128 batches of 64 shots per epoch: 2,457,600 additional
+  training shots, **3,276,800 total** (4× the initial CNN budget). This is still
+  one third of the earlier Neural BP4 budget of 9,830,400 training shots.
+- The initial schedule reached LR=0. Resume with **3e-4 and a new 300-epoch
+  cosine decay**, retaining AdamW moments. This is additional training with an
+  LR restart, not an uninterrupted 400-epoch cosine run.
+- Keep float32, weight decay 1e-4, gradient clip 1, and loss weights
+  syndrome=1, logical=1, Pauli=0.1.
+- Validate every 5 epochs on 4,096 fresh shots. The old best remains eligible;
+  the final selected epoch need not be epoch 400.
+- Evaluate the selected model on **65,536 fresh final shots**, then evaluate
+  the frozen pre-resume best on **the exact same new shots**. Both report raw
+  CNN and CNN+direct OSD-0. No final test results select checkpoints.
 
-- 100 epochs, 128 batches of 64 shots per epoch: 819,200 training shots.
-- Validation every 5 epochs, 64 batches: 4,096 fresh shots per validation.
-- Final selected-checkpoint evaluation: 1,024 batches, **65,536 fresh shots**.
-- AdamW, initial LR 3e-4 with cosine decay, weight decay 1e-4, gradient clip 1,
-  float32; loss weights syndrome=1, logical=1, Pauli=0.1.
-- Every evaluation reports both CNN and CNN+direct OSD-0 on the same shots.
-  There are no separate OSD training jobs or extra BP iterations.
+The original 100-epoch results remain intact. Each new result directory stores:
 
-The final shot count improves resolution but is not a guarantee of precise
-very-low-LER estimates; zero observed failures do not establish zero true LER.
-The p grid and training budget are initial settings, not tuned thresholds.
+- `history.json`: all 400 training epochs, both training phases, final selected
+  model metrics and `resume_comparison`. The latter contains old-model metrics,
+  source checkpoint path/SHA-256, selected epochs, and paired raw/OSD LER
+  reductions, standard errors and rescued/harmed counts. Positive
+  `ler_reduction` means improvement after additional training.
+- `final_shots.npz`: new selected model's final test bank and corrections.
+- `reference_final_shots.npz`: frozen old best on that same bank.
+- Latest `model.pt` and selected `best_model.pt`, plus the training log.
 
-Preview expanded commands locally without writing results or invoking Slurm:
+Use the new paired comparison to judge improvement; the published initial
+100-epoch final scores used a different test bank. A gain is possible but not
+assumed. Low-p precision is still limited by the number of observed failures.
+These remain capacity results, separate from the circuit-level baseline plots.
+When importing new jobs, keep them separate from the original 20-run archive;
+`summarize_bb_september27.py` audits that fixed 100-epoch campaign.
+
+### Source checkpoint lookup and submission
+
+The Python launcher `scripts/continue_bb_tanner_cnn.py` resolves the exact
+code/p/seed match inside the specified source job. It checks, in order-independent
+fashion, these locations under `BB_REPO_ROOT` (normally `$HOME/end_time`):
+
+- `resdir_<source_job>/outputs/.../model.pt` (original server results).
+- `results/bb/code_capacity/depolarizing/tanner_cnn/<bb72|bb144|replicates>/resdir_<source_job>/outputs/.../model.pt`
+  (organized local archive).
+
+Missing, ambiguous, mismatched or incomplete checkpoints stop the job; there
+is no fallback to fresh training. If results were moved elsewhere, set
+`BB_CNN_SOURCE_ROOT` to the directory containing the source `resdir_*` folders,
+or to one source result directory. The three source jobs above are exceptions
+to `.gitignore` only at the repository root.
+Once committed and pushed, they can be transferred to the server with
+`git pull`. Archived copies and other experiment results remain ignored.
+
+Preview the four job commands without importing Python or invoking Slurm:
 
 ```bash
 BB_DRY_RUN=1 bash run_bb_5.slurm
 ```
 
-Submit the base models first, then controls and seed repeats as desired:
+Validate and expand one real checkpoint without training (use the training
+Python environment):
 
 ```bash
-sbatch run_bb_5.slurm
-sbatch run_bb_6.slurm
-# Depth controls and seed repeats:
-for i in 7 8 9; do sbatch "run_bb_${i}.slurm"; done
-# Or submit all CNN jobs together:
-# for i in 5 6 7 8 9; do sbatch "run_bb_${i}.slurm"; done
+python scripts/continue_bb_tanner_cnn.py \
+  --source-job=58793761 --code=bb72 --p=.06 --seed=7201060 --dry-run
 ```
 
-Each script retains account `m5328_g`, 24 hours, one node, and four concurrent
-`srun` tasks with one GPU and 16 CPUs each. It loads `python/3.10`, activates
-`$PSCRATCH/envs/nde`, and uses `$HOME/end_time` (override with `BB_REPO_ROOT`).
-Update the repository's model, trainer and `.slurm` scripts on the server
-together. Python sources are still read from that checkout at startup; they are
-not frozen when the job is submitted. GPU runtime for the full campaign has not
-been measured.
+After updating the Python sources and Slurm files on Perlmutter, submit only
+the continuation jobs:
 
-If a job was already queued with the previous script, pulling this version does
-not replace Slurm's saved batch script. Cancel the intended pending job and
-submit the updated `.slurm` to remove its old shell-helper dependencies.
+```bash
+for i in 5 6 9; do sbatch "run_bb_${i}.slurm"; done
+```
 
-Results are under `resdir_<SLURM_JOB_ID>/outputs/<date>/<timestamp>_capacity_.../`
-with the files described above. The allocation directory additionally contains
-`experiments.tsv`, exact commands, per-experiment logs/exit codes, completion or
-failure markers, and decoder-source snapshots. `submitted_script.slurm`
-includes the CNN defaults and launcher; separate `.sh` snapshots are not used.
-Each label and model directory identifies the code, p, depth and seed.
+Each script embeds the complete four-task launcher, with no repository `.sh`
+helpers. It uses account `m5328_g`, 24 hours, one node, four concurrent `srun`
+tasks with one GPU and 16 CPUs each, `python/3.10`, and `$PSCRATCH/envs/nde`.
+All four source checkpoints are validated before any training steps start.
+New outputs go under `resdir_<new_job>/outputs/<date>/<timestamp>_capacity_.../`;
+allocation logs also retain exact commands, exit codes, completion markers,
+source snapshots and the submitted script. No source checkpoint is overwritten.
+
+Python sources are read from the checkout at startup. Previously queued jobs
+retain Slurm's saved batch scripts; submit the updated scripts for this campaign.

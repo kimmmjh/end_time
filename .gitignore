@@ -18,9 +18,15 @@ htmlcov/
 
 # Generated experiment artifacts
 /outputs/
-/resdir_*/
+resdir_*
+!/resdir_58793761/
+!/resdir_58793763/
+!/resdir_58793766/
 /results/*
 !/results/README.md
+!/results/plots/
+/results/plots/*
+!/results/plots/README.md
 /threshold_*.png
 /threshold_*.csv
 /slurm-*.out

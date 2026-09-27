@@ -14,11 +14,11 @@ from typing import Any
 
 REPOSITORY = Path(__file__).resolve().parents[1]
 ANALYSIS_ROOT = REPOSITORY / "results" / "analysis"
-PLOT_ROOT = REPOSITORY / "results" / "plots"
+PLOT_ROOT = REPOSITORY / "results/plots/bb/circuit/neural_bp"
 DEFAULT_RAW_CSV = ANALYSIS_ROOT / "bb_circuit_no_osd_2026_09.csv"
 DEFAULT_OSD_CSV = ANALYSIS_ROOT / "bb_circuit_campaign_2026_08.csv"
 DEFAULT_MERGED_CSV = ANALYSIS_ROOT / "bb_circuit_raw_vs_osd_2026_09.csv"
-DEFAULT_PLOT = PLOT_ROOT / "bb_circuit_raw_vs_osd_2026_09.png"
+DEFAULT_PLOT = PLOT_ROOT / "raw_vs_osd.png"
 Z_95 = 1.959963984540054
 
 MERGED_FIELDS = [

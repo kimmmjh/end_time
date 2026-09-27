@@ -39,14 +39,14 @@ from matplotlib.ticker import PercentFormatter
 REPOSITORY = Path(__file__).resolve().parents[1]
 RESULTS_ROOT = REPOSITORY / "results" / "bb" / "code_capacity"
 ANALYSIS_ROOT = REPOSITORY / "results" / "analysis"
-PLOT_ROOT = REPOSITORY / "results" / "plots"
+PLOT_ROOT = REPOSITORY / "results/plots/bb/code_capacity/neural_bp"
 BASELINE_CSV = ANALYSIS_ROOT / "bb_neural_bp_depolarizing_orbit.csv"
 NEURAL_CSV = ANALYSIS_ROOT / "bb_campaign_2026_08_neural.csv"
 CLASSICAL_CSV = ANALYSIS_ROOT / "bb_campaign_2026_08_classical.csv"
 PAIRED_CSV = ANALYSIS_ROOT / "bb_neural_vs_classical_paired.csv"
 REPORT_MD = ANALYSIS_ROOT / "bb_campaign_2026_08.md"
-ABLATION_PLOT = PLOT_ROOT / "bb_campaign_2026_08_ablations.png"
-DECODER_PLOT = PLOT_ROOT / "bb_campaign_2026_08_decoders.png"
+ABLATION_PLOT = PLOT_ROOT / "ablations.png"
+DECODER_PLOT = PLOT_ROOT / "overview.png"
 Z_95 = 1.959963984540054
 
 JOB_PURPOSE = {

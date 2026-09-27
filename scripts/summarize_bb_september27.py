@@ -27,7 +27,7 @@ from src.bb_code import BBCodeSpec
 
 ANALYSIS = ROOT / "results/analysis"
 CNN = ROOT / "results/bb/code_capacity/depolarizing/tanner_cnn"
-PLOTS = ROOT / "results/plots/september_2026_update"
+PLOTS = ROOT / "results/plots/bb/code_capacity/tanner_cnn"
 STEM = "bb_update_2026_09_27"
 Z = 1.959963984540054
 
@@ -303,42 +303,53 @@ def references(cnn):
     return rows
 
 
-def error_curve(ax, rows, *, label, color, prefix="", **kwargs):
+def error_curve(ax, rows, *, label, color, prefix="", marker="o", **kwargs):
     x = np.array([r["p"] * 100 for r in rows])
     y = np.array([r[prefix + "ler"] * 100 for r in rows])
     low = np.array([r[prefix + "ler_low"] * 100 for r in rows])
     high = np.array([r[prefix + "ler_high"] * 100 for r in rows])
-    ax.errorbar(x, y, yerr=np.maximum([y - low, high - y], 0), marker="o", capsize=3,
+    ax.errorbar(x, y, yerr=np.maximum([y - low, high - y], 0), marker=marker, capsize=3,
                 color=color, label=label, **kwargs)
 
 
 def cnn_plot(rows, refs):
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10), layout="constrained")
-    for idx, code in enumerate(("bb72", "bb144")):
+    fig, axes = plt.subplots(1, 2, figsize=(13.5, 6.8))
+    for idx, (ax, code) in enumerate(zip(axes, ("bb72", "bb144"))):
         for depth, color in ((1, "#BA6842"), (2, "#007C83")):
             selected = [r for r in rows if r["code"] == code and r["depth"] == depth and primary(r)]
-            for method, style, label in (("raw", "-", "CNN"), ("osd", "--", "CNN + OSD-0")):
-                error_curve(axes[idx, 0], selected, label=f"Depth {depth} {label}", color=color,
-                            prefix=method+"_", linestyle=style)
-            if depth == 2:
-                error_curve(axes[idx, 1], selected, label="Depth 2 CNN + OSD-0", color=color, prefix="osd_")
-        for name, color, marker in (("BP4 T12", "#626B75", "s"), ("Neural BP4 T12", "#8F62A5", "s"),
-                                     ("CSS BP2+OSD-0", "#C59326", "^"), ("CSS BP2+OSD-CS7", "#CA6581", "^")):
-            selected = [r for r in refs if r["code"] == code and r["method"] == name]
-            axes[idx, 1].plot([r["p"]*100 for r in selected], [r["ler"]*100 for r in selected],
-                              marker=marker, ls="--", color=color, label=name)
-        for col, title in enumerate(("Depth ablation: identical test shots", "Capacity references: different budgets / banks")):
-            ax = axes[idx, col]
-            ax.set(title=f"{code.upper()} | {title}", yscale="log", ylim=((.06, 110) if idx == 0 else (.0002, 110)),
-                   xlabel="Depolarizing probability p (%)", ylabel="Block LER (%)", xticks=[2, 4, 6, 8])
-            ax.grid(alpha=.18, which="both")
-            ax.legend(fontsize=8, loc="lower right")
-    axes[1, 0].annotate("1 failure / 65,536 shots", xy=(2, 100/65536), xytext=(2.6, .002), fontsize=8,
-                         arrowprops=dict(arrowstyle="-", color=".5"))
-    fig.suptitle("Joint Tanner CNN | code capacity | 65,536 shots/point | 95% Wilson error bars\n"
-                 "Primary seeds shown; raw and OSD use the same raw-LER-selected checkpoint.\n"
-                 "Depth 1: 54,404 parameters; depth 2: 161,284. References differ in BP/OSD and training budgets.", fontsize=11)
-    fig.savefig(PLOTS / "tanner_cnn.png", dpi=180)
+            for method, style, marker, label in (("raw", "-", "o", "CNN"), ("osd", "--", "^", "CNN + OSD-0")):
+                error_curve(ax, selected, label=f"{label}, depth {depth}", color=color,
+                            prefix=method+"_", linestyle=style, marker=marker, linewidth=1.8)
+        selected = sorted((r for r in refs if r["code"] == code and r["method"] == "Neural BP4 T12"),
+                          key=lambda r: r["p"])
+        assert [r["p"] for r in selected] == [.04, .06, .08]
+        intervals = []
+        for row in selected:
+            # The reference CSV rounds rates to eight decimals. With 131,072
+            # shots this still uniquely determines the integer failure count.
+            failures = round(row["ler"] * row["shots"])
+            assert abs(failures / row["shots"] - row["ler"]) <= 5.01e-9
+            low, high = wilson(failures, row["shots"])
+            intervals.append(dict(row, ler=failures/row["shots"], ler_low=low, ler_high=high))
+        error_curve(ax, intervals, label="Neural BP4, T=12 (no OSD)", color="#7546A0",
+                    marker="s", linewidth=2.4, zorder=5)
+        ax.set(title=f"{code.upper()} [[{int(code[2:])}, 12, {6 if idx == 0 else 12}]]", yscale="log",
+               ylim=((.06, 115) if idx == 0 else (.0002, 115)), xlabel="Depolarizing probability p (%)",
+               ylabel="Block LER (%)", xticks=[2, 4, 6, 8])
+        ax.grid(alpha=.18, which="both")
+    axes[1].annotate("1 failure / 65,536 shots", xy=(2, 100/65536), xytext=(2.5, .002), fontsize=8,
+                     arrowprops=dict(arrowstyle="-", color=".5"))
+    fig.suptitle("Tanner CNN and Neural BP4 | depolarizing code capacity", fontsize=14, y=.97)
+    fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", bbox_to_anchor=(.5, .12),
+               ncol=3, fontsize=10, frameon=False)
+    fig.text(.5, .075, "Training samples/model: CNN 819,200 | Neural BP4 9,830,400 (12x). Different training budgets and test banks.",
+             ha="center", fontsize=9)
+    fig.text(.5, .045, "Test shots: CNN 65,536 | Neural BP4 131,072. Error bars: 95% Wilson (shot uncertainty only).",
+             ha="center", fontsize=9)
+    fig.text(.5, .015, "CNN primary seeds; raw/OSD share one checkpoint. Neural BP4 has no p=0.02 result. Panel y-axis ranges differ.",
+             ha="center", fontsize=9)
+    fig.subplots_adjust(left=.075, right=.98, top=.87, bottom=.29, wspace=.24)
+    fig.savefig(PLOTS / "overview.png", dpi=180)
     plt.close(fig)
 
 
@@ -379,7 +390,7 @@ def training_plot(histories):
     fig.suptitle("Joint Tanner CNN | all 20 training runs | 100 epochs, 819,200 training shots/run\n"
                  "Solid: raw validation; dashed: OSD validation; diamonds: selected-checkpoint fresh test.\n"
                  "Faint p=0.06 curves: additional seeds. LER axes are linear below 1/4,096 and logarithmic above.", fontsize=11)
-    fig.savefig(PLOTS / "tanner_cnn_training.png", dpi=170)
+    fig.savefig(PLOTS / "training.png", dpi=170)
     plt.close(fig)
 
 
@@ -399,7 +410,7 @@ def seeds_plot(rows):
         ax.legend(fontsize=9)
     fig.suptitle("Depth 2 at p=0.06 | three independent training / test seeds per code\n"
                  "65,536 shots per seed. Error bars describe shot uncertainty, not training-seed uncertainty.", fontsize=11)
-    fig.savefig(PLOTS / "tanner_cnn_seeds.png", dpi=180)
+    fig.savefig(PLOTS / "seeds.png", dpi=180)
     plt.close(fig)
 
 

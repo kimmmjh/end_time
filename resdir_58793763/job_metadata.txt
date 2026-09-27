@@ -1,0 +1,6 @@
+Started: 2026-09-26T15:44:37Z
+Job ID: 58793763
+Job name: bbcnn_bb144_d2
+Node list: nid001484
+Experiments: 4
+Campaign: bb_tanner_cnn_2026_09

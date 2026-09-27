@@ -21,7 +21,7 @@ from matplotlib.ticker import PercentFormatter
 
 
 DEFAULT_INPUT = Path("results/analysis/bb_neural_bp_depolarizing_orbit.csv")
-DEFAULT_OUTPUT = Path("results/plots/bb_neural_bp_vs_vanilla_bp.png")
+DEFAULT_OUTPUT = Path("results/plots/bb/code_capacity/neural_bp/bp_only.png")
 REQUIRED_COLUMNS = {
     "code",
     "p",

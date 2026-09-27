@@ -27,11 +27,11 @@ from typing import Any
 REPOSITORY = Path(__file__).resolve().parents[1]
 RESULTS_ROOT = REPOSITORY / "results" / "bb" / "circuit"
 ANALYSIS_ROOT = REPOSITORY / "results" / "analysis"
-PLOT_ROOT = REPOSITORY / "results" / "plots"
+PLOT_ROOT = REPOSITORY / "results/plots/bb/circuit/neural_bp"
 CSV_PATH = ANALYSIS_ROOT / "bb_circuit_campaign_2026_08.csv"
 REPORT_PATH = ANALYSIS_ROOT / "bb_circuit_campaign_2026_08.md"
-PLOT_PATH = PLOT_ROOT / "bb_circuit_campaign_2026_08.png"
-ABLATION_PLOT_PATH = PLOT_ROOT / "bb_circuit_campaign_2026_08_ablations.png"
+PLOT_PATH = PLOT_ROOT / "overview.png"
+ABLATION_PLOT_PATH = PLOT_ROOT / "ablations.png"
 PARTIAL_CSV_PATH = ANALYSIS_ROOT / "bb_circuit_campaign_2026_08_partial.csv"
 Z_95 = 1.959963984540054
 
@@ -957,8 +957,8 @@ def write_report(
             "",
             f"Complete rows: [`{CSV_PATH.name}`]({CSV_PATH.name})",
             f"Partial rows: [`{PARTIAL_CSV_PATH.name}`]({PARTIAL_CSV_PATH.name})",
-            f"Primary plot: [`{PLOT_PATH.name}`](../plots/{PLOT_PATH.name})",
-            f"Ablation plot: [`{ABLATION_PLOT_PATH.name}`](../plots/{ABLATION_PLOT_PATH.name})",
+            f"Primary plot: [`{PLOT_PATH.name}`](../{PLOT_PATH.relative_to(REPOSITORY / 'results').as_posix()})",
+            f"Ablation plot: [`{ABLATION_PLOT_PATH.name}`](../{ABLATION_PLOT_PATH.relative_to(REPOSITORY / 'results').as_posix()})",
             "",
         ]
     )

@@ -24,12 +24,12 @@ import summarize_bb_circuit_campaign as common
 REPOSITORY = Path(__file__).resolve().parents[1]
 RESULTS_ROOT = REPOSITORY / "results" / "bb" / "circuit" / "no_osd"
 ANALYSIS_ROOT = REPOSITORY / "results" / "analysis"
-PLOT_ROOT = REPOSITORY / "results" / "plots"
+PLOT_ROOT = REPOSITORY / "results/plots/bb/circuit/neural_bp"
 CSV_PATH = ANALYSIS_ROOT / "bb_circuit_no_osd_2026_09.csv"
 PARTIAL_CSV_PATH = ANALYSIS_ROOT / "bb_circuit_no_osd_2026_09_partial.csv"
 REPORT_PATH = ANALYSIS_ROOT / "bb_circuit_no_osd_2026_09.md"
-PLOT_PATH = PLOT_ROOT / "bb_circuit_no_osd_2026_09.png"
-COMBINED_PLOT_PATH = PLOT_ROOT / "bb_circuit_raw_vs_osd_2026_09.png"
+PLOT_PATH = PLOT_ROOT / "raw_only.png"
+COMBINED_PLOT_PATH = PLOT_ROOT / "raw_vs_osd.png"
 Z_95 = 1.959963984540054
 
 RAW_FIELDS = [
@@ -355,7 +355,7 @@ def write_report(
             "",
             f"Complete rows: [`{CSV_PATH.name}`]({CSV_PATH.name})",
             f"Partial rows: [`{PARTIAL_CSV_PATH.name}`]({PARTIAL_CSV_PATH.name})",
-            f"Combined raw/OSD plot: [`{COMBINED_PLOT_PATH.name}`](../plots/{COMBINED_PLOT_PATH.name})",
+            f"Combined raw/OSD plot: [`{COMBINED_PLOT_PATH.name}`](../{COMBINED_PLOT_PATH.relative_to(REPOSITORY / 'results').as_posix()})",
             "",
         ]
     )

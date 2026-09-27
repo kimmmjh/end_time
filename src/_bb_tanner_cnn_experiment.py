@@ -27,7 +27,10 @@ class BBTannerCNNTrainer:
     def __init__(self, *, model, code, train_generator, eval_generator, criterion,
                  output_directory, config, device, epochs, batches, batch_size,
                  eval_batches, eval_every, final_eval_batches, learning_rate=3e-4,
-                 weight_decay=1e-4, gradient_clip=1., save_model=False, load_model_path=None):
+                 weight_decay=1e-4, gradient_clip=1., save_model=False, load_model_path=None,
+                 compare_resume=False):
+        if compare_resume and not load_model_path:
+            raise ValueError("Resume comparison requires a source checkpoint.")
         for name, value in (("epochs", epochs), ("batches", batches), ("batch_size", batch_size),
                             ("eval_batches", eval_batches), ("eval_every", eval_every),
                             ("final_eval_batches", final_eval_batches)):
@@ -48,8 +51,18 @@ class BBTannerCNNTrainer:
         self.start_epoch = 0
         self.best_epoch, self.best_accuracy, self.best_state = -1, -1., None
         self.best_snapshot = None
+        self.reference_state, self.reference_epoch = None, None
+        source = None
         if load_model_path:
             self._load(load_model_path)
+            source = {"checkpoint": str(Path(load_model_path).resolve()),
+                      "sha256": hashlib.sha256(Path(load_model_path).read_bytes()).hexdigest(),
+                      "completed_epochs": self.start_epoch, "best_epoch": self.best_epoch}
+            if compare_resume:
+                if self.best_state is None:
+                    raise ValueError("Resume comparison requires saved best model weights.")
+                self.reference_state = copy.deepcopy(self.best_state)
+                self.reference_epoch = self.best_epoch
             for group in self.optimizer.param_groups:
                 group.update(lr=learning_rate, initial_lr=learning_rate, weight_decay=weight_decay)
         # New schedule per resumed phase; optimizer moments and all RNG streams persist.
@@ -60,6 +73,9 @@ class BBTannerCNNTrainer:
                                        "learning_rate": learning_rate, "batches": batches,
                                        "batch_size": batch_size, "eval_batches": eval_batches,
                                        "eval_every": eval_every, "final_eval_batches": final_eval_batches})
+        if source is not None:
+            self.history["phases"][-1].update(resume_source=source, schedule="cosine_restart",
+                                              compare_resume=compare_resume)
         logging.basicConfig(level=logging.INFO, format="%(message)s", force=True,
                             handlers=[logging.FileHandler(self.directory / "training_log.txt"),
                                       logging.StreamHandler()])
@@ -80,6 +96,7 @@ class BBTannerCNNTrainer:
         self.start_epoch = checkpoint["epoch"] + 1
         self.history = copy.deepcopy(checkpoint["history"])
         self.history.pop("final", None)
+        self.history.pop("resume_comparison", None)
         self.best_epoch, self.best_accuracy = checkpoint["best_epoch"], checkpoint["best_accuracy"]
         self.best_state = copy.deepcopy(checkpoint["best_model_state_dict"])
         self.best_snapshot = checkpoint.get("best_snapshot")
@@ -137,7 +154,7 @@ class BBTannerCNNTrainer:
         return {key: value / self.batches for key, value in totals.items()}
 
     @torch.no_grad()
-    def evaluate(self, batches, *, save_shots=False):
+    def evaluate(self, batches, *, save_shots=False, shot_filename="final_shots.npz"):
         self.model.eval()
         raw, repaired = [], []
         bank = {key: [] for key in ("syndrome", "pauli", "raw_correction", "osd_correction",
@@ -190,10 +207,49 @@ class BBTannerCNNTrainer:
                   "osd_x_calls": called_x, "osd_z_calls": called_z,
                   "nn_batch_seconds": seconds_nn, "osd_with_transfer_seconds": seconds_osd}
         if save_shots:
-            np.savez_compressed(self.directory / "final_shots.npz",
+            np.savez_compressed(self.directory / shot_filename,
                                 **{key: np.concatenate(values) for key, values in bank.items()},
                                 metadata_json=json.dumps(self.config))
         return result
+
+    def _compare_resume(self, final_sampler_state):
+        """Evaluate the frozen pre-resume best on the new final bank, after selection."""
+        after_sampler = self.eval_generator.state_dict()
+        selected_weights = copy.deepcopy(self.model.state_dict())
+        try:
+            self.eval_generator.load_state_dict(final_sampler_state)
+            self.model.load_state_dict(self.reference_state)
+            reference = self.evaluate(self.final_eval_batches, save_shots=True,
+                                      shot_filename="reference_final_shots.npz")
+        finally:
+            # Comparing the reference must not advance the next resume's test stream.
+            self.eval_generator.load_state_dict(after_sampler)
+            self.model.load_state_dict(selected_weights)
+        paired = {}
+        with np.load(self.directory / "final_shots.npz", allow_pickle=False) as new, \
+                np.load(self.directory / "reference_final_shots.npz", allow_pickle=False) as old:
+            for key in ("syndrome", "pauli"):
+                if not np.array_equal(new[key], old[key]):
+                    raise RuntimeError("Resume comparison requires identical final shots.")
+            for branch in ("raw", "osd"):
+                before = old[f"{branch}_success"].astype(bool)
+                after = new[f"{branch}_success"].astype(bool)
+                difference = after.astype(float) - before.astype(float)
+                paired[branch] = {
+                    "shots": len(difference),
+                    "ler_reduction": float(difference.mean()),
+                    "paired_se": float(difference.std(ddof=1) / np.sqrt(len(difference)))
+                    if len(difference) > 1 else 0.,
+                    "rescued": int(np.count_nonzero(after & ~before)),
+                    "harmed": int(np.count_nonzero(before & ~after)),
+                }
+        self.history["resume_comparison"] = {
+            "reference": {"epoch": self.reference_epoch, **reference},
+            "selected_epoch": self.best_epoch, "paired": paired,
+            "source": self.history["phases"][-1]["resume_source"],
+        }
+        self._log_eval("Frozen pre-resume best on new final bank", self.reference_epoch, reference)
+        logging.info("[Resume comparison] Positive LER reduction means improvement: %s", json.dumps(paired))
 
     @staticmethod
     def _log_eval(label, epoch, row):
@@ -229,9 +285,12 @@ class BBTannerCNNTrainer:
             raise RuntimeError("No evaluated CNN checkpoint was selected.")
         latest_weights = copy.deepcopy(self.model.state_dict())
         self.model.load_state_dict(self.best_state)
+        final_sampler_state = self.eval_generator.state_dict()
         row = self.evaluate(self.final_eval_batches, save_shots=True)
         self.history["final"] = {"epoch": self.best_epoch, **row}
         self._log_eval("Selected best by raw LER", self.best_epoch, row)
+        if self.reference_state is not None:
+            self._compare_resume(final_sampler_state)
         self.model.load_state_dict(latest_weights)
         self._write_history()
         latest = self._checkpoint(final_epoch)
@@ -291,6 +350,7 @@ def run_bb_tanner_cnn_experiment(args):
         final_eval_batches=args.final_eval_batches or args.eval_batches,
         learning_rate=args.lr if args.lr is not None else 3e-4, weight_decay=args.bb_weight_decay,
         gradient_clip=args.bb_cnn_gradient_clip, save_model=args.save_model, load_model_path=args.load_model,
+        compare_resume=getattr(args, "bb_cnn_compare_resume", False),
     )
     logging.info("Joint Tanner CNN: depth=%d width=%d | device=%s | parameters=%d",
                  model.depth, model.width, device, config["parameter_count"])

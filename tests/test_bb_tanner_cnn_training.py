@@ -12,7 +12,7 @@ from src.bb_code import BBCodeSpec
 from src.bb_data_generator import BBCodeCapacityGenerator
 
 
-def trainer(directory, *, load=None, depth=2, epochs=1):
+def trainer(directory, *, load=None, depth=2, epochs=1, compare_resume=False):
     code = BBCodeSpec.bb72()
     model = BBTannerCNN(code, width=4, depth=depth)
     criterion = DegeneracyAwareBPLoss(
@@ -25,7 +25,7 @@ def trainer(directory, *, load=None, depth=2, epochs=1):
         eval_generator=BBCodeCapacityGenerator(code, .06, seed=5),
         output_directory=directory, config={"architecture": "bb_tanner_cnn", "depth": depth},
         epochs=epochs, batches=2, batch_size=4, eval_batches=1, eval_every=1,
-        final_eval_batches=2, save_model=True, load_model_path=load,
+        final_eval_batches=2, save_model=True, load_model_path=load, compare_resume=compare_resume,
     )
 
 
@@ -102,3 +102,38 @@ def test_selection_uses_raw_cnn_not_osd_and_final_restores_selected_weights(tmp_
     resumed.train()
     retained = torch.load(resumed.directory / "best_model.pt", weights_only=False)
     assert retained["epoch"] == 0
+
+
+def test_resume_reference_uses_same_fresh_bank_and_preserves_sampler_stream(tmp_path):
+    original = trainer(tmp_path / "original")
+    original.train()
+    source = original.directory / "model.pt"
+    plain = trainer(tmp_path / "plain", load=source)
+    plain.train()
+    compared = trainer(tmp_path / "compared", load=source, compare_resume=True)
+    for key, value in compared.reference_state.items():
+        torch.testing.assert_close(value, original.best_state[key])
+    assert compared.optimizer.param_groups[0]["lr"] == 3e-4
+    compared.train()
+    assert compared.eval_generator.state_dict()["rng_state"] == plain.eval_generator.state_dict()["rng_state"]
+    assert compared.train_generator.state_dict()["rng_state"] == plain.train_generator.state_dict()["rng_state"]
+    for key, value in compared.model.state_dict().items():
+        torch.testing.assert_close(value, plain.model.state_dict()[key])
+    history = json.loads((compared.directory / "history.json").read_text())
+    comparison = history["resume_comparison"]
+    assert comparison["reference"]["epoch"] == original.best_epoch
+    assert comparison["selected_epoch"] == compared.best_epoch
+    assert history["phases"][-1]["resume_source"]["completed_epochs"] == 1
+    with np.load(compared.directory / "final_shots.npz") as after, \
+            np.load(compared.directory / "reference_final_shots.npz") as before, \
+            np.load(plain.directory / "final_shots.npz") as control:
+        for key in ("pauli", "syndrome"):
+            np.testing.assert_array_equal(after[key], before[key])
+            np.testing.assert_array_equal(after[key], control[key])
+        for branch in ("raw", "osd"):
+            old, new = before[f"{branch}_success"].astype(bool), after[f"{branch}_success"].astype(bool)
+            paired = comparison["paired"][branch]
+            assert paired["ler_reduction"] == new.mean() - old.mean()
+            assert paired["rescued"] == np.count_nonzero(new & ~old)
+            assert paired["harmed"] == np.count_nonzero(old & ~new)
+            assert comparison["reference"][branch]["logical_accuracy"] == old.mean()

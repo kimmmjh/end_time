@@ -1,0 +1,6 @@
+Started: 2026-09-26T17:53:26Z
+Job ID: 58793766
+Job name: bbcnn_d2_seeds
+Node list: nid001348
+Experiments: 4
+Campaign: bb_tanner_cnn_2026_09

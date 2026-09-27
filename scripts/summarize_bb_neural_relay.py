@@ -4,7 +4,7 @@
 Reads the original histories and archived reference histories; never loads or
 runs a decoder. Rates in the CSV are fractions, and plots show percentages.
 The accompanying interpretation is maintained in the dated Markdown report.
-Plots are three curated PNGs under results/plots/neural_relay; no PDF export.
+Plots are three curated PNGs under results/plots/bb/circuit/neural_relay; no PDF export.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ import summarize_bb_circuit_campaign as common
 
 ROOT = Path(__file__).resolve().parents[1]
 ANALYSIS = ROOT / "results/analysis"
-PLOTS = ROOT / "results/plots/neural_relay"
+PLOTS = ROOT / "results/plots/bb/circuit/neural_relay"
 CAMPAIGNS = {
     "bb72": dict(jobs=("58164810", "58164811"), rounds=6, date="2026_09_13"),
     "bb144": dict(jobs=("58164812", "58164813"), rounds=12, date="2026_09_15"),
@@ -367,7 +367,7 @@ def main():
         holm(all_rows, suffix="_all16")
         write_csv(ANALYSIS/f"{COMPARISON_STEM}.csv", all_rows)
         comparison_plot(all_rows)
-    print("Wrote final/train/validation/manifest CSVs and curated PNGs in results/plots/neural_relay/.")
+    print(f"Wrote final/train/validation/manifest CSVs and curated PNGs in {PLOTS.relative_to(ROOT)}/.")
 
 
 if __name__ == "__main__":

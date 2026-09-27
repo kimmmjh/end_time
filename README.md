@@ -125,23 +125,30 @@ See the [BP/OSD baseline campaign](docs/bb_baseline_campaign.md) and
 | `run_bb_2.slurm` | BB144 BP/OSD on the low-p grid, 100,000 shots each |
 | `run_bb_3.slurm` | BB144 BP/OSD on the high-p grid, 100,000 shots each |
 | `run_bb_4.slurm` | BB72/BB144 at p=.001/.002, 1,000,000 fresh shots each |
-| `run_bb_5.slurm` | BB72 Tanner CNN depth=2, p=.02/.04/.06/.08 |
-| `run_bb_6.slurm` | BB144 Tanner CNN depth=2, p=.02/.04/.06/.08 |
-| `run_bb_7.slurm` | BB72 Tanner CNN depth=1, matching job 5 p/seed grid |
-| `run_bb_8.slurm` | BB144 Tanner CNN depth=1, matching job 6 p/seed grid |
-| `run_bb_9.slurm` | Two extra CNN training/test seeds per code, depth=2, p=.06 |
+| `run_bb_5.slurm` | BB72 CNN depth=2, p=.02/.04/.06/.08, resume 100 → 400 epochs |
+| `run_bb_6.slurm` | BB144 CNN depth=2, p=.02/.04/.06/.08, resume 100 → 400 epochs |
+| `run_bb_7.slurm` | BB72 CNN depth=1, initial 100-epoch control, matching p/seed grid |
+| `run_bb_8.slurm` | BB144 CNN depth=1, initial 100-epoch control, matching p/seed grid |
+| `run_bb_9.slurm` | Two extra seeds per code, depth=2, p=.06, resume 100 → 400 epochs |
 
-The CNN uses width 64, 100 epochs, 128 batches of 64 training shots per epoch,
-and learning rate 3e-4. Validation uses 4,096 shots every five epochs; final
-evaluation uses 65,536 fresh shots. Raw CNN validation LER selects one checkpoint
-for both decoding branches. The earlier Relay design is retained in
+CNN jobs 5/6/9 now add 300 epochs to the existing 100-epoch depth-2 checkpoints:
+3,276,800 total training shots, width 64, 128 batches of 64 per epoch. Model,
+optimizer and sampler states are restored; learning rate restarts at 3e-4 with
+a new cosine decay. Source jobs are 58793761, 58793763 and 58793766 respectively.
+Validation uses 4,096 shots every five epochs; raw CNN LER selects one checkpoint
+for both decoding branches. The new selected model and frozen pre-resume best
+are compared on the same 65,536 fresh final shots, with paired gains saved in
+`history.json`. Existing results are preserved. See the
+[continuation instructions](docs/bb_tanner_cnn.md#source-checkpoint-lookup-and-submission)
+for checkpoint discovery and outputs. Jobs 7/8 retain the initial depth-1
+100-epoch controls. The earlier Relay design is retained in
 [its campaign notes](docs/bb_neural_relay_campaign.md).
 
 Preview locally without an allocation, or submit the CNN jobs on Perlmutter:
 
 ```bash
 BB_DRY_RUN=1 bash run_bb_5.slurm
-for i in 5 6 7 8 9; do sbatch "run_bb_${i}.slurm"; done
+for i in 5 6 9; do sbatch "run_bb_${i}.slurm"; done
 ```
 
 All jobs use `$PSCRATCH/envs/nde` and `$HOME/end_time`, with four concurrent
@@ -188,7 +195,9 @@ first failed experiment.
 The completed BB72 and BB144 depolarizing sweeps are summarized in
 [`results/analysis/bb_neural_bp_depolarizing_orbit.md`](results/analysis/bb_neural_bp_depolarizing_orbit.md),
 with a machine-readable CSV and a Neural BP versus vanilla BP4 comparison
-plot in `results/analysis/` and `results/plots/`.
+plot in `results/analysis/` and `results/plots/`. Use the
+[plot guide](results/plots/README.md) to find the current Tanner CNN results,
+previous BP/Relay figures, and the definition of Block LER.
 
 Before a full Relay campaign, time a BB144 R=4,T=12 circuit batch on a GPU:
 

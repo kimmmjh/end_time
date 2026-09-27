@@ -180,6 +180,8 @@ def main() -> None:
     parser.add_argument("--bb_cnn_depth", type=int, default=2,
                         help="Tanner CNN depth: 1 is check->qubit; each extra block adds qubit->check->qubit.")
     parser.add_argument("--bb_cnn_gradient_clip", type=float, default=1.0)
+    parser.add_argument("--bb_cnn_compare_resume", action="store_true",
+                        help="Evaluate the frozen pre-resume CNN best on the same new final shots; requires --load_model.")
     parser.add_argument(
         "--matching_correlations",
         action="store_true",
