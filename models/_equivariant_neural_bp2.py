@@ -25,13 +25,13 @@ detector error model rather than chosen:
     the orbits are resolved, and makes the ``global``/``orbit``/``edge``
     sharing ablation a change of index tensor rather than of architecture.
 
-The base algorithm is normalised min-sum, with the same scaling convention as
-``bp_method="ms", ms_scaling_factor=0.625`` in ``ldpc``. This implementation
-clips messages. ``forward`` unrolls a fixed training budget; ``decode_bp``
-stops each evaluation shot at its first syndrome-valid correction. Neither
-path is guaranteed to reproduce the library decoder's output. The residual head is
-zero-initialised and relaxation starts at one, so an untrained model reproduces
-this module's paired ``neural=False`` baseline bitwise.
+Training uses normalised min-sum. ``forward(neural=False)`` retains that
+normalisation as an ablation of the learned terms. In contrast, the ordinary
+baseline ``decode_bp(neural=False)`` uses unscaled min-sum, independent of the
+neural model's normalisation, and stops at the first syndrome-valid correction.
+This implementation clips messages, so it need not reproduce an unclipped
+library decoder bitwise. The zero-initialised residual and unit relaxation
+make an untrained ``forward`` match its normalised ablation bitwise.
 """
 
 from __future__ import annotations
@@ -80,7 +80,8 @@ class EquivariantNeuralBP2(nn.Module):
         equivariance.  Unlike the code-capacity decoder, ``edge`` costs one
         embedding row rather than one MLP, so it is actually runnable.
     normalisation:
-        Fixed min-sum scaling factor applied before any learned term.
+        Min-sum scaling for training and neural/Relay inference. Not used by
+        the ordinary ``decode_bp(neural=False)`` evaluation baseline.
     residual_scale:
         Maximum magnitude of the learned additive residual after ``tanh``.
     max_relaxation_delta:
@@ -268,8 +269,8 @@ class EquivariantNeuralBP2(nn.Module):
     # ------------------------------------------------------------------
     # Belief propagation
     # ------------------------------------------------------------------
-    def _check_update(self, variable_messages: Tensor, syndrome: Tensor) -> Tensor:
-        """Normalised min-sum detector-to-mechanism messages."""
+    def _min_sum_check_update(self, variable_messages: Tensor, syndrome: Tensor) -> Tensor:
+        """Unscaled min-sum detector-to-mechanism messages."""
 
         magnitudes = variable_messages.abs()
         excluding, smallest, _ = self._segment_min_two(magnitudes)
@@ -289,7 +290,11 @@ class EquivariantNeuralBP2(nn.Module):
         )
         sign = edge_parity * edge_sign * edge_syndrome_sign
         del smallest
-        return self.normalisation * sign * excluding
+        return sign * excluding
+
+    def _check_update(self, variable_messages: Tensor, syndrome: Tensor) -> Tensor:
+        """Normalised update retained for the neural/Relay architecture."""
+        return self.normalisation * self._min_sum_check_update(variable_messages, syndrome)
 
     def _variable_update(self, check_messages: Tensor) -> tuple[Tensor, Tensor]:
         batch_size = check_messages.shape[0]
@@ -354,8 +359,13 @@ class EquivariantNeuralBP2(nn.Module):
         posterior: Tensor,
         syndrome: Tensor,
         neural: Tensor,
+        *,
+        plain: bool = False,
     ) -> tuple[Tensor, Tensor, Tensor]:
-        exact = self._check_update(variable_messages, syndrome)
+        exact = (
+            self._min_sum_check_update(variable_messages, syndrome)
+            if plain else self._check_update(variable_messages, syndrome)
+        )
         if bool(neural.item()):
             residual = self._residual(
                 exact, variable_messages, check_messages, syndrome, posterior
@@ -468,6 +478,8 @@ class EquivariantNeuralBP2(nn.Module):
     ) -> BPDecodeResult:
         """Single-pass BP with first-valid stopping and a finite iteration cap.
 
+        With ``neural=False`` this is unscaled min-sum: the model's
+        normalisation, residual, and relaxation are all bypassed.
         This method never uses Relay memory, including on a Relay model.
         Neural inference defaults to the trained iteration budget; training
         continues to use ``forward`` and retains all unrolled gradients.
@@ -524,7 +536,8 @@ class EquivariantNeuralBP2(nn.Module):
 
         for step in range(1, caps[-1] + 1):
             variable, check, posterior = self._iteration(
-                variable, check, posterior, syndrome[active], neural_flag
+                variable, check, posterior, syndrome[active], neural_flag,
+                plain=not neural,
             )
             latest[active] = posterior
             iterations[active] += 1

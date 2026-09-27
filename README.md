@@ -109,20 +109,22 @@ logical (unflagged) failures.
 
 ## Current Slurm experiments
 
-Jobs 0–4 evaluate **ordinary circuit-level BP** with paired iteration caps
-12/1000; jobs 5–9 train the **joint Tanner CNN under code-capacity noise**, with
+Jobs 0–4 evaluate **library circuit-level BP / BP+OSD-0 / BP+OSD-CS3**, with
+max 1000 unscaled min-sum iterations, on paired X-only and joint X/Z inputs.
+They use the paper's eight-tick extraction schedule, noisy idles and logical-X
+memory task. Jobs 5–9 train the **joint Tanner CNN under code-capacity noise**, with
 paired CNN/CNN+direct OSD-0 evaluation. Each job launches four experiments.
 The noise models and p definitions differ, so these are separate comparisons.
-See the [ordinary BP campaign](docs/bb_plain_bp_campaign.md) and
+See the [BP/OSD baseline campaign](docs/bb_baseline_campaign.md) and
 [Tanner CNN architecture and campaign](docs/bb_tanner_cnn.md).
 
 | Script | Four concurrent experiments |
 | --- | --- |
-| `run_bb_0.slurm` | BB72 ordinary BP, p=.001/.002/.003/.004 |
-| `run_bb_1.slurm` | BB72 ordinary BP, p=.005/.006/.008/.010 |
-| `run_bb_2.slurm` | BB144 ordinary BP on the low-p grid |
-| `run_bb_3.slurm` | BB144 ordinary BP on the high-p grid |
-| `run_bb_4.slurm` | Two extra ordinary BP sample seeds per code at p=.004 |
+| `run_bb_0.slurm` | BB72 BP/OSD, p=.001/.002/.003/.004, 100,000 shots each |
+| `run_bb_1.slurm` | BB72 BP/OSD, p=.005/.006/.007/.008, 100,000 shots each |
+| `run_bb_2.slurm` | BB144 BP/OSD on the low-p grid, 100,000 shots each |
+| `run_bb_3.slurm` | BB144 BP/OSD on the high-p grid, 100,000 shots each |
+| `run_bb_4.slurm` | BB72/BB144 at p=.001/.002, 1,000,000 fresh shots each |
 | `run_bb_5.slurm` | BB72 Tanner CNN depth=2, p=.02/.04/.06/.08 |
 | `run_bb_6.slurm` | BB144 Tanner CNN depth=2, p=.02/.04/.06/.08 |
 | `run_bb_7.slurm` | BB72 Tanner CNN depth=1, matching job 5 p/seed grid |
@@ -142,13 +144,15 @@ BB_DRY_RUN=1 bash run_bb_5.slurm
 for i in 5 6 7 8 9; do sbatch "run_bb_${i}.slurm"; done
 ```
 
-All jobs use account `m5328_g`, `$PSCRATCH/envs/nde`, and `$HOME/end_time`.
-Each allocation launches four `srun --exclusive` steps with one GPU and 16 CPU
-cores each. Results are stored under
+All jobs use `$PSCRATCH/envs/nde` and `$HOME/end_time`, with four concurrent
+`srun --exclusive` steps. Jobs 0–4 use CPU account `m5328`, 32 CPUs and 32
+single-thread library workers per step. Jobs 5–9 use GPU account `m5328_g`,
+one GPU and 16 CPUs per step. Results are stored under
 `$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ...,
 `log_exp_3.txt`, per-experiment exit codes, and a completed/failed marker.
 CNN model directories are under each result directory's `outputs/YYYY-MM-DD/`;
-ordinary BP evaluation files are under `exp_<index>/`. All ten `.slurm` scripts
+BP/OSD evaluation files are under `exp_<index>/`, with saved banks, corrections
+and resumable chunks. All ten `.slurm` scripts
 embed their argument defaults and launcher directly; no repository `.sh` helpers
 are needed. Python model/trainer sources are still loaded from the checkout at
 startup. Previously submitted pending jobs keep their old batch scripts;

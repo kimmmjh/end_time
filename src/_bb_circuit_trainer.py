@@ -44,7 +44,7 @@ from models._equivariant_neural_bp2 import EquivariantNeuralBP2
 from models._neural_relay_bp2 import NeuralRelayBP2
 
 Z_95 = 1.959963984540054
-BP_EVALUATION_POLICY = "first_syndrome_valid_v1"
+BP_EVALUATION_POLICY = "first_syndrome_valid_unscaled_v2"
 
 
 @dataclass
@@ -598,7 +598,8 @@ class BBCircuitTrainer:
             bp_gain, bp_error, bp_rescued, bp_harmed = _paired_gain(neural, success)
             bp_fields[f"bp_{cap}"] = {
                 "shots": int(success.size), "max_iterations": cap,
-                "early_stopping": True, "normalisation": self.model.normalisation,
+                "early_stopping": True, "normalisation": 1.0,
+                "normalisation_applied": False, "decoder": "min_sum",
                 "message_clip": self.model.message_clip,
                 "accuracy": float(success.mean()),
                 "logical_error_rate": float((~success).mean()),

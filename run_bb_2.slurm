@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_bp144_low
-#SBATCH --account=m5328_g
+#SBATCH --job-name=bbc_base144_low
+#SBATCH --account=m5328
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
-#SBATCH --constraint=gpu
+#SBATCH --constraint=cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --cpus-per-task=16
-#SBATCH --gpus-per-task=1
+#SBATCH --cpus-per-task=32
+#SBATCH --hint=nomultithread
 #SBATCH --output=slurm-%x-%j.out
 
 set -euo pipefail
@@ -23,39 +23,45 @@ fi
 cd "$ROOT"
 # Standalone launcher: no repository .sh helpers are required.
 # Python sources are still read from ROOT when the job starts.
-bb_plain_bp_experiment_args() {
+bb_baseline_experiment_args() {
     if (($# != 4)); then
-        echo "Usage: bb_plain_bp_experiment_args code p seed output_directory" >&2
+        echo "Usage: bb_baseline_experiment_args code p seed output_directory" >&2
         return 2
     fi
     local code="$1" p="$2" seed="$3" output_directory="$4"
-    local rounds batch_size
+    local rounds resume_arg=""
     case "$code" in
-        bb72) rounds=6; batch_size=16 ;;
-        bb144) rounds=12; batch_size=8 ;;
-        *) echo "Unknown BP campaign code: $code" >&2; return 2 ;;
+        bb72) rounds=6 ;;
+        bb144) rounds=12 ;;
+        *) echo "Unknown code: $code" >&2; return 2 ;;
     esac
-    printf '%s\n' "--code=$code --p=$p --seed=$seed --rounds=$rounds --shots=${BB_BP_SHOTS:-4096} --batch-size=$batch_size --iteration-caps 12 ${BB_BP_REFERENCE_ITERATIONS:-1000} --normalisation=0.625 --message-clip=30 --device=cuda --threads=1 --out=$output_directory"
+    if [[ -n "${BB_BASELINE_RESUME_ROOT:-}" ]]; then
+        output_directory="$BB_BASELINE_RESUME_ROOT/$output_directory"
+        resume_arg="--resume"
+    fi
+    printf '%s\n' "--code=$code --p=$p --seed=$seed --rounds=$rounds --shots=${BB_BASELINE_SHOTS:-100000} --max-iterations=${BB_BASELINE_ITERATIONS:-1000} --detector-inputs x xz --workers=${BB_BASELINE_WORKERS:-32} --chunk-size=128 $resume_arg --out=$output_directory"
 }
 
-BB_CAMPAIGN="bb_plain_bp_2026_09"
-BB_PYTHON_ENTRYPOINT="$ROOT/scripts/evaluate_bb_circuit_bp.py"
+BB_CAMPAIGN="bb_library_bp_osd_2026_09_27"
+BB_PYTHON_ENTRYPOINT="$ROOT/scripts/evaluate_bb_circuit_baselines.py"
 
-# Ordinary BP only: first-valid stopping, paired caps 12/1000, 4096 shots.
-# Schema v2, legacy q=p, idle=0. No training, Relay, or OSD.
-# Experiment matrix and outputs: docs/bb_plain_bp_campaign.md
+# Paired library BP, BP+OSD-0 and BP+OSD-CS3; X-only and joint X/Z input.
+# Paper eight-tick schedule, noisy idles, logical-X memory / logical-Z block LER.
+# CPU processes, original DEM priors, max 1000 BP iterations, no rescaling.
+# Experiment matrix and resumption: docs/bb_baseline_campaign.md
+
 experiments=(
-    "$(bb_plain_bp_experiment_args bb144 0.001 14401001 exp_0)"
-    "$(bb_plain_bp_experiment_args bb144 0.002 14401002 exp_1)"
-    "$(bb_plain_bp_experiment_args bb144 0.003 14401003 exp_2)"
-    "$(bb_plain_bp_experiment_args bb144 0.004 14401004 exp_3)"
+    "$(bb_baseline_experiment_args bb144 0.001 14401001 exp_0)"
+    "$(bb_baseline_experiment_args bb144 0.002 14401002 exp_1)"
+    "$(bb_baseline_experiment_args bb144 0.003 14401003 exp_2)"
+    "$(bb_baseline_experiment_args bb144 0.004 14401004 exp_3)"
 )
 
 BB_EXPERIMENT_LABELS=(
-    "bb144_plain_bp_p0.001_seed14401001"
-    "bb144_plain_bp_p0.002_seed14401002"
-    "bb144_plain_bp_p0.003_seed14401003"
-    "bb144_plain_bp_p0.004_seed14401004"
+    "bb144_baseline_p0.001_seed14401001"
+    "bb144_baseline_p0.002_seed14401002"
+    "bb144_baseline_p0.003_seed14401003"
+    "bb144_baseline_p0.004_seed14401004"
 )
 
 # Launch/logging code is embedded so sbatch captures it with this script.
@@ -90,15 +96,14 @@ _bb_stop_steps() {
 
 run_bb_experiments() {
     local experiment_count="$#"
-    local cpus_per_task="${SLURM_CPUS_PER_TASK:-16}"
-    local gpus_per_task="${BB_GPUS_PER_TASK:-1}"
+    local cpus_per_task="${SLURM_CPUS_PER_TASK:-32}"
     local entrypoint
     local index params pid exit_code label
     local failures=0
     local -a argv=()
     local -a step_resources=(
         --cpus-per-task="$cpus_per_task"
-        --mem=16G
+        --mem=48G
     )
 
     if [[ -z "${ROOT:-}" ]]; then
@@ -109,13 +114,6 @@ run_bb_experiments() {
     if ((experiment_count < 1 || experiment_count > 4)); then
         echo "Error: expected 1-4 experiments, got $experiment_count." >&2
         return 2
-    fi
-    if [[ ! "$gpus_per_task" =~ ^[0-9]+$ ]]; then
-        echo "Error: BB_GPUS_PER_TASK must be a non-negative integer." >&2
-        return 2
-    fi
-    if ((gpus_per_task > 0)); then
-        step_resources+=(--gpus-per-task="$gpus_per_task")
     fi
     if [[ ! -f "$entrypoint" ]]; then
         echo "Error: Python entrypoint not found: $entrypoint" >&2
@@ -157,12 +155,8 @@ run_bb_experiments() {
         2>/dev/null || true
     # The active decoder may be uncommitted during a research campaign.
     # Preserve its implementation as well as the exact shell command.
-    mkdir -p "$_BB_RESULT_DIRECTORY/source_snapshot/models" \
-        "$_BB_RESULT_DIRECTORY/source_snapshot/src"
-    for params in models/_equivariant_neural_bp2.py models/_neural_relay_bp2.py \
-        src/_bb_circuit_experiment.py src/_bb_circuit_trainer.py \
-        src/_bb_circuit_loss.py src/_bb_circuit_metrics.py \
-        src/bb_circuit_data.py src/bb_dem.py src/bb_stim_utils.py src/bb_code.py; do
+    mkdir -p "$_BB_RESULT_DIRECTORY/source_snapshot/src"
+    for params in src/bb_paper_baselines.py src/bb_code.py; do
         cp "$ROOT/$params" "$_BB_RESULT_DIRECTORY/source_snapshot/$params" || return 1
     done
     if command -v git >/dev/null 2>&1 && \
@@ -171,6 +165,8 @@ run_bb_experiments() {
         git -C "$ROOT" status --short > "$_BB_RESULT_DIRECTORY/git_status.txt"
     fi
 
+    export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+    export NUMEXPR_NUM_THREADS=1 MPLCONFIGDIR="$_BB_RESULT_DIRECTORY/mpl_cache"
     cd "$_BB_RESULT_DIRECTORY" || return 1
     export SLURM_CPU_BIND="cores"
     _BB_STEP_PIDS=()

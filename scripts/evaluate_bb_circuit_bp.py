@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Evaluate ordinary circuit-level BB min-sum BP on one saved circuit shot bank.
 
-No training, Relay, learned updates, or OSD. Multiple iteration caps share one
+Unscaled min-sum: no normalisation coefficient, training, Relay, or OSD.
+Multiple iteration caps share one
 trajectory and stop each shot at its first syndrome-valid correction.
 """
 
@@ -38,7 +39,6 @@ def parse_args(argv=None):
     parser.add_argument("--shots", type=int, default=4096)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--iteration-caps", type=int, nargs="+", default=[12, 1000])
-    parser.add_argument("--normalisation", type=float, default=0.625)
     parser.add_argument("--message-clip", type=float, default=30.0)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
@@ -55,8 +55,6 @@ def parse_args(argv=None):
         parser.error("rounds must be positive")
     if args.seed < 0 or any(cap < 1 for cap in args.iteration_caps):
         parser.error("seed must be non-negative and iteration caps must be positive")
-    if not 0 < args.normalisation <= 1:
-        parser.error("normalisation must lie in (0, 1]")
     if not math.isfinite(args.message_clip) or args.message_clip <= 0:
         parser.error("message-clip must be finite and positive")
     args.iteration_caps = sorted(set(args.iteration_caps))
@@ -138,9 +136,10 @@ def run(args):
         "circuit_schema_version": graph.circuit_schema_version,
         "num_detectors": graph.num_detectors, "num_mechanisms": graph.num_mechanisms,
         "num_observables": graph.num_observables, "dem_fingerprint": graph.dem_fingerprint,
-        "decoder": "normalized_min_sum", "schedule": "parallel",
+        "decoder": "min_sum", "schedule": "parallel",
         "bp_evaluation_policy": BP_EVALUATION_POLICY,
-        "iteration_caps": args.iteration_caps, "normalisation": args.normalisation,
+        "iteration_caps": args.iteration_caps, "normalisation": 1.0,
+        "normalisation_applied": False,
         "message_clip": args.message_clip, "batch_size": args.batch_size,
         "device": str(device), "threads": args.threads,
         "neural": False, "relay": False, "osd": False,
@@ -163,7 +162,7 @@ def run(args):
     write_report(args.out, report)
     model = EquivariantNeuralBP2(
         graph, iterations=min(args.iteration_caps), hidden_dim=4, orbit_embedding_dim=0,
-        sharing="global", normalisation=args.normalisation, message_clip=args.message_clip,
+        sharing="global", normalisation=1.0, message_clip=args.message_clip,
         gradient_checkpoint=False,
     ).to(device).eval()
     model.requires_grad_(False)

@@ -35,7 +35,8 @@ def test_multiple_caps_freeze_first_valid_shots_and_continue_only_failures():
     decoder = model()
     sizes = []
 
-    def iteration(variable, check, posterior, syndrome, neural):
+    def iteration(variable, check, posterior, syndrome, neural, *, plain=False):
+        assert plain
         sizes.append(syndrome.shape[0])
         output = torch.ones_like(posterior)
         if len(sizes) <= 2:
@@ -60,9 +61,9 @@ def test_early_convergence_finishes_all_future_budgets_without_extra_iterations(
     original = decoder._iteration
     calls = []
 
-    def iteration(*args):
+    def iteration(*args, **kwargs):
         calls.append(1)
-        return original(*args)
+        return original(*args, **kwargs)
 
     decoder._iteration = iteration
     results = decoder.decode_bp_budgets(torch.tensor([[1.], [0.]]), budgets=(2, 1000))
@@ -109,9 +110,52 @@ def test_ordinary_reference_ignores_learned_terms_and_relay_memory():
         decoder.residual_network[-1].bias.fill_(-100)
     decoder.sample_memory = lambda *args, **kwargs: pytest.fail("Ordinary BP used Relay memory")
     decoder._residual = lambda *args: pytest.fail("Ordinary BP used neural residual")
+    decoder.normalisation = .1
     after = decoder.decode_bp(syndrome)
     for name in ("correction", "posterior", "converged", "iterations"):
         assert torch.equal(getattr(before, name), getattr(after, name))
+
+
+def test_ordinary_bp_uses_unscaled_check_messages_even_on_a_normalised_model():
+    decoder = model()
+    assert decoder.normalisation == .625
+    result = decoder.decode_bp(torch.ones(1, 1), max_iterations=1)
+    # Prior [5, 1], odd parity: check messages [-1, -5], posterior [4, -4].
+    torch.testing.assert_close(result.posterior, torch.tensor([[4., -4.]]))
+    # The training ablation still uses the neural model's configured scaling.
+    torch.testing.assert_close(
+        decoder._check_update(torch.tensor([[5., 1.]]), torch.ones(1, 1)),
+        torch.tensor([[-.625, -3.125]]),
+    )
+
+
+def test_plain_min_sum_matches_independent_ldpc_on_nonzero_syndromes():
+    ldpc = pytest.importorskip("ldpc")
+    pcm = np.array([[1, 1, 0, 1, 0, 0], [0, 1, 1, 0, 1, 0],
+                    [1, 0, 1, 0, 0, 1]], dtype=np.uint8)
+    priors = np.array([.03, .07, .11, .17, .23, .31])
+    rows, cols = np.nonzero(pcm)
+    fixture = SimpleNamespace(
+        num_detectors=3, num_mechanisms=6, num_observables=0,
+        edge_detector=rows, edge_mechanism=cols,
+        edge_orbit=np.zeros(len(rows), dtype=np.int64), num_orbits=1,
+        prior_log_odds=np.log((1 - priors) / priors),
+    )
+    decoder = EquivariantNeuralBP2(fixture, hidden_dim=4, orbit_embedding_dim=0)
+    syndrome = np.array([[value >> bit & 1 for bit in range(3)]
+                         for value in range(1, 8)], dtype=np.uint8)
+    results = decoder.decode_bp_budgets(torch.from_numpy(syndrome), budgets=(1, 3, 8))
+    for cap, result in results.items():
+        reference = ldpc.BpDecoder(
+            pcm, error_channel=priors, bp_method="ms", ms_scaling_factor=1.,
+            max_iter=cap, schedule="parallel", input_vector_type="syndrome",
+        )
+        for index, shot in enumerate(syndrome):
+            np.testing.assert_array_equal(result.correction[index], reference.decode(shot))
+            assert result.converged[index].item() == reference.converge
+            assert result.iterations[index].item() == reference.iter
+            np.testing.assert_allclose(result.posterior[index], reference.log_prob_ratios,
+                                       rtol=1e-5, atol=1e-5)
 
 
 def test_training_still_unrolls_every_step_and_backpropagates():
@@ -147,6 +191,7 @@ def test_trainer_records_two_paired_plain_bp_caps_on_the_same_shots():
     assert result.neural_mean_bp_iterations == result.vanilla_mean_bp_iterations == 1
     assert set(result.bp_baselines) == {"bp_2", "bp_5"}
     for row in result.bp_baselines.values():
+        assert row["normalisation"] == 1.0 and not row["normalisation_applied"]
         assert row["shots"] == 4
         assert row["logical_error_rate"] == row["paired_gain"] == 0
         assert row["syndrome_convergence"] == row["mean_bp_iterations"] == 1

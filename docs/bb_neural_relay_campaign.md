@@ -1,7 +1,7 @@
 # September 2026 Neural Relay BP Slurm campaign
 
-**September 24:** jobs 0–4 now run the
-[ordinary BP evaluation sweep](bb_plain_bp_campaign.md), and jobs 5–9 run the
+**September 27:** jobs 0–4 now run the
+[library BP/OSD baseline sweep](bb_baseline_campaign.md), and jobs 5–9 run the
 [Tanner CNN code-capacity campaign](bb_tanner_cnn.md#slurm-campaign-jobs-59).
 The matrix below documents the earlier Relay campaign; the current Slurm
 scripts no longer launch those Relay experiments.

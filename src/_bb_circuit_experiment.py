@@ -199,7 +199,7 @@ def run_bb_circuit_experiment(args: Any) -> str:
         "architecture": (
             "bb_neural_relay_bp_circuit" if relay_enabled else "bb_neural_bp_circuit"
         ),
-        "baseline_decoder": "relay_min_sum" if relay_enabled else "normalized_min_sum",
+        "baseline_decoder": "relay_min_sum" if relay_enabled else "min_sum",
         **{f"bp_{key}": value for key, value in relay_kwargs.items()},
         "circuit_schema_version": CIRCUIT_SCHEMA_VERSION,
         "code": code.name,
@@ -295,9 +295,9 @@ def run_bb_circuit_experiment(args: Any) -> str:
         )
     logging.info(
         "Ordinary BP references: max iterations %d and %d, first-valid stopping, "
-        "scale=%g, no Relay/MLP/OSD, identical circuit shots. "
+        "unscaled min-sum, no Relay/MLP/OSD, identical circuit shots. "
         "The additional reference is reported separately from checkpoint selection.",
-        args.bp_iterations, args.bb_bp_reference_iterations, args.bp_normalisation,
+        args.bp_iterations, args.bb_bp_reference_iterations,
     )
     logging.info("Output directory: %s", output_directory)
 

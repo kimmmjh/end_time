@@ -9,10 +9,10 @@ results/
 │   ├── phenomenological/{cnn3d,convgru,pymatching}/
 │   └── circuit/{convgru_mwpm,convgru_weighted_mwpm}/
 ├── bb/
-│   ├── code_capacity/depolarizing/orbit/{bb72,bb144}/
+│   ├── code_capacity/depolarizing/{orbit,tanner_cnn}/{bb72,bb144}/
 │   └── circuit/{q_equals_p_idle0,no_osd,noise_balance,neural_relay}/
 ├── analysis/
-├── plots/neural_relay/
+├── plots/{neural_relay,september_2026_update}/
 └── local_smoke/
 ```
 
@@ -20,12 +20,14 @@ results/
 
 Headline results:
 
+- [`september_2026_update/tanner_cnn.png`](plots/september_2026_update/tanner_cnn.png): new BB72 capacity CNN / CNN+OSD against earlier capacity references
 - [`plots/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.png`](plots/threshold_ConvGRU_PyMatching_L9_L11_L13_L15.png): toric phenomenological threshold study
 - [`plots/bb_campaign_2026_08_decoders.png`](plots/bb_campaign_2026_08_decoders.png): BB code-capacity decoder comparison
 - [`plots/bb_circuit_campaign_2026_08.png`](plots/bb_circuit_campaign_2026_08.png): BB circuit-level Neural+OSD reference sweep
 
 Supporting and diagnostic figures:
 
+- [`september_2026_update/tanner_cnn_training.png`](plots/september_2026_update/tanner_cnn_training.png): all four new CNN training/validation histories and selected-checkpoint tests
 - [`neural_relay/overview.png`](plots/neural_relay/overview.png): BB72/BB144 final LER, paired gain, and historical BP/OSD references
 - [`neural_relay/training_bb72.png`](plots/neural_relay/training_bb72.png): all eight BB72 training losses and paired validation gains
 - [`neural_relay/training_bb144.png`](plots/neural_relay/training_bb144.png): all eight BB144 training losses and paired validation gains
@@ -55,13 +57,44 @@ and averages them. The curated CSV selects the intended branch explicitly.
 Known partial runs are retained in `cnn3d/resdir_55562044`,
 `cnn3d/resdir_55860108`, and `convgru/resdir_1252167/exp_6`.
 
+## September 27, 2026: retained Tanner CNN results and baseline replacement
+
+The obsolete scale-0.625 plain-BP jobs `58793753`, `58793754`, `58793756`,
+`58793757`, `58793759` and their three aggregate CSVs/PNG were deleted at the
+user's request. The [deletion record](analysis/bb_plain_bp_removal_2026_09_27.json)
+lists the exact removed directories. Previous Neural/Relay data is retained.
+The new [library BP/OSD campaign](../docs/bb_baseline_campaign.md) uses the paper
+circuit schedule, idle noise and logical-X memory task; new server results are pending.
+
+Tanner CNN `resdir_58793761` remains under
+[`bb/code_capacity/depolarizing/tanner_cnn/bb72/`](bb/code_capacity/depolarizing/tanner_cnn/bb72/).
+Its 50 original files are checked against the filtered
+[manifest](analysis/bb_import_2026_09_27_manifest.csv). Four BB72 depth-2/width-64
+models completed 100 epochs and 65,536 final shots each. All saved corrections
+are independently rescored. No BB144/depth-1/extra-seed CNN runs are included.
+
+Raw / CNN+OSD LER is 1.875% / .119% at p=.02, 13.034% / 1.891% at .04,
+33.841% / 8.684% at .06, and 56.607% / 21.596% at .08. CNN+OSD improves on
+previous CSS BP2+OSD but remains worse than previous joint BP4/Neural BP4;
+training budgets and sample banks differ. See the
+[Korean analysis](analysis/bb_update_2026_09_27.md) and
+[audit](analysis/bb_update_2026_09_27_audit.json).
+
+Only the two CNN PNGs remain in
+[`plots/september_2026_update/`](plots/september_2026_update/).
+Reproduce their audit, four analysis CSVs and two PNGs with:
+
+```bash
+python scripts/summarize_bb_september27.py
+```
+
 ## September 23, 2026: ordinary BP evaluation scripts
 
 `run_bb_0.slurm` through `run_bb_4.slurm` now launch a
 [standalone BP sweep](../docs/bb_plain_bp_campaign.md), without training, Relay,
 or OSD. Each experiment compares max-12 and max-1000 BP on 4096 saved circuit
 shots. Outputs are `resdir_<jobid>/exp_<index>/{results.json,summary.csv,shots.npz,outcomes.npz}`.
-New server measurements have not yet been imported here.
+The first completed server measurements were imported on September 27, above.
 
 ## September 22, 2026: BP baseline stopping and iteration caps
 
