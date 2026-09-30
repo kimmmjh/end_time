@@ -29,7 +29,7 @@ CSV_PATH = ANALYSIS_ROOT / "bb_circuit_no_osd_2026_09.csv"
 PARTIAL_CSV_PATH = ANALYSIS_ROOT / "bb_circuit_no_osd_2026_09_partial.csv"
 REPORT_PATH = ANALYSIS_ROOT / "bb_circuit_no_osd_2026_09.md"
 PLOT_PATH = PLOT_ROOT / "raw_only.png"
-COMBINED_PLOT_PATH = PLOT_ROOT / "raw_vs_osd.png"
+COMBINED_PLOT_PATH = PLOT_ROOT / "overview.png"
 Z_95 = 1.959963984540054
 
 RAW_FIELDS = [
@@ -355,7 +355,7 @@ def write_report(
             "",
             f"Complete rows: [`{CSV_PATH.name}`]({CSV_PATH.name})",
             f"Partial rows: [`{PARTIAL_CSV_PATH.name}`]({PARTIAL_CSV_PATH.name})",
-            f"Combined raw/OSD plot: [`{COMBINED_PLOT_PATH.name}`](../{COMBINED_PLOT_PATH.relative_to(REPOSITORY / 'results').as_posix()})",
+            f"Combined Relay/Neural BP plot: [`{COMBINED_PLOT_PATH.name}`](../{COMBINED_PLOT_PATH.relative_to(REPOSITORY / 'results').as_posix()})",
             "",
         ]
     )

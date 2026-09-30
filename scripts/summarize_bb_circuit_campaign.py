@@ -13,11 +13,9 @@ import csv
 import datetime
 import json
 import math
-import os
 import re
 import shlex
 import statistics
-import tempfile
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -31,7 +29,6 @@ PLOT_ROOT = REPOSITORY / "results/plots/bb/circuit/neural_bp"
 CSV_PATH = ANALYSIS_ROOT / "bb_circuit_campaign_2026_08.csv"
 REPORT_PATH = ANALYSIS_ROOT / "bb_circuit_campaign_2026_08.md"
 PLOT_PATH = PLOT_ROOT / "overview.png"
-ABLATION_PLOT_PATH = PLOT_ROOT / "ablations.png"
 PARTIAL_CSV_PATH = ANALYSIS_ROOT / "bb_circuit_campaign_2026_08_partial.csv"
 Z_95 = 1.959963984540054
 
@@ -823,6 +820,10 @@ def write_report(
         "Incomplete time-limited runs are retained for resume but are not used as ",
         "final performance points.",
         "",
+        "The neural_bp PNGs show neural results only; corrected BP baselines live in",
+        "the separate library_bp_osd plot folder. Original BP controls and paired gains",
+        "below are retained as experiment records, not comparisons against the new baseline.",
+        "",
         "## Inventory",
         "",
         f"- Histories: **{len(rows) + len(partial_rows)}** = **{len(rows)} complete** + **{len(partial_rows)} partial**",
@@ -958,7 +959,7 @@ def write_report(
             f"Complete rows: [`{CSV_PATH.name}`]({CSV_PATH.name})",
             f"Partial rows: [`{PARTIAL_CSV_PATH.name}`]({PARTIAL_CSV_PATH.name})",
             f"Primary plot: [`{PLOT_PATH.name}`](../{PLOT_PATH.relative_to(REPOSITORY / 'results').as_posix()})",
-            f"Ablation plot: [`{ABLATION_PLOT_PATH.name}`](../{ABLATION_PLOT_PATH.relative_to(REPOSITORY / 'results').as_posix()})",
+            "Ablation results remain in the tables above; no separate ablation PNG is generated.",
             "",
         ]
     )
@@ -980,296 +981,15 @@ def wilson_interval(successes: int, shots: int) -> tuple[float, float]:
 
 
 def plot_results(rows: list[CircuitResult], dpi: int) -> None:
-    cache = Path(tempfile.gettempdir()) / "theend_bb_circuit_plot_cache"
-    cache.mkdir(parents=True, exist_ok=True)
-    os.environ.setdefault("MPLCONFIGDIR", str(cache / "matplotlib"))
-    os.environ.setdefault("XDG_CACHE_HOME", str(cache / "xdg"))
-    try:
-        import matplotlib
-    except ImportError as error:
-        raise RuntimeError(
-            "Plotting requires matplotlib; install requirements.txt or pass --no-plot."
-        ) from error
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    from matplotlib.ticker import FuncFormatter, PercentFormatter
-
-    sweep = [row for row in rows if is_primary_sweep(row)]
-    if not sweep:
-        raise ValueError("No complete default circuit sweep is available to plot.")
-    by_code: dict[str, list[CircuitResult]] = defaultdict(list)
-    for row in sweep:
-        by_code[row.code].append(row)
-    for code_rows in by_code.values():
-        code_rows.sort(key=lambda row: row.gate_error_rate)
-
-    plt.rcParams.update(
-        {
-            "axes.spines.top": False,
-            "axes.spines.right": False,
-            "font.size": 10.2,
-            "legend.frameon": False,
-        }
-    )
-    figure, (ler_axis, gain_axis) = plt.subplots(
-        1, 2, figsize=(12.2, 4.8), constrained_layout=True
-    )
-    colors = {"bb72": "#2563eb", "bb144": "#dc2626"}
-    fallback_colors = ["#0f766e", "#7c3aed", "#d97706"]
-
-    zero_points: list[tuple[float, float, str]] = []
-    for code_index, (code, code_rows) in enumerate(sorted(by_code.items())):
-        color = colors.get(code, fallback_colors[code_index % len(fallback_colors)])
-        xs = [row.gate_error_rate for row in code_rows]
-        for decoder, neural, linestyle, marker in (
-            ("Neural posterior + OSD-0", True, "-", "o"),
-            ("Vanilla BP posterior + OSD-0", False, "--", "s"),
-        ):
-            ys: list[float] = []
-            lower_errors: list[float] = []
-            upper_errors: list[float] = []
-            for row in code_rows:
-                ler = (
-                    row.neural_osd_logical_error_rate
-                    if neural
-                    else row.vanilla_osd_logical_error_rate
-                )
-                failures = round(ler * row.osd_shots)
-                low, high = wilson_interval(failures, row.osd_shots)
-                shown = ler if failures else 0.5 / row.osd_shots
-                ys.append(shown)
-                lower_errors.append(
-                    0.0 if failures == 0 else max(0.0, shown - max(low, 1e-12))
-                )
-                upper_errors.append(max(0.0, high - shown))
-                if failures == 0:
-                    zero_points.append((row.gate_error_rate, shown, color))
-            ler_axis.errorbar(
-                xs,
-                ys,
-                yerr=[lower_errors, upper_errors],
-                color=color,
-                linestyle=linestyle,
-                marker=marker,
-                linewidth=1.8,
-                markersize=5.5,
-                capsize=2.5,
-                label=f"{code.upper()} {decoder}",
-            )
-
-        gains = [100.0 * row.osd_paired_gain for row in code_rows]
-        halfwidths = [100.0 * row.osd_paired_gain_ci95_halfwidth for row in code_rows]
-        gain_axis.errorbar(
-            xs,
-            gains,
-            yerr=halfwidths,
-            color=color,
-            marker="o",
-            linewidth=1.8,
-            capsize=3.0,
-            label=code.upper(),
-        )
-
-    for x, y, color in zero_points:
-        ler_axis.scatter([x], [y], marker="v", s=42, color=color, zorder=5)
-    ler_axis.set_yscale("log")
-    ler_axis.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=1))
-    ler_axis.yaxis.set_major_formatter(
-        FuncFormatter(
-            lambda value, _: (
-                f"{100.0 * value:.0f}%"
-                if value >= 0.1
-                else (
-                    f"{100.0 * value:.1f}%"
-                    if value >= 0.001
-                    else f"{100.0 * value:.2f}%"
-                )
-            )
-        )
-    )
-    ler_axis.set_xlabel("Circuit gate/readout error rate, p=q")
-    ler_axis.set_ylabel("Block logical error rate")
-    ler_axis.set_title("Selected-best OSD-0 logical error rate")
-    ler_axis.grid(True, which="major", color="#d7dce2", linewidth=0.7)
-    ler_axis.grid(True, which="minor", color="#edf0f3", linewidth=0.5)
-    ler_axis.legend(fontsize=8.3)
-    ler_axis.text(
-        0.02,
-        0.03,
-        "▼: zero failures; displayed at 0.5/N",
-        transform=ler_axis.transAxes,
-        fontsize=8.1,
-        color="#475569",
-    )
-
-    gain_axis.axhline(0.0, color="#64748b", linewidth=1.0)
-    gain_axis.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=1))
-    gain_axis.set_xlabel("Circuit gate/readout error rate, p=q")
-    gain_axis.set_ylabel("Accuracy gain (percentage points)")
-    gain_axis.set_title("Neural-posterior OSD-0 minus BP-posterior OSD-0")
-    gain_axis.grid(True, color="#d7dce2", linewidth=0.7)
-    gain_axis.legend(fontsize=8.5)
-
-    figure.suptitle(
-        "BB circuit-level Neural BP2: paired selected-best evaluation\n"
-        "Circuit schema v2, idle error=0; error bars are paired 95% intervals",
-        fontsize=12.3,
-        fontweight="semibold",
-    )
-    PLOT_ROOT.mkdir(parents=True, exist_ok=True)
-    figure.savefig(PLOT_PATH, dpi=dpi, bbox_inches="tight", facecolor="white")
-    plt.close(figure)
-
-
-def plot_ablations(rows: list[CircuitResult], dpi: int) -> None:
-    cache = Path(tempfile.gettempdir()) / "theend_bb_circuit_plot_cache"
-    cache.mkdir(parents=True, exist_ok=True)
-    os.environ.setdefault("MPLCONFIGDIR", str(cache / "matplotlib"))
-    os.environ.setdefault("XDG_CACHE_HOME", str(cache / "xdg"))
-    try:
-        import matplotlib
-    except ImportError as error:
-        raise RuntimeError(
-            "Plotting requires matplotlib; install requirements.txt or pass --no-plot."
-        ) from error
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    primary = [row for row in rows if is_primary_sweep(row)]
-    reference = {(row.code, row.gate_error_rate): row for row in primary}
-
-    def with_matching_reference(candidates: list[CircuitResult]) -> list[CircuitResult]:
-        selected: list[CircuitResult] = []
-        for row in candidates:
-            baseline = reference.get((row.code, row.gate_error_rate))
-            if baseline is not None and baseline not in selected:
-                selected.append(baseline)
-            if row not in selected:
-                selected.append(row)
-        return selected
-
-    sharing = with_matching_reference([row for row in rows if row.purpose == "sharing"])
-    p004 = [row for row in primary if math.isclose(row.gate_error_rate, 0.004)]
-    iterations = p004 + [row for row in rows if row.purpose == "iterations"]
-    mechanisms = p004 + [row for row in rows if row.purpose == "mechanism"]
-    losses = p004 + [row for row in rows if row.purpose == "loss_auxiliary"]
-    p003 = [row for row in primary if math.isclose(row.gate_error_rate, 0.003)]
-    noise = p003 + [row for row in rows if row.purpose == "noise_balance"]
-    replicates = [
-        row
-        for row in rows
-        if is_default_sweep(row)
-        and row.purpose in {"baseline", "replicate"}
-        and math.isclose(row.gate_error_rate, 0.004)
-    ]
-
-    panels = [
-        (
-            "Sharing",
-            sorted(
-                sharing,
-                key=lambda row: (
-                    row.n,
-                    row.gate_error_rate,
-                    0 if row.purpose == "baseline" else 1,
-                ),
-            ),
-            lambda row: (
-                f"{row.code.upper()}\np={row.gate_error_rate:.3f}\n{row.sharing}"
-            ),
-        ),
-        (
-            "Iterations (p=0.004)",
-            sorted(iterations, key=lambda row: (row.n, row.iterations)),
-            lambda row: f"{row.code.upper()}\nT={row.iterations}",
-        ),
-        (
-            "Update components (p=0.004)",
-            sorted(
-                mechanisms,
-                key=lambda row: (
-                    row.n,
-                    0 if row.purpose == "baseline" else 1,
-                    row.variant,
-                ),
-            ),
-            lambda row: (
-                f"{row.code.upper()}\n{('full' if row.purpose == 'baseline' else row.variant.replace('_only', ' only'))}"
-            ),
-        ),
-        (
-            "Auxiliary losses (p=0.004)",
-            sorted(
-                losses,
-                key=lambda row: (
-                    row.n,
-                    0 if row.purpose == "baseline" else 1,
-                    row.variant,
-                ),
-            ),
-            lambda row: (
-                f"{row.code.upper()}\n{('full' if row.purpose == 'baseline' else {'no_deep_supervision': 'no deep', 'no_mechanism_bce': 'no mech BCE'}[row.variant])}"
-            ),
-        ),
-        (
-            "Noise balance (p=0.003)",
-            sorted(
-                noise,
-                key=lambda row: (
-                    row.n,
-                    row.measurement_error_rate,
-                    row.idle_error_rate,
-                ),
-            ),
-            lambda row: (
-                f"{row.code.upper()}\n{'q=p,idle=0' if row.purpose == 'baseline' else row.variant}"
-            ),
-        ),
-        (
-            "Training seeds (p=0.004)",
-            sorted(replicates, key=lambda row: (row.n, row.seed)),
-            lambda row: f"{row.code.upper()}\nseed {str(row.seed)[-4:]}",
-        ),
-    ]
-
-    plt.rcParams.update(
-        {
-            "axes.spines.top": False,
-            "axes.spines.right": False,
-            "font.size": 9.2,
-        }
-    )
-    figure, axes = plt.subplots(2, 3, figsize=(16.2, 9.0), constrained_layout=True)
-    colors = {"bb72": "#2563eb", "bb144": "#dc2626"}
-    for axis, (title, panel_rows, label) in zip(axes.flat, panels):
-        xs = list(range(len(panel_rows)))
-        gains = [100.0 * float(row.osd_paired_gain) for row in panel_rows]
-        errors = [
-            100.0 * float(row.osd_paired_gain_ci95_halfwidth) for row in panel_rows
-        ]
-        axis.bar(
-            xs,
-            gains,
-            yerr=errors,
-            capsize=3,
-            color=[colors.get(row.code, "#64748b") for row in panel_rows],
-            alpha=0.88,
-        )
-        axis.axhline(0.0, color="#475569", linewidth=0.9)
-        axis.set_xticks(xs, [label(row) for row in panel_rows], fontsize=7.4)
-        axis.set_title(title, fontweight="semibold")
-        axis.set_ylabel("Accuracy gain (pp)")
-        axis.grid(True, axis="y", color="#d7dce2", linewidth=0.7)
-
-    figure.suptitle(
-        "BB circuit-level Neural BP2 ablations\n"
-        "Neural-posterior OSD-0 minus vanilla-BP-posterior OSD-0; bars show paired 95% intervals",
-        fontsize=12.3,
-        fontweight="semibold",
-    )
-    PLOT_ROOT.mkdir(parents=True, exist_ok=True)
-    figure.savefig(ABLATION_PLOT_PATH, dpi=dpi, bbox_inches="tight", facecolor="white")
-    plt.close(figure)
+    """Update the combined Relay/Neural PNG; preserve every completed point."""
+    if __package__:
+        from . import plot_bb_circuit_raw_vs_osd as combined
+    else:
+        import plot_bb_circuit_raw_vs_osd as combined
+    raw = combined.primary_raw_rows(combined.read_rows(combined.DEFAULT_RAW_CSV))
+    osd = combined.primary_osd_rows([asdict(row) for row in rows])
+    combined.merge_rows(raw, osd)  # Validate the shared points without pooling campaigns.
+    combined.plot_rows(raw, osd, PLOT_PATH, dpi)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -1277,6 +997,8 @@ def parse_arguments() -> argparse.Namespace:
         description="Summarize archived circuit-level BB Neural-BP runs."
     )
     parser.add_argument("--dpi", type=int, default=220)
+    parser.add_argument("--plots-only", action="store_true",
+                        help="Regenerate the combined Relay/Neural PNG without rewriting analysis CSVs/reports.")
     parser.add_argument(
         "--no-plot", action="store_true", help="Write CSV/report without matplotlib."
     )
@@ -1286,20 +1008,20 @@ def parse_arguments() -> argparse.Namespace:
 def main() -> None:
     args = parse_arguments()
     rows, partial_rows = collect_results()
-    write_csv(rows)
-    write_partial_csv(partial_rows)
-    write_report(rows, partial_rows)
+    if not args.plots_only:
+        write_csv(rows)
+        write_partial_csv(partial_rows)
+        write_report(rows, partial_rows)
     if not args.no_plot:
         plot_results(rows, args.dpi)
-        plot_ablations(rows, args.dpi)
     print(f"Parsed {len(rows) + len(partial_rows)} circuit-level BB run(s).")
     print(f"Complete: {len(rows)}; partial: {len(partial_rows)}")
-    print(f"CSV: {CSV_PATH}")
-    print(f"Partial CSV: {PARTIAL_CSV_PATH}")
-    print(f"Report: {REPORT_PATH}")
+    if not args.plots_only:
+        print(f"CSV: {CSV_PATH}")
+        print(f"Partial CSV: {PARTIAL_CSV_PATH}")
+        print(f"Report: {REPORT_PATH}")
     if not args.no_plot:
         print(f"Plot: {PLOT_PATH}")
-        print(f"Ablation plot: {ABLATION_PLOT_PATH}")
 
 
 if __name__ == "__main__":

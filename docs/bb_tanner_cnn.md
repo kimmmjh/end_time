@@ -140,18 +140,64 @@ control, or `--load_model=/path/to/model.pt` with matching options to continue.
 An independent-X/Z capacity channel is also supported through the existing
 `--bb_channel=independent_xz --x_error_rate=... --z_error_rate=...` options.
 
+## Slurm campaign: depths 4, 5, 3 at 400 epochs
+
+The numbered scripts start with a new depth sweep, in requested order **4, 5, 3**.
+Each script trains four fresh models, one per p value, on one GPU each.
+
+| Script | Code | Depth | Epochs | p values |
+| --- | --- | ---: | ---: | --- |
+| `run_bb_0.slurm` | BB72 | 4 | 400 | .02, .04, .06, .08 |
+| `run_bb_1.slurm` | BB144 | 4 | 400 | .02, .04, .06, .08 |
+| `run_bb_2.slurm` | BB72 | 5 | 400 | .02, .04, .06, .08 |
+| `run_bb_3.slurm` | BB144 | 5 | 400 | .02, .04, .06, .08 |
+| `run_bb_4.slurm` | BB72 | 3 | 400 | .02, .04, .06, .08 |
+| `run_bb_5.slurm` | BB144 | 3 | 400 | .02, .04, .06, .08 |
+
+All use width 64, depolarizing code-capacity noise and the original code/p/seed
+matrix: BB72 seeds 7201020/7201040/7201060/7201080 and BB144 seeds
+14401020/14401040/14401060/14401080. Each epoch draws 128 batches of 64 shots,
+for **3,276,800 training shots per model**, four times the initial 100-epoch
+budget. AdamW starts at LR 3e-4 and uses a single 400-epoch cosine decay;
+weight decay 1e-4, gradient clip 1 and loss weights 1/1/0.1 stay unchanged.
+
+Validation uses 4,096 shots every five epochs. Raw validation LER selects the
+checkpoint; final evaluation uses 65,536 fresh shots for paired raw CNN and
+CNN+direct OSD-0. Latest and best checkpoints are saved. Depth-2 jobs below
+also reach 400 total epochs, but use a 100+300 schedule with an LR restart;
+this is a matched training-shot budget, not an identical LR schedule.
+
+Preview or submit the new 24-model sweep:
+
+```bash
+BB_DRY_RUN=1 bash run_bb_0.slurm
+for i in 0 1 2 3 4 5; do sbatch "run_bb_${i}.slurm"; done
+```
+
+The numbering groups depths in submission order; independent Slurm jobs may
+start in a different order. Each allocation retains the 24-hour limit and
+four tasks with one GPU and 16 CPUs each. Completion within that limit has not been timed
+for the deeper models. Checkpoints are saved every epoch; an interrupted
+fresh run can be continued with matching model options and
+`--load_model=/absolute/path/to/model.pt --epochs=REMAINING_EPOCHS` through
+`main.py` (resumption starts a new cosine schedule).
+
+The retained depth-1 controls are now `run_bb_9.slurm` (BB72) and
+`run_bb_10.slurm` (BB144), still at their original 100-epoch budget.
+
 ## Slurm campaign: depth-2 continuation to 400 epochs
 
-Jobs **5, 6 and 9** now continue the 12 existing depth-2 CNN models from their
-latest 100-epoch checkpoints to **400 total epochs**. Jobs 7/8 retain the initial
+Jobs **6, 7 and 8** now continue the 12 existing depth-2 CNN models from their
+latest 100-epoch checkpoints to **400 total epochs**. Jobs 9/10 retain the initial
 100-epoch depth-1 control commands; they are not part of this continuation.
-Jobs 0–4 retain the circuit-level library BP/OSD baseline campaign.
+The circuit-level library BP/OSD baseline scripts are preserved as
+`run_bb_baseline_0.slurm`–`run_bb_baseline_4.slurm`.
 
 | Script | Code | p values | Seeds in experiment order | Source job |
 | --- | --- | --- | --- | --- |
-| `run_bb_5.slurm` | BB72 | .02, .04, .06, .08 | 7201020, 7201040, 7201060, 7201080 | 58793761 |
-| `run_bb_6.slurm` | BB144 | .02, .04, .06, .08 | 14401020, 14401040, 14401060, 14401080 | 58793763 |
-| `run_bb_9.slurm` | BB72, BB72, BB144, BB144 | .06 for all | 7202060, 7203060, 14402060, 14403060 | 58793766 |
+| `run_bb_6.slurm` | BB72 | .02, .04, .06, .08 | 7201020, 7201040, 7201060, 7201080 | 58793761 |
+| `run_bb_7.slurm` | BB144 | .02, .04, .06, .08 | 14401020, 14401040, 14401060, 14401080 | 58793763 |
+| `run_bb_8.slurm` | BB72, BB72, BB144, BB144 | .06 for all | 7202060, 7203060, 14402060, 14403060 | 58793766 |
 
 All use **depolarizing code capacity**: `p` is the total probability of a
 non-identity data-qubit error, `P(I,X,Y,Z)=(1-p,p/3,p/3,p/3)`, with one perfect
@@ -214,7 +260,7 @@ Once committed and pushed, they can be transferred to the server with
 Preview the four job commands without importing Python or invoking Slurm:
 
 ```bash
-BB_DRY_RUN=1 bash run_bb_5.slurm
+BB_DRY_RUN=1 bash run_bb_6.slurm
 ```
 
 Validate and expand one real checkpoint without training (use the training
@@ -229,7 +275,7 @@ After updating the Python sources and Slurm files on Perlmutter, submit only
 the continuation jobs:
 
 ```bash
-for i in 5 6 9; do sbatch "run_bb_${i}.slurm"; done
+for i in 6 7 8; do sbatch "run_bb_${i}.slurm"; done
 ```
 
 Each script embeds the complete four-task launcher, with no repository `.sh`

@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""Compare raw and OSD-assisted circuit-level BB Neural-BP campaigns."""
+"""Plot circuit Relay BP, Neural Relay BP, Neural BP, and Neural BP+OSD.
+
+All four curves use the original idle-free X/Z circuit experiment. Corrected
+library BP/OSD results use a different task and remain in library_bp_osd.
+The script name and merged raw/OSD CSV are retained for existing workflows.
+"""
 
 from __future__ import annotations
 
 import argparse
 import csv
+import json
 import math
 import os
 import tempfile
@@ -18,7 +24,8 @@ PLOT_ROOT = REPOSITORY / "results/plots/bb/circuit/neural_bp"
 DEFAULT_RAW_CSV = ANALYSIS_ROOT / "bb_circuit_no_osd_2026_09.csv"
 DEFAULT_OSD_CSV = ANALYSIS_ROOT / "bb_circuit_campaign_2026_08.csv"
 DEFAULT_MERGED_CSV = ANALYSIS_ROOT / "bb_circuit_raw_vs_osd_2026_09.csv"
-DEFAULT_PLOT = PLOT_ROOT / "raw_vs_osd.png"
+DEFAULT_RELAY_CSV = ANALYSIS_ROOT / "bb_neural_relay_bb72_bb144_2026_09_15.csv"
+DEFAULT_PLOT = PLOT_ROOT / "overview.png"
 Z_95 = 1.959963984540054
 
 MERGED_FIELDS = [
@@ -115,6 +122,62 @@ def unique_index(
 
 def close(left: str, right: str) -> bool:
     return math.isclose(float(left), float(right), rel_tol=0.0, abs_tol=1e-12)
+
+
+def primary_relay_rows(
+    rows: list[dict[str, Any]],
+    raw: dict[tuple[str, float], dict[str, Any]],
+    osd: dict[tuple[str, float], dict[str, Any]],
+) -> dict[tuple[str, float], dict[str, Any]]:
+    """Check saved final rates and shared DEMs against original histories."""
+    normalized = []
+    matched = {"legacy_raw": set(), "legacy_osd": set()}
+    for row in rows:
+        row = dict(row, gate_error_rate=row["p"])
+        key = row["code"], float(row["p"])
+        history = json.loads((REPOSITORY / row["source_history"]).read_text())
+        config, final = history["config"], history["final"]
+        if (config["code"] != key[0]
+                or not close(config["gate_error_rate"], key[1])
+                or config["graph_fingerprint"] != row["graph_fingerprint"]
+                or config["idle_error_rate"] != 0
+                or config["measurement_error_rate"] != config["gate_error_rate"]
+                or config["circuit_schema_version"] != 2
+                or config["circuit_noise_model"] != "legacy"
+                or int(row["shots"]) != final["shots"]
+                or final["osd_shots"] != 0
+                or tuple(int(row[k]) for k in ("relay_legs", "iterations_per_leg", "solutions")) != (4, 12, 2)):
+            raise ValueError(f"Relay configuration mismatch: {key}")
+        for prefix in ("neural", "vanilla"):
+            accuracy = float(row[f"{prefix}_accuracy"])
+            if (not close(accuracy, final[f"{prefix}_accuracy"])
+                    or not close(1 - accuracy, row[f"{prefix}_ler"])
+                    or not close((1 - accuracy) * final["shots"], row[f"{prefix}_failures"])):
+                raise ValueError(f"Relay final result mismatch: {key}, {prefix}")
+        for tag, reference, accuracy_key, shots_key in (
+            ("legacy_raw", raw, "neural_accuracy", "final_shots"),
+            ("legacy_osd", osd, "neural_osd_accuracy", "osd_shots"),
+        ):
+            if key not in reference:
+                continue
+            source = reference[key]
+            old = json.loads((REPOSITORY / row[f"{tag}_source"]).read_text())
+            # Earlier schema-v2 histories predate the named noise-model field.
+            # Their original circuit is also checked by the exact DEM fingerprint.
+            old["config"].setdefault("circuit_noise_model", "legacy")
+            for field in ("code", "graph_fingerprint", "circuit_schema_version", "circuit_noise_model",
+                          "gate_error_rate", "measurement_error_rate", "idle_error_rate", "rounds", "seed"):
+                if old["config"][field] != config[field]:
+                    raise ValueError(f"Circuit mismatch: {key}, {tag}, {field}")
+            if (not close(source[accuracy_key], old["final"][accuracy_key])
+                    or not close(1 - float(source[accuracy_key]), row[f"{tag}_neural_ler"])
+                    or int(source[shots_key]) != old["final"]["shots" if tag == "legacy_raw" else "osd_shots"]):
+                raise ValueError(f"Neural reference mismatch: {key}, {tag}")
+            matched[tag].add(key)
+        normalized.append(row)
+    if matched["legacy_raw"] != raw.keys() or matched["legacy_osd"] != osd.keys():
+        raise ValueError("Missing Relay circuit references for a Neural BP point")
+    return unique_index(normalized, "Relay")
 
 
 def merge_rows(
@@ -275,185 +338,74 @@ def failure_series(
     return shown, lower_errors, upper_errors, zero_failures
 
 
-def plot_rows(rows: list[dict[str, Any]], path: Path, dpi: int) -> None:
+def plot_rows(
+    raw: dict[tuple[str, float], dict[str, Any]],
+    osd: dict[tuple[str, float], dict[str, Any]],
+    path: Path,
+    dpi: int,
+    relay: dict[tuple[str, float], dict[str, Any]] | None = None,
+) -> None:
+    """Plot all four methods on their own measured p-grids."""
+    if relay is None:
+        relay = primary_relay_rows(read_rows(DEFAULT_RELAY_CSV), raw, osd)
     cache = Path(tempfile.gettempdir()) / "theend_bb_raw_osd_plot_cache"
     cache.mkdir(parents=True, exist_ok=True)
     os.environ.setdefault("MPLCONFIGDIR", str(cache / "matplotlib"))
     os.environ.setdefault("XDG_CACHE_HOME", str(cache / "xdg"))
-    try:
-        import matplotlib
-    except ImportError as error:
-        raise RuntimeError("Plotting requires matplotlib") from error
+    import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from matplotlib.ticker import FuncFormatter, PercentFormatter
+    from matplotlib.ticker import FuncFormatter
+    ordered_codes = sorted({code for code, _ in raw.keys() | osd.keys()}, key=lambda code: int(code[2:]))
+    if ordered_codes != ["bb72", "bb144"]:
+        raise ValueError(f"Expected BB72 and BB144, got {ordered_codes}")
 
-    by_code: dict[str, list[dict[str, Any]]] = {}
-    for row in rows:
-        by_code.setdefault(str(row["code"]), []).append(row)
-    for code_rows in by_code.values():
-        code_rows.sort(key=lambda row: float(row["gate_error_rate"]))
-    ordered_codes = sorted(by_code, key=lambda code: int(code[2:]))
-    if len(ordered_codes) != 2:
-        raise ValueError(f"Expected two code families, got {ordered_codes}")
-
-    plt.rcParams.update(
-        {
-            "axes.spines.top": False,
-            "axes.spines.right": False,
-            "font.size": 10.0,
-            "legend.frameon": False,
-        }
-    )
-    figure, axes = plt.subplots(2, 2, figsize=(13.2, 9.0))
-    p_ticks = sorted({float(row["gate_error_rate"]) for row in rows})
+    plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False,
+                         "font.size": 10, "legend.frameon": False})
+    figure, neural_axes = plt.subplots(1, 2, figsize=(13.6, 6.2), sharey=True)
     methods = (
-        (
-            "Raw Neural BP2 (raw-selected)",
-            "raw_neural_accuracy",
-            "final_shots",
-            "#2563eb",
-            "-",
-            "o",
-        ),
-        (
-            "Raw vanilla BP2",
-            "raw_vanilla_accuracy",
-            "final_shots",
-            "#64748b",
-            "--",
-            "s",
-        ),
-        (
-            "Neural BP2 + OSD-0 (OSD-selected)",
-            "neural_osd_accuracy",
-            "osd_shots",
-            "#7c3aed",
-            "-",
-            "D",
-        ),
-        (
-            "Vanilla BP2 + OSD-0",
-            "vanilla_osd_accuracy",
-            "osd_shots",
-            "#d97706",
-            "--",
-            "^",
-        ),
+        (relay, "Relay BP", "vanilla_accuracy", "shots", "#64748b", "s", "--"),
+        (relay, "Neural Relay BP", "neural_accuracy", "shots", "#059669", "^", "-"),
+        (raw, "Neural BP", "neural_accuracy", "final_shots", "#2563eb", "o", "-"),
+        (osd, "Neural BP + OSD-0", "neural_osd_accuracy", "osd_shots", "#9333ea", "D", "-"),
     )
-    for axis, code in zip(axes[0], ordered_codes):
-        code_rows = by_code[code]
-        xs = [float(row["gate_error_rate"]) for row in code_rows]
-        for label, accuracy_key, shots_key, color, linestyle, marker in methods:
+    for column, code in enumerate(ordered_codes):
+        axis = neural_axes[column]
+        ticks = set()
+        for source, label, accuracy_key, shots_key, color, marker, linestyle in methods:
+            code_rows = [row for (family, p), row in sorted(source.items()) if family == code]
+            if not code_rows:
+                continue
+            xs = [float(row["gate_error_rate"]) for row in code_rows]
+            ticks.update(xs)
             ys, lower, upper, zero = failure_series(code_rows, accuracy_key, shots_key)
-            axis.errorbar(
-                xs,
-                ys,
-                yerr=[lower, upper],
-                color=color,
-                linestyle=linestyle,
-                marker=marker,
-                linewidth=1.8,
-                markersize=5.5,
-                capsize=2.5,
-                label=label,
-            )
+            axis.errorbar(xs, ys, yerr=[lower, upper], color=color,
+                          linestyle=linestyle,
+                          marker=marker, linewidth=1.8, markersize=5, capsize=2.5, label=label)
             for x_value, y_value, is_zero in zip(xs, ys, zero):
                 if is_zero:
-                    axis.scatter(
-                        [x_value], [y_value], marker="v", s=42, color=color, zorder=5
-                    )
-        axis.set_yscale("log")
-        axis.set_xticks(p_ticks)
-        axis.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=1))
-        axis.yaxis.set_major_formatter(
-            FuncFormatter(
-                lambda value, _: (
-                    f"{100.0 * value:.0f}%"
-                    if value >= 0.1
-                    else (
-                        f"{100.0 * value:.1f}%"
-                        if value >= 0.001
-                        else f"{100.0 * value:.2f}%"
-                    )
-                )
-            )
-        )
-        axis.set_xlabel("Circuit gate/readout error rate, p=q")
-        axis.set_ylabel("Total decoding failure rate")
-        axis.set_title(code.upper())
-        axis.grid(True, which="major", color="#d7dce2", linewidth=0.7)
-        axis.grid(True, which="minor", color="#edf0f3", linewidth=0.5)
-
-    axes[0, 0].text(
-        0.98,
-        0.035,
-        "▼: zero failures displayed at 0.5/N",
-        transform=axes[0, 0].transAxes,
-        fontsize=8.0,
-        color="#475569",
-        ha="right",
-    )
-
-    colors = {"bb72": "#2563eb", "bb144": "#dc2626"}
-    gain_panels = (
-        (
-            axes[1, 0],
-            "raw_neural_vs_vanilla_gain",
-            "raw_gain_ci95_halfwidth",
-            "Raw Neural BP2 minus raw vanilla BP2",
-        ),
-        (
-            axes[1, 1],
-            "neural_vs_vanilla_osd_gain",
-            "osd_gain_ci95_halfwidth",
-            "Neural+OSD-0 minus vanilla+OSD-0",
-        ),
-    )
-    for axis, gain_key, error_key, title in gain_panels:
-        axis.axhline(0.0, color="#64748b", linewidth=1.0)
-        for code in ordered_codes:
-            code_rows = by_code[code]
-            xs = [float(row["gate_error_rate"]) for row in code_rows]
-            gains = [100.0 * float(row[gain_key]) for row in code_rows]
-            errors = [100.0 * float(row[error_key]) for row in code_rows]
-            axis.errorbar(
-                xs,
-                gains,
-                yerr=errors,
-                color=colors.get(code, "#0f766e"),
-                marker="o",
-                linewidth=1.8,
-                capsize=3.0,
-                label=code.upper(),
-            )
-        axis.set_xticks(p_ticks)
-        axis.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=1))
-        axis.set_xlabel("Circuit gate/readout error rate, p=q")
-        axis.set_ylabel("Paired accuracy gain (percentage points)")
-        axis.set_title(title)
-        axis.grid(True, color="#d7dce2", linewidth=0.7)
-        axis.legend(fontsize=8.5)
-
-    handles, labels = axes[0, 0].get_legend_handles_labels()
-    figure.legend(
-        handles,
-        labels,
-        loc="upper center",
-        bbox_to_anchor=(0.5, 0.915),
-        ncol=2,
-        fontsize=9.0,
-    )
-    figure.suptitle(
-        "BB circuit-level Neural BP2: raw versus OSD-0\n"
-        "Common p-grid, 4,096 shots/point; raw and OSD pipelines use separately selected checkpoints",
-        y=0.985,
-        fontsize=13.0,
-        fontweight="semibold",
-    )
-    figure.subplots_adjust(top=0.80, bottom=0.08, hspace=0.34, wspace=0.24)
+                    axis.scatter(x_value, y_value, marker="v", s=42, color=color, zorder=5)
+        axis.set(yscale="log", ylim=(1e-5, 1.25),
+                 xlabel="Gate / readout error probability p (idle error = 0)",
+                 ylabel="X/Z block decoding failure (%)",
+                 title=f"{code.upper()} | {int(code_rows[0]['rounds'])} noisy rounds | 4,096 shots/point")
+        axis.set_xticks(sorted(ticks))
+        axis.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{100 * value:g}"))
+        axis.grid(alpha=.2)
+        axis.legend(loc="lower right", fontsize=9)
+    figure.suptitle("BB circuit decoding | Relay BP and Neural BP\n"
+                   "Same circuit / noise / XZ block metric | idle error = 0",
+                   fontsize=13, fontweight="semibold", y=.985)
+    figure.text(.5, .105, "Relay methods: up to 4 x 12 BP iterations (2-solution search). Neural BP: 12 iterations. "
+                "Curves include completed final evaluations only.", ha="center", fontsize=9, color="#475569")
+    figure.text(.5, .067, "Error bars: 95% Wilson intervals. Downward triangles: zero failures, displayed at 0.5/N. "
+                "Model selection and training budgets differ.",
+                ha="center", fontsize=9, color="#475569")
+    figure.text(.5, .03, "Neural BP + OSD uses the original posterior-seeded wrapper and an OSD-selected checkpoint; "
+                "raw vs OSD is not a same-checkpoint ablation.", ha="center", fontsize=9, color="#475569")
+    figure.subplots_adjust(left=.075, right=.985, top=.80, bottom=.24, wspace=.20)
     path.parent.mkdir(parents=True, exist_ok=True)
-    figure.savefig(path, dpi=dpi, bbox_inches="tight", facecolor="white")
+    figure.savefig(path, dpi=dpi, facecolor="white")
     plt.close(figure)
 
 
@@ -461,6 +413,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw-csv", type=Path, default=DEFAULT_RAW_CSV)
     parser.add_argument("--osd-csv", type=Path, default=DEFAULT_OSD_CSV)
+    parser.add_argument("--relay-csv", type=Path, default=DEFAULT_RELAY_CSV)
     parser.add_argument("--merged-csv", type=Path, default=DEFAULT_MERGED_CSV)
     parser.add_argument("--output", type=Path, default=DEFAULT_PLOT)
     parser.add_argument("--dpi", type=int, default=180)
@@ -469,9 +422,11 @@ def main() -> None:
     raw = primary_raw_rows(read_rows(arguments.raw_csv))
     osd = primary_osd_rows(read_rows(arguments.osd_csv))
     rows = merge_rows(raw, osd)
+    relay = primary_relay_rows(read_rows(arguments.relay_csv), raw, osd)
     write_merged_csv(rows, arguments.merged_csv)
-    plot_rows(rows, arguments.output, arguments.dpi)
+    plot_rows(raw, osd, arguments.output, arguments.dpi, relay)
     print(f"Compared {len(rows)} common raw/OSD point(s)")
+    print(f"Plotted {len(relay)} points each for Relay / Neural Relay, {len(raw)} Neural BP and {len(osd)} Neural+OSD points")
     print(f"CSV: {arguments.merged_csv}")
     print(f"Plot: {arguments.output}")
 

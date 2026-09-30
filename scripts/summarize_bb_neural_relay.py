@@ -4,7 +4,8 @@
 Reads the original histories and archived reference histories; never loads or
 runs a decoder. Rates in the CSV are fractions, and plots show percentages.
 The accompanying interpretation is maintained in the dated Markdown report.
-Plots are three curated PNGs under results/plots/bb/circuit/neural_relay; no PDF export.
+The shared overview PNG lives in results/plots/bb/circuit/neural_bp.
+Training and validation records remain in CSVs; no separate Relay PNGs or PDFs.
 """
 
 from __future__ import annotations
@@ -25,11 +26,12 @@ import numpy as np
 from scipy.stats import binomtest
 
 import summarize_bb_circuit_campaign as common
+import plot_bb_circuit_raw_vs_osd as combined
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ANALYSIS = ROOT / "results/analysis"
-PLOTS = ROOT / "results/plots/bb/circuit/neural_relay"
+PLOTS = combined.PLOT_ROOT
 CAMPAIGNS = {
     "bb72": dict(jobs=("58164810", "58164811"), rounds=6, date="2026_09_13"),
     "bb144": dict(jobs=("58164812", "58164813"), rounds=12, date="2026_09_15"),
@@ -230,98 +232,13 @@ def historical(rows, histories):
                 row[f"{tag}_source"] = relative(path)
 
 
-def training_plot(histories, code):
-    """One PNG per code: all eight losses and paired validation gains."""
-    fig, axes = plt.subplots(4, 4, figsize=(16, 12), layout="constrained")
-    bounds = [paired_interval(e)[:2] for h in histories.values() for e in h["eval"]]
-    gain_limits = (min(-2, 100*min(b[0] for b in bounds)-5),
-                   max(2, 100*max(b[1] for b in bounds)+3))
-    for i, (p, h) in enumerate(sorted(histories.items())):
-        top, column = (i // 4)*2, i % 4
-        loss_ax, gain_ax = axes[top, column], axes[top+1, column]
-        loss_ax.plot([t["epoch"] for t in h["train"]], [t["total"] for t in h["train"]],
-                     color="#75619A")
-        loss_ax.set(title=f"p={p:g} | selected epoch {h['best_epoch']}", ylabel="Training loss")
-        epochs = np.array([e["epoch"] for e in h["eval"]])
-        gains = np.array([e["paired_gain"]*100 for e in h["eval"]])
-        intervals = np.array([paired_interval(e)[:2] for e in h["eval"]])*100
-        gain_ax.axhline(0, color="#576574", lw=1)
-        gain_ax.fill_between(epochs, intervals[:, 0], intervals[:, 1],
-                             color="#007A87", alpha=.15, label="Pointwise paired 95% interval")
-        gain_ax.plot(epochs, gains, "o-", ms=4, color="#007A87", label="Validation LER reduction")
-        best = next(e for e in h["eval"] if e["epoch"] == h["best_epoch"])
-        gain_ax.scatter(best["epoch"], best["paired_gain"]*100, marker="*", s=100,
-                        color="#C97727", zorder=3, label="Selected checkpoint")
-        last = h["eval"][-1]
-        if all(e["neural_accuracy"] == e["vanilla_accuracy"] == 0 for e in h["eval"]):
-            note = "Both: 0/1,024 successes at every eval"
-        else:
-            note = (f"Last LER: Neural {100*(1-last['neural_accuracy']):.2f}%"
-                    f" | Relay {100*(1-last['vanilla_accuracy']):.2f}%")
-        gain_ax.text(.03, .03, note, transform=gain_ax.transAxes, fontsize=8, va="bottom",
-                     bbox=dict(facecolor="white", edgecolor="none", alpha=.85))
-        gain_ax.set(ylabel="Validation gain (pp)", ylim=gain_limits, xticks=[9, 29, 49, 69, 99])
-        for ax in (loss_ax, gain_ax):
-            ax.axvline(h["best_epoch"], color="#C97727", ls="--", alpha=.7)
-            ax.set_xlabel("Epoch (zero-based)")
-            ax.grid(alpha=.15)
-    fig.legend(*axes[1, 0].get_legend_handles_labels(), loc="outside lower center", ncol=3, fontsize=10)
-    fig.suptitle(f"{code.upper()}: all eight training runs\n"
-                 "Gain = Relay LER - Neural LER; positive favors learning | 1,024 fresh paired validation shots/evaluation",
-                 fontsize=14)
-    fig.savefig(PLOTS/f"training_{code}.png", dpi=180)
-    plt.close(fig)
-
-
 def comparison_plot(all_rows):
-    """Final paired comparison and historical references in a single PNG."""
-    fig, axes = plt.subplots(2, 2, figsize=(13, 9), sharex=True, sharey="row", layout="constrained")
-    for column, code in enumerate(CAMPAIGNS):
-        rows = [r for r in all_rows if r["code"] == code]
-        x = np.array([r["p"]*100 for r in rows])
-        ax = axes[0, column]
-        for prefix, label, color in (("neural", "Neural Relay", "#007A87"),
-                                     ("vanilla", "Relay (no learning)", "#576574")):
-            y = np.array([r[f"{prefix}_ler"]*100 for r in rows])
-            lo = np.array([r[f"{prefix}_ler_wilson_low"]*100 for r in rows])
-            hi = np.array([r[f"{prefix}_ler_wilson_high"]*100 for r in rows])
-            ax.errorbar(x, y, yerr=[y-lo, hi-y], fmt="o-", capsize=3, label=label, color=color)
-        for tag, label, color in (("legacy_raw", "Neural BP T12", "#A16BBD"),
-                                  ("legacy_osd", "Neural BP + OSD-0", "#C97727")):
-            selected = [r for r in rows if r[f"{tag}_neural_ler"] is not None]
-            positives = [r for r in selected if r[f"{tag}_neural_ler"] > 0]
-            ax.plot([r["p"]*100 for r in positives], [r[f"{tag}_neural_ler"]*100 for r in positives],
-                    "s--", color=color, alpha=.85, label=label)
-            for r in selected:
-                if r[f"{tag}_neural_ler"] == 0:
-                    shots = r[f"{tag}_shots"]
-                    bound = (1-.05**(1/shots))*100
-                    ax.scatter(r["p"]*100, bound, marker="v", color=color)
-                    ax.annotate(f"0/{shots:,}; 95% upper bound", (r["p"]*100, bound),
-                                xytext=(8, -5), textcoords="offset points", fontsize=8)
-        ax.set(yscale="log", ylim=(.04, 120), ylabel="Final block LER (%)",
-               title=f"{code.upper()} | {rows[0]['rounds']} noisy rounds")
-        ax.legend(fontsize=8, loc="lower right")
-        ax = axes[1, column]
-        ax.axhline(0, color="#999999", lw=1)
-        for r in rows:
-            color = "#B14B42" if r["significant_degradation_holm_all16"] else "#007A87"
-            ax.errorbar(r["p"]*100, r["paired_gain"]*100,
-                        yerr=[[100*(r["paired_gain"]-r["paired_ci95_low"])],
-                              [100*(r["paired_ci95_high"]-r["paired_gain"])]],
-                        fmt="o", color=color, capsize=4)
-            if r["exact_p_holm_all16"] < .05:
-                ax.annotate("*", (r["p"]*100, r["paired_ci95_high"]*100+1), ha="center", fontsize=15)
-        ax.set(ylabel="LER reduction vs Relay (pp)", ylim=(-5, 30))
-        for ax in axes[:, column]:
-            ax.set_xlabel("Physical error rate p (%)")
-            ax.set_xticks(x)
-            ax.grid(alpha=.15)
-    fig.suptitle("Neural Relay: final LER and gain vs non-neural Relay | 4,096 shots/point | * Holm over 16 tests\n"
-                 "Historical comparisons are descriptive; code-specific rounds and training budgets differ",
-                 fontsize=12)
-    fig.savefig(PLOTS/"overview.png", dpi=180)
-    plt.close(fig)
+    """Reuse the single overview; never recreate separate Relay figures."""
+    raw = combined.primary_raw_rows(combined.read_rows(combined.DEFAULT_RAW_CSV))
+    osd = combined.primary_osd_rows(combined.read_rows(combined.DEFAULT_OSD_CSV))
+    combined.merge_rows(raw, osd)
+    relay = combined.primary_relay_rows(all_rows, raw, osd)
+    combined.plot_rows(raw, osd, combined.DEFAULT_PLOT, 180, relay)
 
 
 def write_manifest(code, stem):
@@ -343,8 +260,14 @@ def write_manifest(code, stem):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--code", choices=[*CAMPAIGNS, "all"], default="all",
-                        help="Default updates both codes and all three PNGs; a single code updates its data and training PNG.")
+                        help="Codes to audit; the shared plot always includes both codes.")
+    parser.add_argument("--plots-only", action="store_true",
+                        help="Validate saved final results and regenerate only the shared Relay/Neural overview.")
     args = parser.parse_args()
+    if args.plots_only:
+        comparison_plot(combined.read_rows(combined.DEFAULT_RELAY_CSV))
+        print(f"Updated {combined.DEFAULT_PLOT.relative_to(ROOT)}")
+        return
     codes = list(CAMPAIGNS) if args.code == "all" else [args.code]
     ANALYSIS.mkdir(parents=True, exist_ok=True)
     PLOTS.mkdir(parents=True, exist_ok=True)
@@ -357,17 +280,26 @@ def main():
         write_csv(ANALYSIS/f"{stem}.csv", rows)
         write_csv(ANALYSIS/f"{stem}_train.csv", sorted(training, key=lambda r: (r["p"], r["epoch"])))
         write_csv(ANALYSIS/f"{stem}_validation.csv", sorted(validation, key=lambda r: (r["p"], r["epoch"])))
-        training_plot(histories, code)
         write_manifest(code, stem)
         all_rows.extend(rows)
         print(f"{code}: audited {len(rows)} completed runs, {sum(r['shots'] for r in rows):,} final shots.")
         print("Holm-significant improvements:", [r["p"] for r in rows if r["significant_improvement_holm"]])
         print("Holm-significant degradations:", [r["p"] for r in rows if r["significant_degradation_holm"]])
-    if args.code == "all":
-        holm(all_rows, suffix="_all16")
-        write_csv(ANALYSIS/f"{COMPARISON_STEM}.csv", all_rows)
-        comparison_plot(all_rows)
-    print(f"Wrote final/train/validation/manifest CSVs and curated PNGs in {PLOTS.relative_to(ROOT)}/.")
+    if args.code != "all":
+        other_code = next(code for code in CAMPAIGNS if code != args.code)
+        other_csv = ANALYSIS / f"bb_neural_relay_{other_code}_{CAMPAIGNS[other_code]['date']}.csv"
+        # Read saved statistics for the untouched code.
+        # Its statistics were already audited; only the combined Holm scope changes.
+        other_rows = combined.read_rows(other_csv)
+        for row in other_rows:
+            for field in ("exact_p", "paired_gain"):
+                row[field] = float(row[field])
+        all_rows.extend(other_rows)
+        all_rows.sort(key=lambda row: (int(row["code"][2:]), float(row["p"])))
+    holm(all_rows, suffix="_all16")
+    write_csv(ANALYSIS/f"{COMPARISON_STEM}.csv", all_rows)
+    comparison_plot(all_rows)
+    print(f"Wrote final/train/validation/manifest CSVs and the shared overview in {PLOTS.relative_to(ROOT)}/.")
 
 
 if __name__ == "__main__":

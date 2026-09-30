@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=bbc_base_lowp_stats
+#SBATCH --job-name=bbcnn_bb72_d3_e400
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
 #SBATCH --constraint=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --cpus-per-task=32
+#SBATCH --cpus-per-task=16
 #SBATCH --gpus-per-task=1
 #SBATCH --output=slurm-%x-%j.out
 
@@ -23,47 +23,56 @@ fi
 cd "$ROOT"
 # Standalone launcher: no repository .sh helpers are required.
 # Python sources are still read from ROOT when the job starts.
-bb_baseline_experiment_args() {
+# Code-capacity Tanner CNN campaign. Every run evaluates raw CNN and direct
+# OSD-0 on identical shots from one raw-LER-selected checkpoint.
+# 8192 training shots/epoch, 4096 validation shots, 65536 final test shots.
+BB_TANNER_CNN_TRAINING_ARGS="--architecture=bb_tanner_cnn --noise_model=capacity --bb_channel=depolarizing --rounds=1 --measurement_error_rate=0 --bb_idle_error_rate=0 --loss_fn=bb_coset --epochs=400 --batch_size=64 --batches=128 --eval_batches=64 --eval_every=5 --final_eval_batches=1024 --lr=0.0003 --amp_dtype=none --save_model"
+BB_TANNER_CNN_MODEL_ARGS="--bb_cnn_width=64 --bb_cnn_gradient_clip=1.0 --bb_syndrome_loss_weight=1.0 --bb_logical_loss_weight=1.0 --bb_pauli_loss_weight=0.1 --bb_weight_decay=0.0001"
+
+# These graphs are small; avoid oversubscribing CPU tensor/BLAS operations.
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+
+bb_tanner_cnn_experiment_args() {
     if (($# != 4)); then
-        echo "Usage: bb_baseline_experiment_args code p seed output_directory" >&2
+        echo "Usage: bb_tanner_cnn_experiment_args code depth p seed" >&2
         return 2
     fi
-    local code="$1" p="$2" seed="$3" output_directory="$4"
-    local rounds resume_arg=""
+    local code="$1" depth="$2" p="$3" seed="$4"
     case "$code" in
-        bb72) rounds=6 ;;
-        bb144) rounds=12 ;;
-        *) echo "Unknown code: $code" >&2; return 2 ;;
+        bb72|bb144) ;;
+        *) echo "Unknown Tanner CNN campaign code: $code" >&2; return 2 ;;
     esac
-    if [[ -n "${BB_BASELINE_RESUME_ROOT:-}" ]]; then
-        output_directory="$BB_BASELINE_RESUME_ROOT/$output_directory"
-        resume_arg="--resume"
+    if [[ ! "$depth" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Tanner CNN depth must be a positive integer." >&2
+        return 2
     fi
-    printf '%s\n' "--code=$code --p=$p --seed=$seed --rounds=$rounds --shots=${BB_BASELINE_SHOTS:-1000000} --max-iterations=${BB_BASELINE_ITERATIONS:-1000} --detector-inputs x xz --workers=${BB_BASELINE_WORKERS:-16} --chunk-size=128 $resume_arg --out=$output_directory"
+    printf '%s %s --code=%s --bb_cnn_depth=%s --p=%s --seed=%s\n' \
+        "$BB_TANNER_CNN_TRAINING_ARGS" "$BB_TANNER_CNN_MODEL_ARGS" \
+        "$code" "$depth" "$p" "$seed"
 }
 
-BB_CAMPAIGN="bb_library_bp_osd_2026_09_27"
-BB_PYTHON_ENTRYPOINT="$ROOT/scripts/evaluate_bb_circuit_baselines.py"
+BB_CAMPAIGN="bb_tanner_cnn_depth453_e400_2026_09"
+BB_PYTHON_ENTRYPOINT="$ROOT/main.py"
 
-# Paired library BP, BP+OSD-0 and BP+OSD-CS3; X-only and joint X/Z input.
-# Paper eight-tick schedule, noisy idles, logical-X memory / logical-Z block LER.
-# CPU processes, original DEM priors, max 1000 BP iterations, no rescaling.
-# Uses GPU allocation hours; ldpc still decodes on the GPU node's host CPU.
-# Each step reserves 1 GPU + 32 logical CPUs (16 physical cores) for 16 workers.
-# This is not CUDA acceleration; the allocated GPU is idle for this baseline.
-# Experiment matrix and resumption: docs/bb_baseline_campaign.md
-
+# Fresh depth=3 training, matching the original depth-2 code/p/seed grid.
+# 400-epoch cosine schedule from scratch; depth-2 continuation restarts its LR.
+# Depolarizing code capacity; each run reports CNN and CNN+direct OSD-0.
+# 400 epochs, validation 4096 shots every 5 epochs, final test 65536 shots.
+# Matrix, seeds and submission instructions: docs/bb_tanner_cnn.md
 experiments=(
-    "$(bb_baseline_experiment_args bb72 0.001 7202001 exp_0)"
-    "$(bb_baseline_experiment_args bb72 0.002 7202002 exp_1)"
-    "$(bb_baseline_experiment_args bb144 0.001 14402001 exp_2)"
-    "$(bb_baseline_experiment_args bb144 0.002 14402002 exp_3)"
+    "$(bb_tanner_cnn_experiment_args bb72 3 0.02 7201020)"
+    "$(bb_tanner_cnn_experiment_args bb72 3 0.04 7201040)"
+    "$(bb_tanner_cnn_experiment_args bb72 3 0.06 7201060)"
+    "$(bb_tanner_cnn_experiment_args bb72 3 0.08 7201080)"
 )
+
 BB_EXPERIMENT_LABELS=(
-    "bb72_baseline_p0.001_seed7202001_high_statistics"
-    "bb72_baseline_p0.002_seed7202002_high_statistics"
-    "bb144_baseline_p0.001_seed14402001_high_statistics"
-    "bb144_baseline_p0.002_seed14402002_high_statistics"
+    "bb72_tanner_cnn_depth3_e400_p0.02_seed7201020"
+    "bb72_tanner_cnn_depth3_e400_p0.04_seed7201040"
+    "bb72_tanner_cnn_depth3_e400_p0.06_seed7201060"
+    "bb72_tanner_cnn_depth3_e400_p0.08_seed7201080"
 )
 
 # Launch/logging code is embedded so sbatch captures it with this script.
@@ -98,15 +107,15 @@ _bb_stop_steps() {
 
 run_bb_experiments() {
     local experiment_count="$#"
-    local cpus_per_task="${SLURM_CPUS_PER_TASK:-32}"
+    local cpus_per_task="${SLURM_CPUS_PER_TASK:-16}"
+    local gpus_per_task="${BB_GPUS_PER_TASK:-1}"
     local entrypoint
     local index params pid exit_code label
     local failures=0
     local -a argv=()
     local -a step_resources=(
         --cpus-per-task="$cpus_per_task"
-        --gpus-per-task=1
-        --mem=48G
+        --mem=16G
     )
 
     if [[ -z "${ROOT:-}" ]]; then
@@ -117,6 +126,13 @@ run_bb_experiments() {
     if ((experiment_count < 1 || experiment_count > 4)); then
         echo "Error: expected 1-4 experiments, got $experiment_count." >&2
         return 2
+    fi
+    if [[ ! "$gpus_per_task" =~ ^[0-9]+$ ]]; then
+        echo "Error: BB_GPUS_PER_TASK must be a non-negative integer." >&2
+        return 2
+    fi
+    if ((gpus_per_task > 0)); then
+        step_resources+=(--gpus-per-task="$gpus_per_task")
     fi
     if [[ ! -f "$entrypoint" ]]; then
         echo "Error: Python entrypoint not found: $entrypoint" >&2
@@ -152,17 +168,17 @@ run_bb_experiments() {
         echo "Node list: ${SLURM_NODELIST:-unknown}"
         echo "Experiments: $experiment_count"
         echo "Campaign: ${BB_CAMPAIGN:-unspecified}"
-        echo "Allocation: GPU node; account ${SLURM_JOB_ACCOUNT:-m5328_g}"
-        echo "Decoder execution: host CPU (ldpc); no GPU kernels"
-        echo "Workers per experiment: ${BB_BASELINE_WORKERS:-16}"
     } > "$_BB_RESULT_DIRECTORY/job_metadata.txt"
     cp "$0" "$_BB_RESULT_DIRECTORY/submitted_script.slurm" 2>/dev/null || true
     cp "$entrypoint" "$_BB_RESULT_DIRECTORY/entrypoint_snapshot.py" \
         2>/dev/null || true
     # The active decoder may be uncommitted during a research campaign.
     # Preserve its implementation as well as the exact shell command.
-    mkdir -p "$_BB_RESULT_DIRECTORY/source_snapshot/src"
-    for params in src/bb_paper_baselines.py src/bb_code.py; do
+    mkdir -p "$_BB_RESULT_DIRECTORY/source_snapshot/models" \
+        "$_BB_RESULT_DIRECTORY/source_snapshot/src"
+    for params in models/_bb_tanner_cnn.py src/_bb_tanner_cnn_experiment.py \
+        src/_direct_osd.py src/_bb_loss.py src/_bb_metrics.py \
+        src/bb_data_generator.py src/bb_code.py; do
         cp "$ROOT/$params" "$_BB_RESULT_DIRECTORY/source_snapshot/$params" || return 1
     done
     if command -v git >/dev/null 2>&1 && \
@@ -171,8 +187,6 @@ run_bb_experiments() {
         git -C "$ROOT" status --short > "$_BB_RESULT_DIRECTORY/git_status.txt"
     fi
 
-    export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
-    export NUMEXPR_NUM_THREADS=1 MPLCONFIGDIR="$_BB_RESULT_DIRECTORY/mpl_cache"
     cd "$_BB_RESULT_DIRECTORY" || return 1
     export SLURM_CPU_BIND="cores"
     _BB_STEP_PIDS=()

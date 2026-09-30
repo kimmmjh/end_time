@@ -109,64 +109,64 @@ logical (unflagged) failures.
 
 ## Current Slurm experiments
 
-Jobs 0–4 evaluate **library circuit-level BP / BP+OSD-0 / BP+OSD-CS3**, with
-max 1000 unscaled min-sum iterations, on paired X-only and joint X/Z inputs.
-They use the paper's eight-tick extraction schedule, noisy idles and logical-X
-memory task. Jobs 5–9 train the **joint Tanner CNN under code-capacity noise**, with
-paired CNN/CNN+direct OSD-0 evaluation. Each job launches four experiments.
-The noise models and p definitions differ, so these are separate comparisons.
-See the [BP/OSD baseline campaign](docs/bb_baseline_campaign.md) and
-[Tanner CNN architecture and campaign](docs/bb_tanner_cnn.md).
+The numbered scripts start with **Tanner CNN depths 4, 5, 3**, each trained
+from scratch for **400 epochs** under depolarizing code-capacity noise.
+Each job launches four concurrent experiments with paired CNN/CNN+direct
+OSD-0 evaluation. See the [Tanner CNN campaign](docs/bb_tanner_cnn.md).
 
 | Script | Four concurrent experiments |
 | --- | --- |
-| `run_bb_0.slurm` | BB72 BP/OSD, p=.001/.002/.003/.004, 100,000 shots each |
-| `run_bb_1.slurm` | BB72 BP/OSD, p=.005/.006/.007/.008, 100,000 shots each |
-| `run_bb_2.slurm` | BB144 BP/OSD on the low-p grid, 100,000 shots each |
-| `run_bb_3.slurm` | BB144 BP/OSD on the high-p grid, 100,000 shots each |
-| `run_bb_4.slurm` | BB72/BB144 at p=.001/.002, 1,000,000 fresh shots each |
-| `run_bb_5.slurm` | BB72 CNN depth=2, p=.02/.04/.06/.08, resume 100 → 400 epochs |
-| `run_bb_6.slurm` | BB144 CNN depth=2, p=.02/.04/.06/.08, resume 100 → 400 epochs |
-| `run_bb_7.slurm` | BB72 CNN depth=1, initial 100-epoch control, matching p/seed grid |
-| `run_bb_8.slurm` | BB144 CNN depth=1, initial 100-epoch control, matching p/seed grid |
-| `run_bb_9.slurm` | Two extra seeds per code, depth=2, p=.06, resume 100 → 400 epochs |
+| `run_bb_0.slurm` | BB72, depth=4, p=.02/.04/.06/.08, 400 epochs |
+| `run_bb_1.slurm` | BB144, depth=4, p=.02/.04/.06/.08, 400 epochs |
+| `run_bb_2.slurm` | BB72, depth=5, p=.02/.04/.06/.08, 400 epochs |
+| `run_bb_3.slurm` | BB144, depth=5, p=.02/.04/.06/.08, 400 epochs |
+| `run_bb_4.slurm` | BB72, depth=3, p=.02/.04/.06/.08, 400 epochs |
+| `run_bb_5.slurm` | BB144, depth=3, p=.02/.04/.06/.08, 400 epochs |
+| `run_bb_6.slurm` | BB72, depth=2, p=.02/.04/.06/.08, resume 100 → 400 epochs |
+| `run_bb_7.slurm` | BB144, depth=2, p=.02/.04/.06/.08, resume 100 → 400 epochs |
+| `run_bb_8.slurm` | Two extra seeds per code, depth=2, p=.06, resume 100 → 400 epochs |
+| `run_bb_9.slurm` | BB72, depth=1, original 100-epoch control |
+| `run_bb_10.slurm` | BB144, depth=1, original 100-epoch control |
 
-CNN jobs 5/6/9 now add 300 epochs to the existing 100-epoch depth-2 checkpoints:
-3,276,800 total training shots, width 64, 128 batches of 64 per epoch. Model,
-optimizer and sampler states are restored; learning rate restarts at 3e-4 with
-a new cosine decay. Source jobs are 58793761, 58793763 and 58793766 respectively.
-Validation uses 4,096 shots every five epochs; raw CNN LER selects one checkpoint
-for both decoding branches. The new selected model and frozen pre-resume best
-are compared on the same 65,536 fresh final shots, with paired gains saved in
-`history.json`. Existing results are preserved. See the
-[continuation instructions](docs/bb_tanner_cnn.md#source-checkpoint-lookup-and-submission)
-for checkpoint discovery and outputs. Jobs 7/8 retain the initial depth-1
-100-epoch controls. The earlier Relay design is retained in
-[its campaign notes](docs/bb_neural_relay_campaign.md).
+New jobs 0–5 use width 64 and 128 batches of 64 shots per epoch, totaling
+3,276,800 training shots per model. LR starts at 3e-4 with a 400-epoch cosine
+decay. Validation uses 4,096 shots every five epochs; raw CNN LER selects the
+checkpoint for both branches on 65,536 fresh final shots.
 
-Preview locally without an allocation, or submit the CNN jobs on Perlmutter:
+Jobs 6–8 preserve the existing depth-2 continuation: add 300 epochs to source
+jobs 58793761, 58793763 and 58793766, respectively. Model, optimizer and sampler
+states are restored and LR restarts at 3e-4 with a new cosine decay. Their
+training-shot budget matches the new sweep, but their LR schedule differs.
+The new selected model and frozen pre-resume best share a fresh test bank.
+See the [continuation instructions](docs/bb_tanner_cnn.md#source-checkpoint-lookup-and-submission).
+
+Preview locally or submit the new depth sweep on Perlmutter:
 
 ```bash
-BB_DRY_RUN=1 bash run_bb_5.slurm
-for i in 5 6 9; do sbatch "run_bb_${i}.slurm"; done
+BB_DRY_RUN=1 bash run_bb_0.slurm
+for i in 0 1 2 3 4 5; do sbatch "run_bb_${i}.slurm"; done
+# Optional depth-2 continuation:
+for i in 6 7 8; do sbatch "run_bb_${i}.slurm"; done
 ```
 
-All jobs use `$PSCRATCH/envs/nde` and `$HOME/end_time`, with four concurrent
-`srun --exclusive` steps on GPU account `m5328_g`. Jobs 0–4 reserve one GPU
-and 32 logical CPUs (16 physical cores) per step, with 16 single-thread
-library workers. They consume GPU allocation hours but perform decoding on
-the node's host CPU; the reserved GPUs are idle. Jobs 5–9 perform CNN
-computation on one GPU with 16 Slurm CPUs per step. Results are stored under
-`$HOME/end_time/resdir_<SLURM_JOB_ID>` with `log_exp_0.txt`, ...,
-`log_exp_3.txt`, per-experiment exit codes, and a completed/failed marker.
-CNN model directories are under each result directory's `outputs/YYYY-MM-DD/`;
-BP/OSD evaluation files are under `exp_<index>/`, with saved banks, corrections
-and resumable chunks. All ten `.slurm` scripts
-embed their argument defaults and launcher directly; no repository `.sh` helpers
-are needed. Python model/trainer sources are still loaded from the checkout at
-startup. Previously submitted pending jobs keep their old batch scripts;
-resubmit those jobs to use the standalone versions. Each result directory's
-`submitted_script.slurm` captures its settings and launcher together.
+The previous circuit-level library BP/OSD scripts are preserved as
+`run_bb_baseline_0.slurm`–`run_bb_baseline_4.slurm`, with their original settings.
+See the [baseline campaign](docs/bb_baseline_campaign.md). Its noise model and p
+definition differ from code capacity, so these are separate comparisons.
+The earlier Relay design is retained in [its campaign notes](docs/bb_neural_relay_campaign.md).
+
+All scripts use `$PSCRATCH/envs/nde` and `$HOME/end_time` (or `BB_REPO_ROOT`),
+account `m5328_g`, one GPU node and a 24-hour limit. CNN jobs allocate one GPU
+and 16 CPUs to each of four tasks. The baseline scripts reserve one GPU and
+32 logical CPUs per task but decode on host CPUs using 16 library workers.
+The deeper CNN jobs have not been timed against the 24-hour limit.
+
+Results go under `resdir_<SLURM_JOB_ID>`, including commands, task logs, exit
+codes, completion markers and source snapshots. CNN outputs and checkpoints
+are under `outputs/YYYY-MM-DD/`; baseline artifacts are under `exp_<index>/`.
+Each script embeds its launcher without repository `.sh` helpers. Python
+sources are loaded at startup. Previously submitted jobs keep their saved
+batch scripts; the renumbering only affects new submissions.
 
 For the original single-pass no-OSD comparison outside Slurm, use the
 direct-GPU runner (this runner does not enable Relay):

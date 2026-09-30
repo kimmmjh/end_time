@@ -1,6 +1,14 @@
 # Circuit BB: library BP and BP+OSD baselines
 
-`run_bb_0.slurm`–`run_bb_4.slurm` now call
+The BB72 low/high sweeps arrived on September 30: see the
+[result analysis](../results/analysis/bb_library_bp_osd_2026_09_30.md) and
+[overview PNG](../results/plots/bb/circuit/library_bp_osd/overview.png).
+All eight final aggregates are complete; the p=.008 download has partial chunk
+coverage, recorded separately from server completion.
+
+The baseline launchers were renamed from numbered scripts 0–4 to
+`run_bb_baseline_0.slurm`–`run_bb_baseline_4.slurm`; the numbered scripts now
+start the Tanner CNN depth sweep. The preserved baseline scripts call
 `scripts/evaluate_bb_circuit_baselines.py`. Each experiment evaluates six rows
 on **one exact Stim circuit shot bank**:
 
@@ -63,7 +71,7 @@ LER. Wall time is for the combined pipeline, not a per-method latency benchmark.
 
 ## Sweep
 
-| Script | Code | p | Shots per experiment |
+| Baseline script suffix | Code | p | Shots per experiment |
 | --- | --- | --- | ---: |
 | 0 | BB72 | .001, .002, .003, .004 | 100,000 |
 | 1 | BB72 | .005, .006, .007, .008 | 100,000 |
@@ -87,7 +95,7 @@ Each node runs four concurrent experiments. Each step reserves one GPU,
 decoder processes. The four GPUs are reserved but idle for this baseline.
 The time limit remains 24 hours. The previous CPU-node script used 32 workers
 per experiment; fewer CPU cores here may increase wall time. Saved chunks
-can be resumed with a different worker count. Jobs 5–9 remain the separate
+can be resumed with a different worker count. Numbered jobs 0–10 run the separate
 Tanner CNN campaign, which does perform GPU computation.
 
 The CPU/GPU allocation pools are charged separately according to
@@ -96,14 +104,14 @@ follows the [Perlmutter four-task examples](https://docs.nersc.gov/systems/perlm
 No job has been submitted from this workspace.
 
 ```bash
-BB_DRY_RUN=1 bash run_bb_0.slurm
-for i in 0 1 2 3 4; do sbatch "run_bb_${i}.slurm"; done
+BB_DRY_RUN=1 bash run_bb_baseline_0.slurm
+for i in 0 1 2 3 4; do sbatch "run_bb_baseline_${i}.slurm"; done
 ```
 
 All launch logic is embedded in each `.slurm`, with no repository `.sh` helpers.
 The environment is `$PSCRATCH/envs/nde`, repository `$HOME/end_time` or
 `BB_REPO_ROOT`. The GPU account defaults to the same `m5328_g` used by the
-CNN scripts; `sbatch --account=YOUR_GPU_ACCOUNT run_bb_0.slurm` overrides it
+CNN scripts; `sbatch --account=YOUR_GPU_ACCOUNT run_bb_baseline_0.slurm` overrides it
 if necessary. Merely changing the account would not switch node types:
 these scripts also request `--constraint=gpu` and one GPU per task.
 
@@ -116,7 +124,7 @@ paired library BP/OSD outputs.
 Overrides, applied before submission:
 
 ```bash
-BB_BASELINE_SHOTS=200000 BB_BASELINE_WORKERS=16 sbatch run_bb_0.slurm
+BB_BASELINE_SHOTS=200000 BB_BASELINE_WORKERS=16 sbatch run_bb_baseline_0.slurm
 ```
 
 `BB_BASELINE_ITERATIONS` can change the cap for an explicitly labelled ablation;
@@ -142,10 +150,10 @@ wall-time-limited job may have `status=running`; inspect `shots_completed` and
 resume it rather than treating it as a complete sweep.
 
 To continue an entire previous allocation, use its absolute result directory and
-**the same numbered script and overrides**:
+**the corresponding baseline script and the same overrides**:
 
 ```bash
-BB_BASELINE_RESUME_ROOT="$HOME/end_time/resdir_OLDJOB" sbatch run_bb_0.slurm
+BB_BASELINE_RESUME_ROOT="$HOME/end_time/resdir_OLDJOB" sbatch run_bb_baseline_0.slurm
 ```
 
 The new allocation saves its own launcher logs; data continues in the old

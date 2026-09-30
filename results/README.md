@@ -10,7 +10,7 @@ results/
 │   └── circuit/{convgru_mwpm,convgru_weighted_mwpm}/
 ├── bb/
 │   ├── code_capacity/depolarizing/{orbit,tanner_cnn}/{bb72,bb144,replicates}/
-│   └── circuit/{q_equals_p_idle0,no_osd,noise_balance,neural_relay}/
+│   └── circuit/{library_bp_osd,q_equals_p_idle0,no_osd,noise_balance,neural_relay}/
 ├── analysis/
 ├── plots/{bb/{code_capacity,circuit},toric/phenomenological}/
 └── local_smoke/
@@ -22,25 +22,79 @@ results/
 [training](plots/bb/code_capacity/tanner_cnn/training.png) →
 [seeds](plots/bb/code_capacity/tanner_cnn/seeds.png) 순서로 보면 된다.**
 
+수정한 circuit BP/OSD baseline의 새 BB72 결과는
+[전용 성능 그림](plots/bb/circuit/library_bp_osd/overview.png)과
+[9월 30일 분석](analysis/bb_library_bp_osd_2026_09_30.md)에 정리했다.
+
 The [plot guide / 플롯 안내](plots/README.md) explains every figure, Block LER,
 and regeneration commands. Figures are grouped by **code → noise → model**:
 
 | Experiment | Figure folder | Main figure |
 | --- | --- | --- |
 | Current joint Tanner CNN, capacity | [bb/code_capacity/tanner_cnn/](plots/bb/code_capacity/tanner_cnn/) | [overview](plots/bb/code_capacity/tanner_cnn/overview.png) |
+| Current library BP / BP+OSD, circuit | [bb/circuit/library_bp_osd/](plots/bb/circuit/library_bp_osd/) | [overview](plots/bb/circuit/library_bp_osd/overview.png) |
 | Previous Neural BP4, capacity | [bb/code_capacity/neural_bp/](plots/bb/code_capacity/neural_bp/) | [overview](plots/bb/code_capacity/neural_bp/overview.png) |
-| Previous Neural BP2, circuit | [bb/circuit/neural_bp/](plots/bb/circuit/neural_bp/) | [overview](plots/bb/circuit/neural_bp/overview.png) |
-| Neural Relay BP, circuit | [bb/circuit/neural_relay/](plots/bb/circuit/neural_relay/) | [overview](plots/bb/circuit/neural_relay/overview.png) |
+| Relay BP / Neural Relay BP / Neural BP / Neural+OSD, circuit | [bb/circuit/neural_bp/](plots/bb/circuit/neural_bp/) | [combined overview](plots/bb/circuit/neural_bp/overview.png) |
 | Toric ConvGRU / PyMatching | [toric/phenomenological/](plots/toric/phenomenological/) | [threshold](plots/toric/phenomenological/threshold.png) |
 
-The 12 existing PNGs were preserved during reorganization. The Tanner CNN
-overview now overlays both CNN depths, with/without OSD, and Neural BP4 in each
-code's panel. Training-budget differences are labelled. There are no duplicate
-copies or PDFs. The new library circuit BP/OSD baseline has no result
-figure yet; the circuit folders above contain the previous experiments.
+The Tanner CNN overview overlays both CNN depths, with/without OSD, and Neural
+BP4 in each code's panel. Training-budget differences are labelled.
+Circuit `neural_bp/overview.png` combines Relay BP, Neural Relay BP, Neural BP,
+and Neural BP+OSD-0 in two panels (BB72 / BB144). These curves share the original
+idle-free circuit and X/Z block-failure metric; original histories and DEM
+fingerprints are checked before plotting. Both Relay methods have eight points
+per code. Neural BP has four points per code; Neural+OSD has eight BB72 and four
+BB144 points. Every point is a completed 4,096-shot final evaluation.
+Missing raw points are not filled from OSD-selected checkpoints.
+
+Relay allows up to 4 × 12 BP iterations and a 2-solution search, versus 12
+iterations for Neural BP. Training and checkpoint selection differ, and
+Neural+OSD retains its original posterior-seeded wrapper. This is a comparison
+of the recorded methods, not a matched-compute or same-checkpoint ablation.
+The corrected `library_bp_osd/overview.png` remains separate because its circuit
+noise and observable task differ.
+
+The old raw/OSD PNG and all three separate Relay PNGs were removed. Training,
+validation, paired statistics, and ablation tables remain in `analysis/`, and
+all original experiment files remain in `bb/circuit/`. There are no PDFs.
 
 Known partial runs are retained in `cnn3d/resdir_55562044`,
 `cnn3d/resdir_55860108`, and `convgru/resdir_1252167/exp_6`.
+
+## September 30, 2026: corrected BB72 circuit BP/OSD baselines
+
+Jobs `58939136` (p=.001–.004) and `58939138` (p=.005–.008) are archived under
+[`bb/circuit/library_bp_osd/bb72/`](bb/circuit/library_bp_osd/bb72/).
+All eight server experiments completed 100,000 shots, yielding 48 decoder/input
+rows on 800,000 unique circuit shots. They use unscaled min-sum BP, at most
+1000 iterations, direct library OSD-0/CS3, and six noisy memory cycles.
+
+The [import manifest](analysis/bb_library_bp_osd_2026_09_30_manifest.csv) verifies
+6,201 downloaded files (320,688,419 bytes) before and after relocation.
+Final JSON/CSV aggregates are complete. The p=.008 local download has missing
+chunks/provenance and an unreadable chunk; this is distinct from an incomplete
+server experiment. Seven points have full independent correction rescoring;
+the eighth has a documented partial audit. No missing file is fabricated.
+
+At p=.004, X-only logical-Z error rates are BP **8.176%**, OSD-0 **6.198%**,
+OSD-CS3 **5.342%**; joint-XZ OSD-CS3 is **9.344%**. Joint input helps the OSD
+branches at p=.001/.002 but degrades them from p=.003 onward in this sweep.
+Plain BP's logical-prediction metric and syndrome-inclusive block failure are
+reported separately. Old Neural/Relay results use a different circuit and
+observable task. Current BP is plotted only in `library_bp_osd/`; the separate
+Relay/Neural overview contains the original Relay control, but no current
+library baseline. Original paired statistics remain in the analysis CSVs.
+
+- [Korean analysis](analysis/bb_library_bp_osd_2026_09_30.md)
+- [48 final rows](analysis/bb_library_bp_osd_2026_09_30.csv)
+- [Paired comparisons](analysis/bb_library_bp_osd_2026_09_30_paired.csv)
+- [Audit](analysis/bb_library_bp_osd_2026_09_30_audit.json) and
+  [missing/unreadable download inventory](analysis/bb_library_bp_osd_2026_09_30_missing.csv)
+- [Single overview PNG](plots/bb/circuit/library_bp_osd/overview.png)
+
+```bash
+python scripts/summarize_bb_library_baselines.py
+```
 
 ## September 27, 2026: complete Tanner CNN campaign and baseline replacement
 
@@ -49,7 +103,8 @@ The obsolete scale-0.625 plain-BP jobs `58793753`, `58793754`, `58793756`,
 user's request. The [deletion record](analysis/bb_plain_bp_removal_2026_09_27.json)
 lists the exact removed directories. Previous Neural/Relay data is retained.
 The new [library BP/OSD campaign](../docs/bb_baseline_campaign.md) uses the paper
-circuit schedule, idle noise and logical-X memory task; new server results are pending.
+circuit schedule, idle noise and logical-X memory task. Its BB72 results were
+imported on September 30 above; BB144 and the extra low-p statistics are not yet archived here.
 
 Four new jobs (`58793763`--`58793766`) join retained job `58793761` under
 [`bb/code_capacity/depolarizing/tanner_cnn/`](bb/code_capacity/depolarizing/tanner_cnn/).
@@ -156,10 +211,10 @@ while p=0.001 does not. All observed BB144 Neural failures are syndrome invalid;
 seven of eight runs end with higher average training loss than they started.
 
 The [combined CSV](analysis/bb_neural_relay_bb72_bb144_2026_09_15.csv) and
-[comparison figure](plots/bb/circuit/neural_relay/overview.png) retain
-both code-specific settings and multiple-testing scopes. Incomplete historical
+[comparison figure](plots/bb/circuit/neural_bp/overview.png) retain
+both codes' final LER curves. Multiple-testing scopes and paired gain remain in the CSV. Incomplete historical
 BB144 high-p OSD runs remain marked partial and have no final LER substituted.
-Neural Relay figures are saved as PNG only.
+The single Relay/Neural overview is saved as PNG only.
 
 Reproduce numerical extraction, audits, file manifests, and figures for both codes:
 
@@ -183,7 +238,7 @@ added separately on September 15, as described above.
 
 The [analysis](analysis/bb_neural_relay_bb72_2026_09_13.md),
 [final comparison CSV](analysis/bb_neural_relay_bb72_2026_09_13.csv), and
-[overview figure](plots/bb/circuit/neural_relay/overview.png) distinguish
+[overview figure](plots/bb/circuit/neural_bp/overview.png) distinguish
 non-neural Relay from the historical single-pass BP baseline. Learning improves
 LER at p=0.004/0.005/0.008 after exact paired tests with Holm correction.
 The historical Neural+OSD pipeline still has lower LER; later training degrades
@@ -315,10 +370,9 @@ Rebuild the summaries and plots with:
 python scripts/summarize_bb_circuit_campaign.py
 ```
 
-The figures are
-[`plots/bb/circuit/neural_bp/overview.png`](plots/bb/circuit/neural_bp/overview.png)
-and
-[`plots/bb/circuit/neural_bp/ablations.png`](plots/bb/circuit/neural_bp/ablations.png).
+The shared Relay/Neural figure is
+[`plots/bb/circuit/neural_bp/overview.png`](plots/bb/circuit/neural_bp/overview.png).
+Ablation results remain in the analysis report and CSV.
 This is still not a threshold estimate: BB144 high-p completion, more training
 seeds, a larger fixed test bank, and stronger OSD-CS/LSD comparisons remain
 necessary.
@@ -345,13 +399,13 @@ python scripts/summarize_bb_circuit_no_osd.py
 ```
 
 The separate raw-only figure has been retired because the combined figure below
-contains the same raw failure and paired-gain curves. These points are a
+contains the same raw failure curve; paired gains remain in the report and CSV. These points are a
 convergence diagnostic, not a threshold curve: raw success is almost identical
 to syndrome convergence, and BB144 collapses for `p>=0.002` without a global
 repair stage.
 
 The common `p=0.001`--`0.004` raw and OSD-assisted results are overlaid in
-[`plots/bb/circuit/neural_bp/raw_vs_osd.png`](plots/bb/circuit/neural_bp/raw_vs_osd.png),
+[`plots/bb/circuit/neural_bp/overview.png`](plots/bb/circuit/neural_bp/overview.png),
 with the merged values in
 [`analysis/bb_circuit_raw_vs_osd_2026_09.csv`](analysis/bb_circuit_raw_vs_osd_2026_09.csv).
 Recreate both with:

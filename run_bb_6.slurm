@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbcnn144_d2_e400
+#SBATCH --job-name=bbcnn72_d2_e400
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -26,7 +26,7 @@ cd "$ROOT"
 # Depth-2 continuation: latest epoch 100 -> total epoch 400 (300 added).
 # Preserve architecture/loss/samplers; restart cosine LR at 3e-4.
 # Frozen old best and new selected best share 65536 fresh final shots.
-BB_SOURCE_JOB="58793763"
+BB_SOURCE_JOB="58793761"
 export BB_REPO_ROOT="$ROOT"
 
 # These graphs are small; avoid oversubscribing CPU tensor/BLAS operations.
@@ -52,17 +52,17 @@ BB_PYTHON_ENTRYPOINT="$ROOT/scripts/continue_bb_tanner_cnn.py"
 # Missing/ambiguous checkpoints fail; these jobs never train from scratch.
 # Matrix, seeds and submission instructions: docs/bb_tanner_cnn.md
 experiments=(
-    "$(bb_tanner_cnn_experiment_args bb144 2 0.02 14401020)"
-    "$(bb_tanner_cnn_experiment_args bb144 2 0.04 14401040)"
-    "$(bb_tanner_cnn_experiment_args bb144 2 0.06 14401060)"
-    "$(bb_tanner_cnn_experiment_args bb144 2 0.08 14401080)"
+    "$(bb_tanner_cnn_experiment_args bb72 2 0.02 7201020)"
+    "$(bb_tanner_cnn_experiment_args bb72 2 0.04 7201040)"
+    "$(bb_tanner_cnn_experiment_args bb72 2 0.06 7201060)"
+    "$(bb_tanner_cnn_experiment_args bb72 2 0.08 7201080)"
 )
 
 BB_EXPERIMENT_LABELS=(
-    "bb144_tanner_cnn_depth2_resume400_p0.02_seed14401020"
-    "bb144_tanner_cnn_depth2_resume400_p0.04_seed14401040"
-    "bb144_tanner_cnn_depth2_resume400_p0.06_seed14401060"
-    "bb144_tanner_cnn_depth2_resume400_p0.08_seed14401080"
+    "bb72_tanner_cnn_depth2_resume400_p0.02_seed7201020"
+    "bb72_tanner_cnn_depth2_resume400_p0.04_seed7201040"
+    "bb72_tanner_cnn_depth2_resume400_p0.06_seed7201060"
+    "bb72_tanner_cnn_depth2_resume400_p0.08_seed7201080"
 )
 
 # Launch/logging code is embedded so sbatch captures it with this script.
