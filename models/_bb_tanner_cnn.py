@@ -141,7 +141,11 @@ class BBTannerCNN(nn.Module):
     @staticmethod
     def component_probabilities(logits: Tensor) -> tuple[Tensor, Tensor]:
         probabilities = logits.softmax(dim=-1)
-        return probabilities[..., 1] + probabilities[..., 2], probabilities[..., 2] + probabilities[..., 3]
+        # Float32 softmax sums can exceed one by an ulp. These are probabilities,
+        # so project that roundoff back to [0, 1] before strict OSD validation.
+        # NaNs remain NaNs and must still fail evaluation; this is not nan_to_num.
+        return ((probabilities[..., 1] + probabilities[..., 2]).clamp(0, 1),
+                (probabilities[..., 2] + probabilities[..., 3]).clamp(0, 1))
 
     @classmethod
     def hard_decision(cls, logits: Tensor) -> Tensor:

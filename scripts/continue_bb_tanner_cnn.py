@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve a completed depth-2 CNN run and continue its latest checkpoint.
+"""Resolve a Tanner CNN run and continue its latest checkpoint.
 
 The source can be an original resdir_<job> or its organized results archive.
 No matching checkpoint means failure, never an implicit fresh training run.
@@ -18,7 +18,7 @@ import sys
 import torch
 
 
-def resolve_checkpoint(repo_root, source_job, code, p, seed, source_root=None):
+def resolve_checkpoint(repo_root, source_job, code, p, seed, source_root=None, *, depth=2):
     name = f"resdir_{source_job}"
     if source_root is not None:
         root = Path(source_root).expanduser().resolve()
@@ -26,10 +26,12 @@ def resolve_checkpoint(repo_root, source_job, code, p, seed, source_root=None):
     else:
         root = Path(repo_root).resolve()
         archive = root / "results/bb/code_capacity/depolarizing/tanner_cnn"
-        roots = [root / name, archive / code / name, archive / "replicates" / name]
+        roots = [root / name, archive / code / name, archive / "replicates" / name,
+                 archive / "400_epochs" / code / name,
+                 archive / "400_epochs/replicates" / name]
     matches = set()
     expected = {"architecture": "bb_tanner_cnn", "code": code, "error_rate": p,
-                "seed": seed, "cnn_depth": 2, "cnn_width": 64,
+                "seed": seed, "cnn_depth": depth, "cnn_width": 64,
                 "noise_model": "capacity", "channel": "depolarizing"}
     for directory in roots:
         for history_path in directory.glob("outputs/*/*/history.json"):
@@ -48,22 +50,29 @@ def resolve_checkpoint(repo_root, source_job, code, p, seed, source_root=None):
 
 
 def build_command(checkpoint, *, repo_root, code, p, seed, target_epochs=400,
-                  expected_epochs=100, learning_rate=3e-4):
+                  expected_epochs=100, learning_rate=3e-4, depth=2, allow_incomplete=False):
+    if Path(checkpoint).name != "model.pt":
+        raise ValueError("Resume the latest model.pt, not a selected best checkpoint.")
     saved = torch.load(checkpoint, map_location="cpu", weights_only=False)
     config = saved.get("config", {})
     expected = {"architecture": "bb_tanner_cnn", "code": code, "error_rate": p,
-                "seed": seed, "cnn_depth": 2, "cnn_width": 64,
+                "seed": seed, "cnn_depth": depth, "cnn_width": 64,
                 "noise_model": "capacity", "channel": "depolarizing"}
     if saved.get("format") != "bb_tanner_cnn_v1" or any(config.get(k) != v for k, v in expected.items()):
-        raise ValueError("Checkpoint configuration does not match the requested depth-2 experiment.")
+        raise ValueError(f"Checkpoint configuration does not match the requested depth-{depth} experiment.")
     completed = saved["epoch"] + 1
     history = saved["history"]
     if completed != expected_epochs:
         raise ValueError(f"Expected {expected_epochs} completed epochs, found {completed}.")
     if [row["epoch"] for row in history["train"]] != list(range(completed)):
         raise ValueError("Source checkpoint has incomplete training history.")
-    if "final" not in history or saved.get("best_model_state_dict") is None:
-        raise ValueError("Source run must have completed final evaluation and saved its selected weights.")
+    if saved.get("best_model_state_dict") is None:
+        raise ValueError("Source checkpoint must contain selected best weights for paired comparison.")
+    if "final" not in history and not allow_incomplete:
+        raise ValueError("Source run has no final evaluation; use --allow-incomplete only for an intentional recovery.")
+    for name in ("model_state_dict", "best_model_state_dict"):
+        if any(not torch.isfinite(t).all() for t in saved.get(name, {}).values()):
+            raise ValueError(f"Non-finite weights in {name}; refuse continuation.")
     if target_epochs <= completed:
         raise ValueError("Target epochs must exceed the source's completed epochs.")
     if not math.isfinite(learning_rate) or learning_rate <= 0:
@@ -99,6 +108,9 @@ def main():
     parser.add_argument("--code", choices=("bb72", "bb144"), required=True)
     parser.add_argument("--p", type=float, required=True)
     parser.add_argument("--seed", type=int, required=True)
+    parser.add_argument("--depth", type=int, default=2)
+    parser.add_argument("--allow-incomplete", action="store_true",
+                        help="Explicitly allow recovery of a checkpoint without a completed final evaluation.")
     parser.add_argument("--target-epochs", type=int, default=400)
     parser.add_argument("--expected-epochs", type=int, default=100)
     parser.add_argument("--lr", type=float, default=3e-4)
@@ -106,10 +118,11 @@ def main():
     args = parser.parse_args()
     try:
         checkpoint = resolve_checkpoint(args.repo_root, args.source_job, args.code, args.p,
-                                        args.seed, args.source_root)
+                                        args.seed, args.source_root, depth=args.depth)
         command = build_command(checkpoint, repo_root=args.repo_root, code=args.code, p=args.p,
                                 seed=args.seed, target_epochs=args.target_epochs,
-                                expected_epochs=args.expected_epochs, learning_rate=args.lr)
+                                expected_epochs=args.expected_epochs, learning_rate=args.lr,
+                                depth=args.depth, allow_incomplete=args.allow_incomplete)
     except (ValueError, FileNotFoundError, KeyError) as exc:
         parser.error(str(exc))
     print(f"Continuing {checkpoint}: {args.expected_epochs} -> {args.target_epochs} total epochs; "

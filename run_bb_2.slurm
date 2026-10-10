@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bbcnn_bb72_d5_e400
+#SBATCH --job-name=bbcnn_more_2
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
@@ -21,58 +21,31 @@ else
     ROOT="${BB_REPO_ROOT:-$HOME/end_time}"
 fi
 cd "$ROOT"
-# Standalone launcher: no repository .sh helpers are required.
-# Python sources are still read from ROOT when the job starts.
-# Code-capacity Tanner CNN campaign. Every run evaluates raw CNN and direct
-# OSD-0 on identical shots from one raw-LER-selected checkpoint.
-# 8192 training shots/epoch, 4096 validation shots, 65536 final test shots.
-BB_TANNER_CNN_TRAINING_ARGS="--architecture=bb_tanner_cnn --noise_model=capacity --bb_channel=depolarizing --rounds=1 --measurement_error_rate=0 --bb_idle_error_rate=0 --loss_fn=bb_coset --epochs=400 --batch_size=64 --batches=128 --eval_batches=64 --eval_every=5 --final_eval_batches=1024 --lr=0.0003 --amp_dtype=none --save_model"
-BB_TANNER_CNN_MODEL_ARGS="--bb_cnn_width=64 --bb_cnn_gradient_clip=1.0 --bb_syndrome_loss_weight=1.0 --bb_logical_loss_weight=1.0 --bb_pauli_loss_weight=0.1 --bb_weight_decay=0.0001"
-
-# These graphs are small; avoid oversubscribing CPU tensor/BLAS operations.
+export BB_REPO_ROOT="$ROOT"
 export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
 export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
 export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
 
-bb_tanner_cnn_experiment_args() {
-    if (($# != 4)); then
-        echo "Usage: bb_tanner_cnn_experiment_args code depth p seed" >&2
-        return 2
-    fi
-    local code="$1" depth="$2" p="$3" seed="$4"
-    case "$code" in
-        bb72|bb144) ;;
-        *) echo "Unknown Tanner CNN campaign code: $code" >&2; return 2 ;;
-    esac
-    if [[ ! "$depth" =~ ^[1-9][0-9]*$ ]]; then
-        echo "Tanner CNN depth must be a positive integer." >&2
-        return 2
-    fi
-    printf '%s %s --code=%s --bb_cnn_depth=%s --p=%s --seed=%s\n' \
-        "$BB_TANNER_CNN_TRAINING_ARGS" "$BB_TANNER_CNN_MODEL_ARGS" \
-        "$code" "$depth" "$p" "$seed"
-}
+# Continue selected depth-4/5 models from latest model.pt, with AdamW/RNG/best
+# preserved. New cosine phase starts at 1e-4. Only exp_0 in job 0 is recovery.
+# All source checkpoints are validated before any srun starts.
+# Raw-validation selection; old/new best share 65536 fresh final shots.
+# No source results are overwritten. Details: docs/bb_tanner_cnn_more_training.md
+BB_CAMPAIGN="bb_tanner_cnn_depth45_resume800_2026_10"
+BB_PYTHON_ENTRYPOINT="$ROOT/scripts/continue_bb_tanner_cnn.py"
 
-BB_CAMPAIGN="bb_tanner_cnn_depth453_e400_2026_09"
-BB_PYTHON_ENTRYPOINT="$ROOT/main.py"
-
-# Fresh depth=5 training, matching the original depth-2 code/p/seed grid.
-# 400-epoch cosine schedule from scratch; depth-2 continuation restarts its LR.
-# Depolarizing code capacity; each run reports CNN and CNN+direct OSD-0.
-# 400 epochs, validation 4096 shots every 5 epochs, final test 65536 shots.
-# Matrix, seeds and submission instructions: docs/bb_tanner_cnn.md
 experiments=(
-    "$(bb_tanner_cnn_experiment_args bb72 5 0.02 7201020)"
-    "$(bb_tanner_cnn_experiment_args bb72 5 0.04 7201040)"
-    "$(bb_tanner_cnn_experiment_args bb72 5 0.06 7201060)"
-    "$(bb_tanner_cnn_experiment_args bb72 5 0.08 7201080)"
+    "--source-job=59122447 --code=bb72 --depth=4 --p=0.04 --seed=7201040 --expected-epochs=400 --target-epochs=800 --lr=0.0001"
+    "--source-job=59122447 --code=bb72 --depth=4 --p=0.06 --seed=7201060 --expected-epochs=400 --target-epochs=800 --lr=0.0001"
+    "--source-job=59122447 --code=bb72 --depth=4 --p=0.08 --seed=7201080 --expected-epochs=400 --target-epochs=800 --lr=0.0001"
+    "--source-job=59122448 --code=bb144 --depth=4 --p=0.08 --seed=14401080 --expected-epochs=400 --target-epochs=800 --lr=0.0001"
 )
 
 BB_EXPERIMENT_LABELS=(
-    "bb72_tanner_cnn_depth5_e400_p0.02_seed7201020"
-    "bb72_tanner_cnn_depth5_e400_p0.04_seed7201040"
-    "bb72_tanner_cnn_depth5_e400_p0.06_seed7201060"
-    "bb72_tanner_cnn_depth5_e400_p0.08_seed7201080"
+    "bb72_d4_p0.04_seed7201040_400to800"
+    "bb72_d4_p0.06_seed7201060_400to800"
+    "bb72_d4_p0.08_seed7201080_400to800"
+    "bb144_d4_p0.08_seed14401080_400to800"
 )
 
 # Launch/logging code is embedded so sbatch captures it with this script.
@@ -154,6 +127,12 @@ run_bb_experiments() {
         return 2
     fi
 
+    # Validate all four source checkpoints before starting any training step.
+    for params in "$@"; do
+        read -r -a argv <<< "$params"
+        python -u "$entrypoint" "${argv[@]}" --dry-run
+    done
+
     _BB_RESULT_DIRECTORY="$ROOT/resdir_${SLURM_JOB_ID}"
     if [[ -e "$_BB_RESULT_DIRECTORY" ]]; then
         echo "Error: result directory already exists: $_BB_RESULT_DIRECTORY" >&2
@@ -168,6 +147,9 @@ run_bb_experiments() {
         echo "Node list: ${SLURM_NODELIST:-unknown}"
         echo "Experiments: $experiment_count"
         echo "Campaign: ${BB_CAMPAIGN:-unspecified}"
+        echo "Resume source jobs: see experiments.tsv"
+        echo "Epochs: 400 -> 800; recovery only: 114 -> 400; LR restart 1e-4"
+        echo "Resume source override: ${BB_CNN_SOURCE_ROOT:-automatic}"
     } > "$_BB_RESULT_DIRECTORY/job_metadata.txt"
     cp "$0" "$_BB_RESULT_DIRECTORY/submitted_script.slurm" 2>/dev/null || true
     cp "$entrypoint" "$_BB_RESULT_DIRECTORY/entrypoint_snapshot.py" \
@@ -178,7 +160,7 @@ run_bb_experiments() {
         "$_BB_RESULT_DIRECTORY/source_snapshot/src"
     for params in models/_bb_tanner_cnn.py src/_bb_tanner_cnn_experiment.py \
         src/_direct_osd.py src/_bb_loss.py src/_bb_metrics.py \
-        src/bb_data_generator.py src/bb_code.py; do
+        src/bb_data_generator.py src/bb_code.py main.py; do
         cp "$ROOT/$params" "$_BB_RESULT_DIRECTORY/source_snapshot/$params" || return 1
     done
     if command -v git >/dev/null 2>&1 && \

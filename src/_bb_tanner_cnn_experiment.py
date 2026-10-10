@@ -72,7 +72,8 @@ class BBTannerCNNTrainer:
         self.history["phases"].append({"start_epoch": self.start_epoch, "epochs": epochs,
                                        "learning_rate": learning_rate, "batches": batches,
                                        "batch_size": batch_size, "eval_batches": eval_batches,
-                                       "eval_every": eval_every, "final_eval_batches": final_eval_batches})
+                                       "eval_every": eval_every, "final_eval_batches": final_eval_batches,
+                                       "component_probability_policy": "softmax_marginal_clamp_v1"})
         if source is not None:
             self.history["phases"][-1].update(resume_source=source, schedule="cosine_restart",
                                               compare_resume=compare_resume)
@@ -175,6 +176,12 @@ class BBTannerCNNTrainer:
             started = time.perf_counter()
             syndrome = batch.syndrome.cpu().numpy().astype(np.uint8)
             px, pz = qx.cpu().numpy(), qz.cpu().numpy()
+            if (not np.isfinite(px).all() or not np.isfinite(pz).all()
+                    or ((px < 0) | (px > 1)).any() or ((pz < 0) | (pz > 1)).any()):
+                diagnostic = self.directory / "invalid_component_probabilities.npz"
+                np.savez_compressed(diagnostic, syndrome=syndrome, px=px, pz=pz,
+                                    logits=logits.cpu().numpy())
+                raise ValueError(f"Invalid CNN component probabilities; diagnostic batch saved to {diagnostic}.")
             hard_x, hard_z = (px > .5).astype(np.uint8), (pz > .5).astype(np.uint8)
             need_x = np.any((hard_x @ self.code.hz.T) % 2 != syndrome[:, self.code.num_x_checks:], axis=1)
             need_z = np.any((hard_z @ self.code.hx.T) % 2 != syndrome[:, :self.code.num_x_checks], axis=1)

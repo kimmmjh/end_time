@@ -1,6 +1,26 @@
 # 플롯 안내
 
-**지금 진행 중인 joint Tanner CNN은 [성능 비교](bb/code_capacity/tanner_cnn/overview.png)부터 보면 된다.**
+## 최신 400-epoch Tanner CNN
+
+[깊이 비교](bb/code_capacity/tanner_cnn/400_epochs/cnn_depth.png) →
+[validation 곡선](bb/code_capacity/tanner_cnn/400_epochs/cnn_training.png) 순서로 본다.
+Depth 2/3/4/5, BB72/BB144의 raw와 CNN+OSD를 비교하며 final 65,536 shots의
+Wilson 구간을 표시한다. BB144 depth 5 p=.04는 실패해서 점이 없다.
+0건 실패의 plot 위치 1e-5는 표시용이며 삼각형이 Wilson 95% 상한이다.
+Depth 2는 100+300 LR restart, 나머지는 fresh 400 epochs다.
+Neural BP4 reference는 학습 shots가 이번 모델의 3배이고 별도 test bank다.
+
+[100만-shot circuit BB72 그림](bb/circuit/library_bp_osd/lowp_million.png)은
+p=.001/.002의 logical-Z mismatch와 Wilson 구간을 X-only/XZ 입력별로 표시한다.
+Chunks 없이 서버 집계를 검증한 결과이며 CNN capacity 그림과 직접 비교하지 않는다.
+BB144 circuit은 저장된 완료 shot이 없어 그림에 넣지 않았다.
+
+[상세 분석과 실패 원인](../analysis/bb_update_2026_10_10.md).
+재생성: `python scripts/analyze_bb_october10.py`.
+
+## 기존 100-epoch Tanner CNN
+
+**기존 100-epoch joint Tanner CNN은 [성능 비교](bb/code_capacity/tanner_cnn/overview.png)부터 보면 된다.**
 
 | 순서 | 현재 Tanner CNN 그림 | 보는 내용 |
 | --- | --- | --- |

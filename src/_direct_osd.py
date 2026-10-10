@@ -24,9 +24,12 @@ class DirectOSD0:
         probabilities = np.asarray(probabilities, dtype=np.float64)
         if syndrome.shape != (self.check.shape[0],) or not np.isin(syndrome, [0, 1]).all():
             raise ValueError("syndrome must be a binary vector matching the check rows.")
-        if (probabilities.shape != (self.check.shape[1],) or not np.isfinite(probabilities).all()
-                or ((probabilities < 0) | (probabilities > 1)).any()):
-            raise ValueError("probabilities must be a finite [0,1] vector matching the columns.")
+        if probabilities.shape != (self.check.shape[1],):
+            raise ValueError(f"Probability shape {probabilities.shape} does not match {self.check.shape[1]} columns.")
+        if not np.isfinite(probabilities).all():
+            raise ValueError(f"Non-finite OSD probabilities: {np.count_nonzero(~np.isfinite(probabilities))} values.")
+        if ((probabilities < 0) | (probabilities > 1)).any():
+            raise ValueError(f"OSD probabilities outside [0,1]: min={probabilities.min():.17g}, max={probabilities.max():.17g}.")
         hard = (probabilities > 0.5).astype(np.uint8)
         residual = syndrome.astype(np.uint8) ^ ((self.check @ hard) % 2)
         if not residual.any():

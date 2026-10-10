@@ -1,6 +1,17 @@
 # Joint Tanner CNN: raw and direct OSD-0
 
-The 20-run depth/seed campaign has completed. See the
+**Current launchers:** root scripts 0–2 now run selected depth-4/5 400→800
+continuations plus recovery of the failed BB144 depth-5 p=.04 run to 400.
+See [the current campaign](bb_tanner_cnn_more_training.md). The 400-epoch
+campaign commands below refer to preserved historical scripts.
+
+The [October 10 analysis](../results/analysis/bb_update_2026_10_10.md) now covers
+35 completed 400-epoch models at depths 2–5. Depth 5 improves raw LER over depth 4
+at all seven completed paired points; the BB144 p=.04 run failed during OSD
+validation and has no final score. See the
+[400-epoch comparison](../results/plots/bb/code_capacity/tanner_cnn/400_epochs/cnn_depth.png).
+
+The original 20-run, 100-epoch depth/seed campaign has completed. See the
 [September 27 result analysis](../results/analysis/bb_update_2026_09_27.md)
 and [consolidated comparison](../results/plots/bb/code_capacity/tanner_cnn/overview.png).
 Depth 2 consistently improves on depth 1, but raw syndrome consistency and the
@@ -147,12 +158,12 @@ Each script trains four fresh models, one per p value, on one GPU each.
 
 | Script | Code | Depth | Epochs | p values |
 | --- | --- | ---: | ---: | --- |
-| `run_bb_0.slurm` | BB72 | 4 | 400 | .02, .04, .06, .08 |
-| `run_bb_1.slurm` | BB144 | 4 | 400 | .02, .04, .06, .08 |
-| `run_bb_2.slurm` | BB72 | 5 | 400 | .02, .04, .06, .08 |
-| `run_bb_3.slurm` | BB144 | 5 | 400 | .02, .04, .06, .08 |
-| `run_bb_4.slurm` | BB72 | 3 | 400 | .02, .04, .06, .08 |
-| `run_bb_5.slurm` | BB144 | 3 | 400 | .02, .04, .06, .08 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_0.slurm` | BB72 | 4 | 400 | .02, .04, .06, .08 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_1.slurm` | BB144 | 4 | 400 | .02, .04, .06, .08 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_2.slurm` | BB72 | 5 | 400 | .02, .04, .06, .08 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_3.slurm` | BB144 | 5 | 400 | .02, .04, .06, .08 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_4.slurm` | BB72 | 3 | 400 | .02, .04, .06, .08 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_5.slurm` | BB144 | 3 | 400 | .02, .04, .06, .08 |
 
 All use width 64, depolarizing code-capacity noise and the original code/p/seed
 matrix: BB72 seeds 7201020/7201040/7201060/7201080 and BB144 seeds
@@ -170,8 +181,8 @@ this is a matched training-shot budget, not an identical LR schedule.
 Preview or submit the new 24-model sweep:
 
 ```bash
-BB_DRY_RUN=1 bash run_bb_0.slurm
-for i in 0 1 2 3 4 5; do sbatch "run_bb_${i}.slurm"; done
+BB_REPO_ROOT="$PWD" BB_DRY_RUN=1 bash scripts/slurm_archive/bb_capacity400/run_bb_0.slurm
+for i in 0 1 2 3 4 5; do sbatch "scripts/slurm_archive/bb_capacity400/run_bb_${i}.slurm"; done
 ```
 
 The numbering groups depths in submission order; independent Slurm jobs may
@@ -182,22 +193,21 @@ fresh run can be continued with matching model options and
 `--load_model=/absolute/path/to/model.pt --epochs=REMAINING_EPOCHS` through
 `main.py` (resumption starts a new cosine schedule).
 
-The retained depth-1 controls are now `run_bb_9.slurm` (BB72) and
-`run_bb_10.slurm` (BB144), still at their original 100-epoch budget.
+The original depth-1 controls used 100 epochs; their archived results remain available.
 
 ## Slurm campaign: depth-2 continuation to 400 epochs
 
 Jobs **6, 7 and 8** now continue the 12 existing depth-2 CNN models from their
-latest 100-epoch checkpoints to **400 total epochs**. Jobs 9/10 retain the initial
-100-epoch depth-1 control commands; they are not part of this continuation.
+latest 100-epoch checkpoints to **400 total epochs**. The original depth-1
+controls are not part of this continuation.
 The circuit-level library BP/OSD baseline scripts are preserved as
 `run_bb_baseline_0.slurm`–`run_bb_baseline_4.slurm`.
 
 | Script | Code | p values | Seeds in experiment order | Source job |
 | --- | --- | --- | --- | --- |
-| `run_bb_6.slurm` | BB72 | .02, .04, .06, .08 | 7201020, 7201040, 7201060, 7201080 | 58793761 |
-| `run_bb_7.slurm` | BB144 | .02, .04, .06, .08 | 14401020, 14401040, 14401060, 14401080 | 58793763 |
-| `run_bb_8.slurm` | BB72, BB72, BB144, BB144 | .06 for all | 7202060, 7203060, 14402060, 14403060 | 58793766 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_6.slurm` | BB72 | .02, .04, .06, .08 | 7201020, 7201040, 7201060, 7201080 | 58793761 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_7.slurm` | BB144 | .02, .04, .06, .08 | 14401020, 14401040, 14401060, 14401080 | 58793763 |
+| `scripts/slurm_archive/bb_capacity400/run_bb_8.slurm` | BB72, BB72, BB144, BB144 | .06 for all | 7202060, 7203060, 14402060, 14403060 | 58793766 |
 
 All use **depolarizing code capacity**: `p` is the total probability of a
 non-identity data-qubit error, `P(I,X,Y,Z)=(1-p,p/3,p/3,p/3)`, with one perfect
@@ -260,7 +270,7 @@ Once committed and pushed, they can be transferred to the server with
 Preview the four job commands without importing Python or invoking Slurm:
 
 ```bash
-BB_DRY_RUN=1 bash run_bb_6.slurm
+BB_REPO_ROOT="$PWD" BB_DRY_RUN=1 bash scripts/slurm_archive/bb_capacity400/run_bb_6.slurm
 ```
 
 Validate and expand one real checkpoint without training (use the training
@@ -275,7 +285,7 @@ After updating the Python sources and Slurm files on Perlmutter, submit only
 the continuation jobs:
 
 ```bash
-for i in 6 7 8; do sbatch "run_bb_${i}.slurm"; done
+for i in 6 7 8; do sbatch "scripts/slurm_archive/bb_capacity400/run_bb_${i}.slurm"; done
 ```
 
 Each script embeds the complete four-task launcher, with no repository `.sh`

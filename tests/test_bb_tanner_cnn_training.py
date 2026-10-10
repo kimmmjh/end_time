@@ -29,6 +29,18 @@ def trainer(directory, *, load=None, depth=2, epochs=1, compare_resume=False):
     )
 
 
+def test_invalid_eval_probabilities_save_diagnostic_and_fail(tmp_path, monkeypatch):
+    instance = trainer(tmp_path / "invalid")
+    monkeypatch.setattr(instance.model, "component_probabilities", lambda logits: (
+        torch.full_like(logits[..., 0], float("nan")), torch.zeros_like(logits[..., 0])))
+    with pytest.raises(ValueError, match="diagnostic batch saved"):
+        instance.evaluate(1)
+    with np.load(instance.directory / "invalid_component_probabilities.npz") as batch:
+        assert np.isnan(batch["px"]).all()
+        assert np.isfinite(batch["logits"]).all()
+        assert batch["syndrome"].shape == (4, instance.code.num_checks)
+
+
 def test_train_paired_evaluation_saved_bank_and_latest_resume(tmp_path):
     torch.manual_seed(41)
     original = trainer(tmp_path / "first")

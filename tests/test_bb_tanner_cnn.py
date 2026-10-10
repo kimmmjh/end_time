@@ -71,6 +71,32 @@ def test_hard_decision_uses_shared_component_marginals_not_pauli_argmax():
     assert BBTannerCNN.hard_decision(logits).item() == 1
 
 
+def test_component_marginals_handle_softmax_roundoff_before_strict_osd():
+    # This float32 input produced P(X)+P(Y)=1.0000001192092896 on CPU.
+    logits = torch.tensor([[[-9.301547050476074, -.05920518934726715,
+                            7.499649524688721, -12.816020011901855]]])
+    qx, qz = BBTannerCNN.component_probabilities(logits)
+    assert torch.isfinite(qx).all() and torch.isfinite(qz).all()
+    assert ((qx >= 0) & (qx <= 1)).all() and ((qz >= 0) & (qz <= 1)).all()
+    exact = logits.double().softmax(-1)
+    torch.testing.assert_close(qx.double(), exact[..., 1] + exact[..., 2], atol=2e-7, rtol=0)
+    np.testing.assert_array_equal(DirectOSD0([[1]]).decode([1], qx.numpy()[0]), [1])
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf")])
+def test_nonfinite_logits_are_not_silently_repaired(value):
+    qx, _ = BBTannerCNN.component_probabilities(torch.tensor([[[value, 0., 0., 0.]]]))
+    with pytest.raises(ValueError, match="Non-finite"):
+        DirectOSD0([[1]]).decode([0], qx.numpy()[0])
+
+
+def test_osd_still_rejects_genuinely_invalid_probabilities_with_diagnostics():
+    with pytest.raises(ValueError, match="max=1.01"):
+        DirectOSD0([[1]]).decode([1], [1.01])
+    with pytest.raises(ValueError, match="shape"):
+        DirectOSD0([[1]]).decode([1], [.2, .3])
+
+
 def test_direct_osd_changes_uncertain_bit_and_preserves_valid_hard_decisions():
     decoder = DirectOSD0([[1, 1]])
     np.testing.assert_array_equal(decoder.decode([1], [.01, .49]), [0, 1])

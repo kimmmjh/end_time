@@ -32,6 +32,21 @@ STEM = "bb_update_2026_09_27"
 Z = 1.959963984540054
 
 
+def original_jobs():
+    """Keep the fixed 100-epoch campaign separate from later CNN runs.
+
+    Three continuation sources may be kept at the repository root for transfer
+    to the cluster. Their original archive manifest still identifies the files.
+    """
+    jobs = []
+    for job_id, group in ((58793761, "bb72"), (58793763, "bb144"),
+                          (58793764, "bb72"), (58793765, "bb144"),
+                          (58793766, "replicates")):
+        archived = CNN / group / f"resdir_{job_id}"
+        jobs.append(archived if archived.is_dir() else ROOT / archived.name)
+    return jobs
+
+
 def read_csv(path):
     with path.open(newline="") as handle:
         return list(csv.DictReader(handle))
@@ -89,11 +104,16 @@ def paired(reference, candidate):
 def audit_manifest():
     rows = read_csv(ANALYSIS / "bb_import_2026_09_27_manifest.csv")
     assert len(rows) == len({r["archive_file"] for r in rows})
-    assert {r["archive_file"] for r in rows} == {
-        p.relative_to(ROOT).as_posix() for p in CNN.rglob("*") if p.is_file()
-    }, "Manifest must cover every original archived CNN file"
+    jobs = {job.name: job for job in original_jobs()}
+    def locate(row):
+        parts = Path(row["archive_file"]).parts
+        index = next(i for i, part in enumerate(parts) if part.startswith("resdir_"))
+        return jobs[parts[index]].joinpath(*parts[index + 1:])
+    assert {locate(row) for row in rows} == {
+        p for job in jobs.values() for p in job.rglob("*") if p.is_file()
+    }, "Manifest must cover every original 100-epoch CNN file"
     for row in rows:
-        path = ROOT / row["archive_file"]
+        path = locate(row)
         assert path.stat().st_size == int(row["bytes"])
         assert sha256(path) == row["sha256"], path
     return dict(original_files=len(rows), bytes=sum(int(r["bytes"]) for r in rows),
@@ -134,7 +154,7 @@ def score_pauli(correction, truth, syndrome, code):
 
 
 def cnn_results():
-    jobs = sorted(CNN.glob("*/resdir_*"))
+    jobs = sorted(original_jobs())
     assert {j.name for j in jobs} == {f"resdir_{i}" for i in (58793761, 58793763, 58793764, 58793765, 58793766)}
     for job in jobs:
         check_job(job)
@@ -142,7 +162,8 @@ def cnn_results():
                  "src/_direct_osd.py", "src/_bb_metrics.py"):
         assert len({sha256(job / "source_snapshot" / name) for job in jobs}) == 1, name
     finals, training, validation, histories, banks = [], [], [], {}, {}
-    for path in sorted(CNN.rglob("history.json")):
+    # Later 400-epoch jobs live in a separate subtree of the same CNN archive.
+    for path in sorted(p for job in jobs for p in job.rglob("history.json")):
         h = json.loads(path.read_text())
         c, f, p = h["config"], h["final"], h["config"]["error_rate"]
         code = BBCodeSpec.from_name(c["code"])

@@ -16,9 +16,44 @@ results/
 └── local_smoke/
 ```
 
+## October 10, 2026: 400-epoch CNN depth sweep and low-p circuit statistics
+
+**최신 분석은 [10월 10일 보고서](analysis/bb_update_2026_10_10.md)와
+[depth 2–5 비교](plots/bb/code_capacity/tanner_cnn/400_epochs/cnn_depth.png)에서 확인한다.**
+
+- CNN 36개 중 35개 완료. Depth 5는 비교 가능한 7개 지점 모두 raw LER 최저;
+  p≥.04의 완료된 5개 지점은 CNN+OSD도 최저다. Depth 2는 100+300 LR restart,
+  depth 3–5는 fresh 400-epoch cosine이므로 학습 schedule은 다르다.
+- [학습 곡선](plots/bb/code_capacity/tanner_cnn/400_epochs/cnn_training.png)과
+  [최종 수치](analysis/bb_update_2026_10_10_cnn_final.csv). BB144 depth 5 p=.04는
+  114 epochs 저장 후 validation OSD 확률 검증 오류로 실패해 final 결과가 없다.
+- BB72 circuit p=.001/.002는 각각 100만 shots 완료:
+  [그림](plots/bb/circuit/library_bp_osd/lowp_million.png),
+  [집계](analysis/bb_update_2026_10_10_baseline_final.csv).
+  Chunks는 다운로드에서 제외해 aggregate 검증만 했다.
+- BB144 circuit 10개 실행은 OOM/time limit 로그와 저장된 처리 shot 0을 확인했다.
+  LER이 0이라는 뜻이 아니며 성능 곡선에 넣지 않았다.
+
+새 12개 `resdir_*`는 내부 파일과 job 이름을 보존한 채 아래로 옮겼다.
+
+- CNN 9개: [`bb/code_capacity/depolarizing/tanner_cnn/400_epochs/`](bb/code_capacity/depolarizing/tanner_cnn/400_epochs/)
+  아래 `bb72/`, `bb144/`, `replicates/`.
+- Circuit BB144 2개: [`bb/circuit/library_bp_osd/bb144/`](bb/circuit/library_bp_osd/bb144/).
+- Circuit 혼합-code 추가 통계 1개: [`bb/circuit/library_bp_osd/replicates/`](bb/circuit/library_bp_osd/replicates/).
+
+644개 파일의 이동 전후 SHA-256과 크기가 일치한다.
+[이동 기록](analysis/bb_update_2026_10_10_relocation.csv),
+[SHA-256 manifest](analysis/bb_update_2026_10_10_manifest.csv)와
+[검증 결과](analysis/bb_update_2026_10_10_audit.json)를 저장했다.
+기존 9월 분석과 그림은 보존했다.
+
+```bash
+python scripts/analyze_bb_october10.py
+```
+
 ## Figures: start here
 
-**현재 Tanner CNN은 [overview](plots/bb/code_capacity/tanner_cnn/overview.png) →
+**기존 100-epoch Tanner CNN은 [overview](plots/bb/code_capacity/tanner_cnn/overview.png) →
 [training](plots/bb/code_capacity/tanner_cnn/training.png) →
 [seeds](plots/bb/code_capacity/tanner_cnn/seeds.png) 순서로 보면 된다.**
 
