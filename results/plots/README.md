@@ -1,37 +1,38 @@
 # 플롯 안내
 
-## 최신 400-epoch Tanner CNN
+## Tanner CNN: 각 설정의 최신 결과만 한 장으로
 
-[깊이 비교](bb/code_capacity/tanner_cnn/400_epochs/cnn_depth.png) →
-[validation 곡선](bb/code_capacity/tanner_cnn/400_epochs/cnn_training.png) 순서로 본다.
-Depth 2/3/4/5, BB72/BB144의 raw와 CNN+OSD를 비교하며 final 65,536 shots의
-Wilson 구간을 표시한다. BB144 depth 5 p=.04는 실패해서 점이 없다.
-0건 실패의 plot 위치 1e-5는 표시용이며 삼각형이 Wilson 95% 상한이다.
-Depth 2는 100+300 LR restart, 나머지는 fresh 400 epochs다.
-Neural BP4 reference는 학습 shots가 이번 모델의 3배이고 별도 test bank다.
+**[통합 성능 그림](bb/code_capacity/tanner_cnn/overview.png)**은 code/p/depth/seed별
+가장 최근에 완료된 학습 결과만 표시한다. 이전 학습 단계 23개를 제외한
+**44개 설정, raw/OSD 88개 평가점**이다. 최신 run의 validation-selected best를 사용한다.
+
+- 위 BB72 / 아래 BB144, 왼쪽 CNN 단독 / 오른쪽 CNN + 기존 residual OSD-0.
+- 색은 depth 1–5이며 depth마다 하나의 실선으로 연결한다. 이전 학습량별 곡선은 표시하지 않는다.
+- 별은 BB144 depth 5 p=.04의 114→400 복구 결과. ×는 추가 seed 결과다.
+- 오차 막대는 95% Wilson 구간. 실패 0건은 측정값 대신 상한 위치에 빈 역삼각형으로 표시한다.
+- 이전 Neural BP4는 CNN 단독 패널에 참고선으로 표시한다. 학습량과 test bank가 다르다.
+
+서로 다른 시기의 test bank를 직접 뺀 값은 paired 개선량이 아니다.
+추가 학습 효과는 [동일 샘플 비교표](../analysis/bb_update_2026_10_12_cnn_resume_pairs.csv)를 본다.
+표준 syndrome OSD-0 평가는 이 그림에 섞지 않았다. 모든 CNN 결과는 code capacity다.
+
+학습량: depth 1은 100, depth 2–3은 400 epochs. Depth 4–5는 p=.02에서 400,
+p=.04/.06/.08에서 800 epochs이며 **BB144 depth 5 p=.04만 복구 후 400 epochs**다.
+
+[표시된 최신 수치와 원본 경로](../analysis/bb_cnn_latest_final.csv) ·
+[과거 단계까지 포함한 전체 수치](../analysis/bb_cnn_all_final.csv) ·
+[100-epoch 분석](../analysis/bb_update_2026_09_27.md) ·
+[400-epoch 분석](../analysis/bb_update_2026_10_10.md) ·
+[추가 학습 분석](../analysis/bb_update_2026_10_12.md).
+기존 개별 CNN 성능·학습·seed 그림 7개는 제거했고 학습 이력과 통계 CSV는 보존했다.
+
+그림 하단의 작은 설명문은 제거했다. 평가 조건과 학습량은 이 문서에 기록한다.
+
+재생성: `python scripts/plot_bb_cnn_all.py`.
+세 캠페인 분석 스크립트도 개별 CNN 그림 대신 이 통합 그림을 갱신한다.
 
 [100만-shot circuit BB72 그림](bb/circuit/library_bp_osd/lowp_million.png)은
-p=.001/.002의 logical-Z mismatch와 Wilson 구간을 X-only/XZ 입력별로 표시한다.
-Chunks 없이 서버 집계를 검증한 결과이며 CNN capacity 그림과 직접 비교하지 않는다.
-BB144 circuit은 저장된 완료 shot이 없어 그림에 넣지 않았다.
-
-[상세 분석과 실패 원인](../analysis/bb_update_2026_10_10.md).
-재생성: `python scripts/analyze_bb_october10.py`.
-
-## 기존 100-epoch Tanner CNN
-
-**기존 100-epoch joint Tanner CNN은 [성능 비교](bb/code_capacity/tanner_cnn/overview.png)부터 보면 된다.**
-
-| 순서 | 현재 Tanner CNN 그림 | 보는 내용 |
-| --- | --- | --- |
-| 1 | [overview.png](bb/code_capacity/tanner_cnn/overview.png) | 왼쪽 BB72 / 오른쪽 BB144. 각 패널에 CNN depth 1·2의 raw/OSD 4개 곡선과 OSD 없는 Neural BP4를 함께 표시 |
-| 2 | [training.png](bb/code_capacity/tanner_cnn/training.png) | 20개 모델의 학습 loss와 validation LER. 실선 raw, 점선 OSD, 다이아몬드 별도 final test |
-| 3 | [seeds.png](bb/code_capacity/tanner_cnn/seeds.png) | p=.06, depth 2, 코드별 3개 seed의 raw/OSD LER |
-
-모두 **code-capacity depolarizing noise** 결과이며 circuit-level 결과가 아니다.
-Neural BP4의 학습 샘플은 CNN의 12배이며 test bank도 다르다. 주 그림 하단에 이 차이를 표시했다.
-Neural BP4는 공통 p=.04/.06/.08에만 그린다. 두 패널의 y축 범위는 다르며, error bar는 shot 통계의 95% Wilson 구간이다.
-상세 수치와 조건은 [Tanner CNN 분석](../analysis/bb_update_2026_09_27.md)에 있다.
+별도 회로 실험이며 CNN code-capacity 성능과 직접 비교하지 않는다.
 
 ## 새 circuit BP/OSD baseline
 
@@ -80,9 +81,7 @@ results/plots/
 ├── bb/
 │   ├── code_capacity/                ← 데이터 오류 + 완벽한 syndrome
 │   │   ├── tanner_cnn/               ← 현재 joint Tanner CNN
-│   │   │   ├── overview.png
-│   │   │   ├── training.png
-│   │   │   └── seeds.png
+│   │   │   └── overview.png          ← 설정별 최신 CNN 결과
 │   │   └── neural_bp/                ← 이전 Neural BP4 / classical 비교
 │   │       ├── overview.png
 │   │       └── ablations.png

@@ -30,7 +30,6 @@ from scripts.summarize_bb_september27 import score_pauli, wilson, close, holm
 JOBS = (58939141, 58939143, 58939147, 58962932, 58962935, 58962937,
         59122447, 59122448, 59122449, 59122450, 59122451, 59122452)
 OUT = ROOT / "results/analysis"
-PLOT = ROOT / "results/plots/bb/code_capacity/tanner_cnn/400_epochs"
 BASELINE_PLOT = ROOT / "results/plots/bb/circuit/library_bp_osd/lowp_million.png"
 STEM = "bb_update_2026_10_10"
 
@@ -290,58 +289,9 @@ def analyze_baselines():
 
 
 def figures(finals, histories, baseline):
+    from scripts.plot_bb_cnn_all import main as plot_all
+    plot_all()
     plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False})
-    colors = {2: "#7c8795", 3: "#299d8f", 4: "#3478c6", 5: "#c95235"}
-    fig, axes = plt.subplots(2, 2, figsize=(12, 9), sharex=True)
-    refs = csv_read(OUT / "bb_update_2026_09_27_capacity_references.csv")
-    for i, code in enumerate(("bb72", "bb144")):
-        for j, method in enumerate(("raw", "osd")):
-            ax = axes[i, j]
-            for depth in (2, 3, 4, 5):
-                # Missing completed points remain gaps, never interpolated into results.
-                selected = [next((r for r in finals if r["code"] == code and r["depth"] == depth and r["p"] == p
-                                  and r["seed"] == int(code[2:]) * 100000 + 1000 + round(p * 1000)), None)
-                            for p in (.02, .04, .06, .08)]
-                ys = [max(r[f"{method}_ler"], 1e-5) if r else np.nan for r in selected]
-                ax.plot([.02, .04, .06, .08], ys, "o-", color=colors[depth], label=f"depth {depth}" + (" (restart)" if depth == 2 else ""))
-                for p, r in zip((.02, .04, .06, .08), selected):
-                    if r is None:
-                        continue
-                    y = r[f"{method}_ler"]
-                    if y:
-                        ax.errorbar(p, y, yerr=[[y-r[f"{method}_ci95_low"]], [r[f"{method}_ci95_high"]-y]], color=colors[depth], capsize=2)
-                    else:
-                        ax.plot(p, r[f"{method}_ci95_high"], "v", color=colors[depth])
-            rr = sorted([r for r in refs if r["code"] == code and r["method"] == "Neural BP4 T12"], key=lambda r: float(r["p"]))
-            ax.plot([float(r["p"]) for r in rr], [float(r["ler"]) for r in rr], "k--", alpha=.65, label="Prior Neural BP4 (3x training shots)")
-            ax.set(yscale="log", ylim=(8e-6, 1), title=f"{code.upper()} | {'Raw CNN' if method == 'raw' else 'CNN + direct OSD-0'}",
-                   xlabel="Depolarizing p (code capacity)", ylabel="Block LER")
-            ax.set_xticks([.02, .04, .06, .08])
-            ax.grid(alpha=.2, which="both")
-    axes[0, 0].legend(fontsize=8)
-    fig.suptitle("400-epoch Tanner CNN depth comparison | 65,536 test shots per model")
-    fig.text(.5, .015, "BB144 depth 5 at p=.04 failed: no final point. Zero failures: marker at 1e-5; triangle = Wilson 95% upper bound.\nDepth 2 uses 100+300 epochs; depths 3-5 use one 400-epoch schedule. Error bars show shot uncertainty, not seed variation.", ha="center", fontsize=9)
-    fig.tight_layout(rect=(0, .065, 1, .96))
-    fig.savefig(PLOT / "cnn_depth.png", dpi=180)
-    plt.close(fig)
-
-    fig, axes = plt.subplots(2, 4, figsize=(15, 7), sharex=True)
-    for i, code in enumerate(("bb72", "bb144")):
-        for j, p in enumerate((.02, .04, .06, .08)):
-            ax = axes[i, j]
-            for key, h in histories.items():
-                if key[0] != code or key[1] != p or key[2] != int(code[2:]) * 100000 + 1000 + round(p * 1000):
-                    continue
-                ax.plot([e["epoch"] + 1 for e in h["eval"]], [e["raw"]["logical_error_rate"] or np.nan for e in h["eval"]],
-                        color=colors[key[3]], label=f"d={key[3]}", lw=1.2)
-            ax.set(title=f"{code.upper()}, p={p:g}", xlabel="Completed epochs", ylabel="Validation raw LER", yscale="log")
-            ax.grid(alpha=.2)
-    axes[0, 0].legend()
-    fig.suptitle("Validation curves | 4,096-shot batches | completed models; zero-error batches omitted on log axes")
-    fig.tight_layout()
-    fig.savefig(PLOT / "cnn_training.png", dpi=160)
-    plt.close(fig)
-
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.8), sharey=True)
     styles = {"bp": ("#7c8795", "o"), "bposd0": ("#3478c6", "s"), "bposd_cs3": ("#c95235", "^")}
     for ax, mode in zip(axes, ("x", "xz")):
@@ -364,7 +314,6 @@ def figures(finals, histories, baseline):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    PLOT.mkdir(parents=True, exist_ok=True)
     manifest = [{"job": job, "path": str(p.relative_to(ROOT)), "bytes": p.stat().st_size, "sha256": sha(p)}
                 for job in JOBS for p in sorted(job_directory(job).rglob("*")) if p.is_file()]
     manifest_path = OUT / f"{STEM}_manifest.csv"

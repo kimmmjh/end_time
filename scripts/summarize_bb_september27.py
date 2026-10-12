@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit the September 27 CNN campaign and regenerate six CSVs and three PNGs.
+"""Audit the September 27 CNN campaign and regenerate CSVs and the combined CNN figure.
 
 Reads archived server artifacts only; does not train or rerun any decoder.
 Original files are checked against the import manifest before analysis.
@@ -15,9 +15,6 @@ import shlex
 from pathlib import Path
 import sys
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import binomtest
 
@@ -35,7 +32,7 @@ Z = 1.959963984540054
 def original_jobs():
     """Keep the fixed 100-epoch campaign separate from later CNN runs.
 
-    Three continuation sources may be kept at the repository root for transfer
+    Original source jobs may be kept at the repository root for transfer
     to the cluster. Their original archive manifest still identifies the files.
     """
     jobs = []
@@ -324,117 +321,6 @@ def references(cnn):
     return rows
 
 
-def error_curve(ax, rows, *, label, color, prefix="", marker="o", **kwargs):
-    x = np.array([r["p"] * 100 for r in rows])
-    y = np.array([r[prefix + "ler"] * 100 for r in rows])
-    low = np.array([r[prefix + "ler_low"] * 100 for r in rows])
-    high = np.array([r[prefix + "ler_high"] * 100 for r in rows])
-    ax.errorbar(x, y, yerr=np.maximum([y - low, high - y], 0), marker=marker, capsize=3,
-                color=color, label=label, **kwargs)
-
-
-def cnn_plot(rows, refs):
-    fig, axes = plt.subplots(1, 2, figsize=(13.5, 6.8))
-    for idx, (ax, code) in enumerate(zip(axes, ("bb72", "bb144"))):
-        for depth, color in ((1, "#BA6842"), (2, "#007C83")):
-            selected = [r for r in rows if r["code"] == code and r["depth"] == depth and primary(r)]
-            for method, style, marker, label in (("raw", "-", "o", "CNN"), ("osd", "--", "^", "CNN + OSD-0")):
-                error_curve(ax, selected, label=f"{label}, depth {depth}", color=color,
-                            prefix=method+"_", linestyle=style, marker=marker, linewidth=1.8)
-        selected = sorted((r for r in refs if r["code"] == code and r["method"] == "Neural BP4 T12"),
-                          key=lambda r: r["p"])
-        assert [r["p"] for r in selected] == [.04, .06, .08]
-        intervals = []
-        for row in selected:
-            # The reference CSV rounds rates to eight decimals. With 131,072
-            # shots this still uniquely determines the integer failure count.
-            failures = round(row["ler"] * row["shots"])
-            assert abs(failures / row["shots"] - row["ler"]) <= 5.01e-9
-            low, high = wilson(failures, row["shots"])
-            intervals.append(dict(row, ler=failures/row["shots"], ler_low=low, ler_high=high))
-        error_curve(ax, intervals, label="Neural BP4, T=12 (no OSD)", color="#7546A0",
-                    marker="s", linewidth=2.4, zorder=5)
-        ax.set(title=f"{code.upper()} [[{int(code[2:])}, 12, {6 if idx == 0 else 12}]]", yscale="log",
-               ylim=((.06, 115) if idx == 0 else (.0002, 115)), xlabel="Depolarizing probability p (%)",
-               ylabel="Block LER (%)", xticks=[2, 4, 6, 8])
-        ax.grid(alpha=.18, which="both")
-    axes[1].annotate("1 failure / 65,536 shots", xy=(2, 100/65536), xytext=(2.5, .002), fontsize=8,
-                     arrowprops=dict(arrowstyle="-", color=".5"))
-    fig.suptitle("Tanner CNN and Neural BP4 | depolarizing code capacity", fontsize=14, y=.97)
-    fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", bbox_to_anchor=(.5, .12),
-               ncol=3, fontsize=10, frameon=False)
-    fig.text(.5, .075, "Training samples/model: CNN 819,200 | Neural BP4 9,830,400 (12x). Different training budgets and test banks.",
-             ha="center", fontsize=9)
-    fig.text(.5, .045, "Test shots: CNN 65,536 | Neural BP4 131,072. Error bars: 95% Wilson (shot uncertainty only).",
-             ha="center", fontsize=9)
-    fig.text(.5, .015, "CNN primary seeds; raw/OSD share one checkpoint. Neural BP4 has no p=0.02 result. Panel y-axis ranges differ.",
-             ha="center", fontsize=9)
-    fig.subplots_adjust(left=.075, right=.98, top=.87, bottom=.29, wspace=.24)
-    fig.savefig(PLOTS / "overview.png", dpi=180)
-    plt.close(fig)
-
-
-def training_plot(histories):
-    fig, axes = plt.subplots(4, 4, figsize=(17, 12), sharex=True, layout="constrained")
-    for idx, code in enumerate(("bb72", "bb144")):
-        for col, p in enumerate((.02, .04, .06, .08)):
-            loss_ax, ler_ax = axes[2*idx, col], axes[2*idx+1, col]
-            for (c, rate, seed, depth), h in histories.items():
-                if c != code or rate != p:
-                    continue
-                is_primary = primary(dict(code=c, seed=seed, p=rate))
-                color = {1: "#BA6842", 2: "#007C83"}[depth]
-                alpha = 1 if is_primary else .25
-                label = f"Depth {depth}" if is_primary else "_nolegend_"
-                loss_ax.plot([t["epoch"]+1 for t in h["train"]], [t["total"] for t in h["train"]],
-                             color=color, alpha=alpha, lw=1.2, label=label)
-                for method, style in (("raw", "-"), ("osd", "--")):
-                    ler_ax.plot([e["epoch"]+1 for e in h["eval"]], [e[method]["logical_error_rate"]*100 for e in h["eval"]],
-                                color=color, alpha=alpha, ls=style, lw=1.3,
-                                label=f"Depth {depth} {'CNN' if method == 'raw' else 'CNN+OSD'}" if is_primary else "_nolegend_")
-                    ler_ax.scatter(h["best_epoch"]+1, h["final"][method]["logical_error_rate"]*100,
-                                   marker="D", s=26, color=color, alpha=alpha,
-                                   edgecolors="black" if is_primary else "none", linewidths=.6, zorder=5)
-            loss_ax.set(title=f"{code.upper()} | p={p:g}", yscale="log", ylabel="Total training loss" if col == 0 else "")
-            # A symlog axis displays zero validation failures without fabricating
-            # a positive rate. Its linear region is below one validation failure.
-            ler_ax.set_yscale("symlog", linthresh=100/4096)
-            rates = [e[method]["logical_error_rate"]*100 for h in histories.values()
-                     if h["config"]["code"] == code and h["config"]["error_rate"] == p
-                     for e in [*h["eval"], h["final"]] for method in ("raw", "osd")]
-            ler_ax.set_ylim(min(rates)*.75, max(rates)*1.15)
-            ler_ax.set(xlabel="Epoch (1-based)", ylabel="Validation / test LER (%)" if col == 0 else "")
-            for ax in (loss_ax, ler_ax):
-                ax.grid(alpha=.18)
-    axes[0, 0].legend(fontsize=8)
-    fig.legend(*axes[1, 0].get_legend_handles_labels(), loc="outside lower center", ncol=4, fontsize=9)
-    fig.suptitle("Joint Tanner CNN | all 20 training runs | 100 epochs, 819,200 training shots/run\n"
-                 "Solid: raw validation; dashed: OSD validation; diamonds: selected-checkpoint fresh test.\n"
-                 "Faint p=0.06 curves: additional seeds. LER axes are linear below 1/4,096 and logarithmic above.", fontsize=11)
-    fig.savefig(PLOTS / "training.png", dpi=170)
-    plt.close(fig)
-
-
-def seeds_plot(rows):
-    fig, axes = plt.subplots(1, 2, figsize=(11, 5), layout="constrained")
-    for ax, code in zip(axes, ("bb72", "bb144")):
-        selected = sorted((r for r in rows if r["code"] == code and r["depth"] == 2 and r["p"] == .06), key=lambda r: r["seed"])
-        for i, row in enumerate(selected):
-            x = np.array([0, 1]) + (i-1)*.14
-            y = np.array([row[f"{m}_ler"]*100 for m in ("raw", "osd")])
-            lo = np.array([row[f"{m}_ler_low"]*100 for m in ("raw", "osd")])
-            hi = np.array([row[f"{m}_ler_high"]*100 for m in ("raw", "osd")])
-            ax.errorbar(x, y, yerr=[y-lo, hi-y], fmt="o", capsize=4, label=f"Seed {row['seed']}")
-        ax.set(title=code.upper(), ylabel="Block LER (%)", xticks=[0, 1], xticklabels=["CNN", "CNN + OSD-0"],
-               xlim=(-.4, 1.4), yscale="log")
-        ax.grid(alpha=.18, which="both")
-        ax.legend(fontsize=9)
-    fig.suptitle("Depth 2 at p=0.06 | three independent training / test seeds per code\n"
-                 "65,536 shots per seed. Error bars describe shot uncertainty, not training-seed uncertainty.", fontsize=11)
-    fig.savefig(PLOTS / "seeds.png", dpi=180)
-    plt.close(fig)
-
-
 def main():
     ANALYSIS.mkdir(parents=True, exist_ok=True)
     PLOTS.mkdir(parents=True, exist_ok=True)
@@ -443,10 +329,8 @@ def main():
     depths = depth_comparison(banks)
     seed_summary(cnn)
     refs = references(cnn)
-    plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False})
-    cnn_plot(cnn, refs)
-    training_plot(histories)
-    seeds_plot(cnn)
+    from scripts.plot_bb_cnn_all import main as plot_all
+    plot_all()
     audit.update(cnn_experiments=len(cnn), cnn_final_shots=sum(r["shots"] for r in cnn),
                  cnn_saved_corrections_independently_rescored=True,
                  cnn_decoder_and_evaluation_snapshots_identical=True,
@@ -460,7 +344,7 @@ def main():
     print(json.dumps(audit, indent=2))
     for row in cnn:
         print(f"{row['code']} depth={row['depth']} p={row['p']} seed={row['seed']}: raw={row['raw_ler']:.6%}, OSD={row['osd_ler']:.6%}, epoch={row['best_epoch_one_based']}")
-    print("Wrote six analysis CSVs, audit JSON, and three PNGs. Markdown interpretation is maintained separately.")
+    print("Wrote analysis CSVs, audit JSON, and the combined CNN PNG. Markdown interpretation is maintained separately.")
 
 
 if __name__ == "__main__":

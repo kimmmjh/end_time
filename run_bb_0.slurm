@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=bbcnn_more_0
+#SBATCH --job-name=bb144_d5_p04_800_osd
 #SBATCH --account=m5328_g
 #SBATCH --qos=regular
 #SBATCH --time=24:00:00
 #SBATCH --constraint=gpu
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
 #SBATCH --gpus-per-task=1
 #SBATCH --output=slurm-%x-%j.out
@@ -26,27 +26,16 @@ export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
 export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
 export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
 
-# Continue selected depth-4/5 models from latest model.pt, with AdamW/RNG/best
-# preserved. New cosine phase starts at 1e-4. Only exp_0 in job 0 is recovery.
-# All source checkpoints are validated before any srun starts.
-# Raw-validation selection; old/new best share 65536 fresh final shots.
-# No source results are overwritten. Details: docs/bb_tanner_cnn_more_training.md
-BB_CAMPAIGN="bb_tanner_cnn_depth45_resume800_2026_10"
+# Resume the recovered 400-epoch model, then evaluate standard syndrome OSD-0.
+# Training retains its original residual-OSD diagnostics and raw best selection.
+# The new decoder is evaluated after training on the exact saved final bank.
+BB_CAMPAIGN="bb144_d5_p04_800_and_syndrome_osd0"
 BB_PYTHON_ENTRYPOINT="$ROOT/scripts/continue_bb_tanner_cnn.py"
 
 experiments=(
-    "--source-job=59122450 --code=bb144 --depth=5 --p=0.04 --seed=14401040 --expected-epochs=114 --target-epochs=400 --lr=0.0001 --allow-incomplete"
-    "--source-job=59122450 --code=bb144 --depth=5 --p=0.06 --seed=14401060 --expected-epochs=400 --target-epochs=800 --lr=0.0001"
-    "--source-job=59122450 --code=bb144 --depth=5 --p=0.08 --seed=14401080 --expected-epochs=400 --target-epochs=800 --lr=0.0001"
-    "--source-job=59122449 --code=bb72 --depth=5 --p=0.08 --seed=7201080 --expected-epochs=400 --target-epochs=800 --lr=0.0001"
+    "--source-job=59622483 --code=bb144 --depth=5 --p=0.04 --seed=14401040 --expected-epochs=400 --target-epochs=800 --lr=0.0001"
 )
-
-BB_EXPERIMENT_LABELS=(
-    "bb144_d5_p0.04_seed14401040_114to400"
-    "bb144_d5_p0.06_seed14401060_400to800"
-    "bb144_d5_p0.08_seed14401080_400to800"
-    "bb72_d5_p0.08_seed7201080_400to800"
-)
+BB_EXPERIMENT_LABELS=("bb144_d5_p0.04_seed14401040_400to800")
 
 # Launch/logging code is embedded so sbatch captures it with this script.
 _BB_STEP_PIDS=()
@@ -127,7 +116,7 @@ run_bb_experiments() {
         return 2
     fi
 
-    # Validate all four source checkpoints before starting any training step.
+    # Validate the source checkpoint before starting any training step.
     for params in "$@"; do
         read -r -a argv <<< "$params"
         python -u "$entrypoint" "${argv[@]}" --dry-run
@@ -148,7 +137,7 @@ run_bb_experiments() {
         echo "Experiments: $experiment_count"
         echo "Campaign: ${BB_CAMPAIGN:-unspecified}"
         echo "Resume source jobs: see experiments.tsv"
-        echo "Epochs: 400 -> 800; recovery only: 114 -> 400; LR restart 1e-4"
+        echo "Epochs: 400 -> 800; LR restart 1e-4; post-hoc syndrome OSD-0"
         echo "Resume source override: ${BB_CNN_SOURCE_ROOT:-automatic}"
     } > "$_BB_RESULT_DIRECTORY/job_metadata.txt"
     cp "$0" "$_BB_RESULT_DIRECTORY/submitted_script.slurm" 2>/dev/null || true
@@ -157,10 +146,11 @@ run_bb_experiments() {
     # The active decoder may be uncommitted during a research campaign.
     # Preserve its implementation as well as the exact shell command.
     mkdir -p "$_BB_RESULT_DIRECTORY/source_snapshot/models" \
-        "$_BB_RESULT_DIRECTORY/source_snapshot/src"
+        "$_BB_RESULT_DIRECTORY/source_snapshot/src" \
+        "$_BB_RESULT_DIRECTORY/source_snapshot/scripts"
     for params in models/_bb_tanner_cnn.py src/_bb_tanner_cnn_experiment.py \
         src/_direct_osd.py src/_bb_loss.py src/_bb_metrics.py \
-        src/bb_data_generator.py src/bb_code.py main.py; do
+        src/bb_data_generator.py src/bb_code.py main.py scripts/evaluate_bb_cnn_osd.py; do
         cp "$ROOT/$params" "$_BB_RESULT_DIRECTORY/source_snapshot/$params" || return 1
     done
     if command -v git >/dev/null 2>&1 && \
@@ -232,3 +222,25 @@ run_bb_experiments() {
 }
 
 run_bb_experiments "${experiments[@]}"
+
+# A successful job includes both the training result and the new OSD evaluation.
+if [[ "${BB_DRY_RUN:-0}" == 1 ]]; then
+    printf 'After training: python -u %q <new-resdir>/outputs --output-root <new-resdir>/standard_osd0 --device cuda:0 --require-complete --expected-runs 1\n' "$ROOT/scripts/evaluate_bb_cnn_osd.py"
+    exit 0
+fi
+mv "$_BB_RESULT_DIRECTORY/completed.txt" "$_BB_RESULT_DIRECTORY/training_completed.txt"
+if srun --exclusive --exact --nodes=1 --ntasks=1 \
+    --cpus-per-task="${SLURM_CPUS_PER_TASK:-16}" --mem=16G --gpus-per-task=1 \
+    python -u "$ROOT/scripts/evaluate_bb_cnn_osd.py" \
+    "$_BB_RESULT_DIRECTORY/outputs" \
+    --output-root "$_BB_RESULT_DIRECTORY/standard_osd0" \
+    --device cuda:0 --require-complete --expected-runs 1 \
+    > "$_BB_RESULT_DIRECTORY/log_standard_osd0.txt" 2>&1; then
+    echo 0 > "$_BB_RESULT_DIRECTORY/exit_code_standard_osd0.txt"
+    echo "Training to 800 epochs and standard syndrome OSD-0 completed" > "$_BB_RESULT_DIRECTORY/completed.txt"
+else
+    exit_code=$?
+    echo "$exit_code" > "$_BB_RESULT_DIRECTORY/exit_code_standard_osd0.txt"
+    echo "Training completed; standard OSD evaluation failed: $exit_code" > "$_BB_RESULT_DIRECTORY/failed.txt"
+    exit "$exit_code"
+fi

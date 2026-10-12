@@ -19,9 +19,8 @@ htmlcov/
 # Generated experiment artifacts
 /outputs/
 resdir_*
-!/resdir_58793761/
-!/resdir_58793763/
-!/resdir_58793766/
+!/resdir_58793764/
+!/resdir_58793765/
 /results/*
 !/results/README.md
 !/results/plots/

@@ -55,6 +55,12 @@ def test_missing_and_ambiguous_sources_fail_instead_of_starting_fresh(tmp_path):
         resolve_checkpoint(tmp_path, 58793761, "bb72", .06, 7201060, source_root=tmp_path)
 
 
+def test_find_mixed_code_continuation_archive(tmp_path):
+    checkpoint = source(tmp_path / "results/bb/code_capacity/depolarizing/tanner_cnn/"
+                        "continued_training/resdir_59622488/outputs/date/model")
+    assert resolve_checkpoint(tmp_path, 59622488, "bb72", .06, 7201060) == checkpoint
+
+
 def test_deep_recovery_requires_explicit_permission_and_exact_completed_epochs(tmp_path):
     checkpoint = source(tmp_path / "results/bb/code_capacity/depolarizing/tanner_cnn/400_epochs/"
                         "bb72/resdir_59122449/outputs/date/model")

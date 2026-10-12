@@ -109,39 +109,38 @@ logical (unflagged) failures.
 
 ## Current Slurm experiments
 
-Active **`run_bb_0.slurm`–`run_bb_2.slurm`** now continue selected depth-4/5
-Tanner CNN models. Eleven completed models at p=.04/.06/.08 add 400 epochs to
-reach **800 total**; the failed BB144 depth-5 p=.04 model resumes from 114 to
-**400 total**. LR restarts at **1e-4**, preserving optimizer, samplers and old
-best weights. Each job launches four GPU tasks.
+Active launchers are **`run_bb_0.slurm` and `run_bb_1.slurm`**:
 
-| Script | Four experiments |
+| Script | Action |
 | --- | --- |
-| `run_bb_0.slurm` | BB144 d5 p=.04 recovery, BB144 d5 p=.06/.08 continuation, BB72 d5 p=.08 continuation |
-| `run_bb_1.slurm` | BB72 d5 p=.04/.06 and BB144 d4 p=.04/.06 continuation |
-| `run_bb_2.slurm` | BB72 d4 p=.04/.06/.08 and BB144 d4 p=.08 continuation |
-
-See the [new campaign, failure diagnosis and exact settings](docs/bb_tanner_cnn_more_training.md).
-The component-probability calculation bounds float32 roundoff to [0,1]; invalid
-values still fail and save a diagnostic batch. Update Python sources as well
-as Slurm scripts on the cluster before submitting.
+| `run_bb_0.slurm` | BB144 depth 5 p=.04, job 59622483: 400→800 epochs, then standard syndrome OSD-0 evaluation |
+| `run_bb_1.slurm` | Latest 44 CNN models: raw / residual OSD-0 / standard syndrome OSD-0, no retraining, four GPU tasks |
 
 ```bash
 BB_DRY_RUN=1 bash run_bb_0.slurm
-for i in 0 1 2; do sbatch "run_bb_${i}.slurm"; done
+train_job=$(sbatch --parsable run_bb_0.slurm)
+sbatch --dependency=afterok:"${train_job%%;*}" run_bb_1.slurm
 ```
 
-Each model retains width 64, 128 batches of 64 shots per epoch, raw-validation
-checkpoint selection and 65,536 paired final shots for the old/new best models.
-The launchers validate source checkpoints before starting, use one four-GPU node
-for 24 hours, and save to a new `resdir_JOB` without modifying original results.
-Source discovery supports both root server results and organized `results/` archives.
+[Current campaign and required source files](docs/bb_cnn_resume800_standard_osd.md).
+Source results may remain under `~/end_time/resdir_JOB` or the organized archive.
+Continuation requires `model.pt` and `history.json`; post-hoc OSD also requires
+`final_shots.npz`. No training chunks are needed. Update Python sources as well
+as Slurm scripts on the cluster. Each job writes a new `resdir_JOB`.
+
+The completed 12-model continuation's scripts 0–2 are preserved in
+[`scripts/slurm_archive/bb_depth45_resume800/`](scripts/slurm_archive/bb_depth45_resume800/).
 
 The previous numbered scripts 0–8 are preserved in
 [`scripts/slurm_archive/bb_capacity400/`](scripts/slurm_archive/bb_capacity400/).
 The [400-epoch analysis](results/analysis/bb_update_2026_10_10.md),
 [Tanner CNN architecture](docs/bb_tanner_cnn.md) and
 [circuit baseline notes](docs/bb_baseline_campaign.md) remain available.
+
+For **evaluation without retraining**, use
+[`scripts/evaluate_bb_cnn_osd.py`](scripts/evaluate_bb_cnn_osd.py) to compare
+residual and standard syndrome OSD-0 on frozen CNN checkpoints and saved final
+shots. See [inputs, commands, and comparison details](docs/bb_cnn_posthoc_osd.md).
 
 For the original single-pass no-OSD comparison outside Slurm, use the
 direct-GPU runner (this runner does not enable Relay):

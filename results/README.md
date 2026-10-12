@@ -16,15 +16,62 @@ results/
 └── local_smoke/
 ```
 
+## October 12, 2026: missing server jobs prepared for Git transfer
+
+Jobs `58793764` (BB72 depth 1) and `58793765` (BB144 depth 1) were moved from
+the archive to repository-root `resdir_58793764/` and `resdir_58793765/`, because
+they were absent from the supplied server listing. `.gitignore` allows both
+folders for transfer. All 100 files (40,297,607 bytes) retain identical SHA-256
+hashes. [Relocation manifest](analysis/bb_server_missing_sources_2026_10_12.csv).
+The three jobs in the earlier cleanup below remain archived.
+
+## October 12, 2026: remaining root result folders archived
+
+The three remaining root jobs are now inside the existing Tanner CNN archive:
+`58793761` under `bb72/`, `58793763` under `bb144/`, and `58793766` under
+`replicates/`. All 150 files (120,321,736 bytes) retain identical SHA-256 hashes.
+Checkpoint discovery supports these paths; this cleanup initially left no root
+`resdir_*` folders, before the two transfer jobs above were moved out.
+[Relocation manifest](analysis/bb_root_cleanup_2026_10_12.csv).
+
+## October 12, 2026: depth 4/5 continued training
+
+[추가 학습 분석](analysis/bb_update_2026_10_12.md): jobs `59622483`, `59622488`,
+`59622490`의 12개 모델이 모두 완료됐다. 11개는 총 800 epochs, 실패했던
+BB144 depth 5 p=.04는 총 400 epochs까지 복구됐다. 같은 final shots에서 비교하면
+400→800 연장은 raw 10/11, 기존 residual OSD-0 7/11에서 유의한 개선을 보였다
+(24개 검정 Holm 보정). 같은 800-epoch 예산으로 비교 가능한 5개 지점 모두
+depth 5가 depth 4보다 좋다. BB72 depth 5 p=.04는 이전 best 가중치를 유지했다.
+
+- [최종 성능](plots/bb/code_capacity/tanner_cnn/overview.png)
+  · [같은 샘플에서의 개선량](analysis/bb_update_2026_10_12_cnn_resume_pairs.csv)
+  · [학습 기록](analysis/bb_update_2026_10_12_cnn_validation.csv)
+- [원본 3개 job](bb/code_capacity/depolarizing/tanner_cnn/continued_training/):
+  165개 파일을 보존했고 이동 전후 SHA-256과 크기를 확인했다.
+- [검증 요약](analysis/bb_update_2026_10_12_audit.json)
+  · [이동 기록](analysis/bb_update_2026_10_12_relocation.csv).
+
+재생성: `python scripts/analyze_bb_october12.py`.
+아래 표준 syndrome OSD-0 재평가와는 별도 결과다.
+
+## October 12, 2026: frozen CNN with standard syndrome OSD-0
+
+[재학습 없는 OSD 비교](analysis/bb_cnn_standard_osd0_2026_10_12.md): BB144 depth 5,
+p=.06, 400-epoch 모델의 기존 65,536 final shots를 CPU에서 재평가했다.
+Residual OSD-0 370 failures, syndrome OSD-0 366 failures로, 이 한 지점에서는
+유의한 차이가 확인되지 않았다. 과거 GPU 저장값과의 작은 재현 차이는 보고서에
+별도 기록했다. 전체 모델을 평가한 결과는 아니다.
+실행법은 [post-hoc 평가 안내](../docs/bb_cnn_posthoc_osd.md)를 참고한다.
+
 ## October 10, 2026: 400-epoch CNN depth sweep and low-p circuit statistics
 
-**최신 분석은 [10월 10일 보고서](analysis/bb_update_2026_10_10.md)와
-[depth 2–5 비교](plots/bb/code_capacity/tanner_cnn/400_epochs/cnn_depth.png)에서 확인한다.**
+**400-epoch 분석은 [10월 10일 보고서](analysis/bb_update_2026_10_10.md)와
+[depth 2–5 비교](plots/bb/code_capacity/tanner_cnn/overview.png)에서 확인한다.**
 
 - CNN 36개 중 35개 완료. Depth 5는 비교 가능한 7개 지점 모두 raw LER 최저;
   p≥.04의 완료된 5개 지점은 CNN+OSD도 최저다. Depth 2는 100+300 LR restart,
   depth 3–5는 fresh 400-epoch cosine이므로 학습 schedule은 다르다.
-- [학습 곡선](plots/bb/code_capacity/tanner_cnn/400_epochs/cnn_training.png)과
+- [학습 기록](analysis/bb_update_2026_10_10_cnn_validation.csv)과
   [최종 수치](analysis/bb_update_2026_10_10_cnn_final.csv). BB144 depth 5 p=.04는
   114 epochs 저장 후 validation OSD 확률 검증 오류로 실패해 final 결과가 없다.
 - BB72 circuit p=.001/.002는 각각 100만 shots 완료:
@@ -53,9 +100,10 @@ python scripts/analyze_bb_october10.py
 
 ## Figures: start here
 
-**기존 100-epoch Tanner CNN은 [overview](plots/bb/code_capacity/tanner_cnn/overview.png) →
-[training](plots/bb/code_capacity/tanner_cnn/training.png) →
-[seeds](plots/bb/code_capacity/tanner_cnn/seeds.png) 순서로 보면 된다.**
+**[CNN 통합 성능 그림](plots/bb/code_capacity/tanner_cnn/overview.png) 하나에서
+각 설정의 최신 결과 44개를 비교한다.** 색은 depth다. 추가 학습 이전 단계는 표시하지 않는다.
+학습·seed·개별 시기 그림은 정리했고 원본 데이터와 통계는 보존했다.
+[표시된 최신 수치](analysis/bb_cnn_latest_final.csv). 재생성: `python scripts/plot_bb_cnn_all.py`.
 
 수정한 circuit BP/OSD baseline의 새 BB72 결과는
 [전용 성능 그림](plots/bb/circuit/library_bp_osd/overview.png)과
@@ -72,8 +120,11 @@ and regeneration commands. Figures are grouped by **code → noise → model**:
 | Relay BP / Neural Relay BP / Neural BP / Neural+OSD, circuit | [bb/circuit/neural_bp/](plots/bb/circuit/neural_bp/) | [combined overview](plots/bb/circuit/neural_bp/overview.png) |
 | Toric ConvGRU / PyMatching | [toric/phenomenological/](plots/toric/phenomenological/) | [threshold](plots/toric/phenomenological/threshold.png) |
 
-The Tanner CNN overview overlays both CNN depths, with/without OSD, and Neural
-BP4 in each code's panel. Training-budget differences are labelled.
+The Tanner CNN overview shows only the latest completed run per code/p/depth/seed
+in four panels (BB72/BB144 × raw/residual OSD-0). Color identifies depth. Earlier
+training stages are omitted; 44 configurations remain. Extra seeds and the
+400-epoch recovery are marked separately. Training budgets differ across points.
+Prior Neural BP4 appears in the raw panels only.
 Circuit `neural_bp/overview.png` combines Relay BP, Neural Relay BP, Neural BP,
 and Neural BP+OSD-0 in two panels (BB72 / BB144). These curves share the original
 idle-free circuit and X/Z block-failure metric; original histories and DEM

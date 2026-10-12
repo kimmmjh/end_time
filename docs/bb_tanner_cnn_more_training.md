@@ -1,9 +1,20 @@
 # Tanner CNN: depth-5 recovery and selected 400→800 continuation
 
-Active root launchers are now **run_bb_0.slurm–run_bb_2.slurm**. They launch
+**Campaign completed:** jobs `59622483`, `59622488`, and `59622490` completed all
+12 models: 11 at 800 epochs and the recovery at 400. Original files are archived
+under `results/bb/code_capacity/depolarizing/tanner_cnn/continued_training/`.
+See the [October 12 analysis](../results/analysis/bb_update_2026_10_12.md) for
+paired gains and checkpoint-selection results. The commands below document the
+completed campaign; resubmitting them repeats these continuations.
+
+The historical launchers are archived in
+[`scripts/slurm_archive/bb_depth45_resume800/`](../scripts/slurm_archive/bb_depth45_resume800/). They launched
 12 existing models on three four-GPU allocations; none starts from scratch.
 Prior numbered launchers 0–8 are retained verbatim in
 [`scripts/slurm_archive/bb_capacity400/`](../scripts/slurm_archive/bb_capacity400/).
+
+Current root scripts now implement the
+[BB144 p=.04 continuation and standard OSD evaluation](bb_cnn_resume800_standard_osd.md).
 
 ## Why these runs
 
@@ -86,6 +97,8 @@ outputs and config identities are preserved.
 `scripts/continue_bb_tanner_cnn.py` searches the server's original
 `$HOME/end_time/resdir_JOB/outputs/.../model.pt` and the organized local archive
 `results/bb/code_capacity/depolarizing/tanner_cnn/400_epochs/{code,replicates}/resdir_JOB/`.
+New mixed-code jobs are also found under
+`results/bb/code_capacity/depolarizing/tanner_cnn/continued_training/resdir_JOB/`.
 Old 100-epoch archive paths remain supported. Missing or ambiguous sources fail;
 there is no fresh-training fallback. `BB_CNN_SOURCE_ROOT` overrides the directory
 containing the source job directories. The old root source folders can remain
@@ -96,7 +109,7 @@ submission; updating a launcher alone would not fix the probability calculation.
 
 ```bash
 # Inspect shell-generated arguments (no training or Python imports):
-BB_DRY_RUN=1 bash run_bb_0.slurm
+BB_DRY_RUN=1 bash scripts/slurm_archive/bb_depth45_resume800/run_bb_0.slurm
 
 # Validate the actual failed checkpoint and print its recovery command:
 python scripts/continue_bb_tanner_cnn.py \
@@ -104,8 +117,8 @@ python scripts/continue_bb_tanner_cnn.py \
   --expected-epochs=114 --target-epochs=400 --lr=.0001 \
   --allow-incomplete --dry-run
 
-# Submit the three current jobs:
-for i in 0 1 2; do sbatch "run_bb_${i}.slurm"; done
+# Reproduce the three historical jobs:
+for i in 0 1 2; do sbatch "scripts/slurm_archive/bb_depth45_resume800/run_bb_${i}.slurm"; done
 ```
 
 The launchers create new `resdir_<SLURM_JOB_ID>` folders and never overwrite the

@@ -28,7 +28,8 @@ def resolve_checkpoint(repo_root, source_job, code, p, seed, source_root=None, *
         archive = root / "results/bb/code_capacity/depolarizing/tanner_cnn"
         roots = [root / name, archive / code / name, archive / "replicates" / name,
                  archive / "400_epochs" / code / name,
-                 archive / "400_epochs/replicates" / name]
+                 archive / "400_epochs/replicates" / name,
+                 archive / "continued_training" / name]
     matches = set()
     expected = {"architecture": "bb_tanner_cnn", "code": code, "error_rate": p,
                 "seed": seed, "cnn_depth": depth, "cnn_width": 64,

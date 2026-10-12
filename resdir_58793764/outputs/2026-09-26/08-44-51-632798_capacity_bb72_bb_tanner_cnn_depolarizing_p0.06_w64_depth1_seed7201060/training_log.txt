@@ -1,0 +1,125 @@
+Executed command: python /global/homes/d/ds08152/end_time/main.py --architecture=bb_tanner_cnn --noise_model=capacity --bb_channel=depolarizing --rounds=1 --measurement_error_rate=0 --bb_idle_error_rate=0 --loss_fn=bb_coset --epochs=100 --batch_size=64 --batches=128 --eval_batches=64 --eval_every=5 --final_eval_batches=1024 --lr=0.0003 --amp_dtype=none --save_model --bb_cnn_width=64 --bb_cnn_gradient_clip=1.0 --bb_syndrome_loss_weight=1.0 --bb_logical_loss_weight=1.0 --bb_pauli_loss_weight=0.1 --bb_weight_decay=0.0001 --code=bb72 --bb_cnn_depth=1 --p=0.06 --seed=7201060
+Configuration: {"architecture": "bb_tanner_cnn", "code": "bb72", "n": 72, "k": 12, "d": 6, "graph_fingerprint": "60ede51d121848d51618c883a4be4a71fb83b617c0e6d3ac71105abd466c44f0", "noise_model": "capacity", "channel": "depolarizing", "error_rate": 0.06, "x_error_rate": null, "z_error_rate": null, "channel_probabilities": [0.94, 0.02, 0.02, 0.02], "seed": 7201060, "cnn_width": 64, "cnn_depth": 1, "syndrome_loss_weight": 1.0, "logical_loss_weight": 1.0, "pauli_loss_weight": 0.1, "weight_decay": 0.0001, "gradient_clip": 1.0, "hard_decision": "component_marginal_gt_half", "checkpoint_selection": "raw_logical_accuracy", "osd": "direct_hard_centered_osd0_v1", "osd_order": 0, "osd_extra_bp_iterations": 0, "osd_sectors": "css_separated", "osd_policy": "only_invalid_sectors", "parameter_count": 54404, "dtype": "float32"}
+Joint Tanner CNN: depth=1 width=64 | device=cuda:0 | parameters=54404
+Paired CNN/CNN+direct OSD-0 evaluation; best selection uses raw CNN LER. Output: /global/u2/d/ds08152/end_time/resdir_58793764/outputs/2026-09-26/08-44-51-632798_capacity_bb72_bb_tanner_cnn_depolarizing_p0.06_w64_depth1_seed7201060
+[Train] Epoch 0 | {"total": 1.003795043565333, "syndrome": 0.39946389256510884, "logical": 0.5800761128775775, "pauli": 0.24255041184369475}
+[Train] Epoch 1 | {"total": 0.795123890042305, "syndrome": 0.27252995455637574, "logical": 0.5041228102054447, "pauli": 0.18471128586679697}
+[Train] Epoch 2 | {"total": 0.6517981165088713, "syndrome": 0.20257098437286913, "logical": 0.43490620772354305, "pauli": 0.14320922049228102}
+[Train] Epoch 3 | {"total": 0.5464093582704663, "syndrome": 0.15761115023633465, "logical": 0.37628842354752123, "pauli": 0.1250978410243988}
+[Train] Epoch 4 | {"total": 0.5433249815832824, "syndrome": 0.15689547068905085, "logical": 0.3739136103540659, "pauli": 0.12515900703147054}
+[Validation] Epoch 4 | CNN LER 0.69482422 | CNN+OSD-0 LER 0.17651367 | CNN convergence 0.30541992 | OSD called 0.6946 | paired gain +0.51831055 | shots 4096
+[Train] Epoch 5 | {"total": 0.539489964954555, "syndrome": 0.1560437958687544, "logical": 0.37101184925995767, "pauli": 0.12434319598833099}
+[Train] Epoch 6 | {"total": 0.5379060124978423, "syndrome": 0.1550699439831078, "logical": 0.3704453157261014, "pauli": 0.12390750792110339}
+[Train] Epoch 7 | {"total": 0.5425713201984763, "syndrome": 0.15666051220614463, "logical": 0.37351678870618343, "pauli": 0.12394019530620426}
+[Train] Epoch 8 | {"total": 0.5433715756516904, "syndrome": 0.15705047437222674, "logical": 0.373803966678679, "pauli": 0.12517131015192717}
+[Train] Epoch 9 | {"total": 0.5389188616536558, "syndrome": 0.15497426508227363, "logical": 0.37157895788550377, "pauli": 0.12365639751078561}
+[Validation] Epoch 9 | CNN LER 0.68920898 | CNN+OSD-0 LER 0.16406250 | CNN convergence 0.31079102 | OSD called 0.6892 | paired gain +0.52514648 | shots 4096
+[Train] Epoch 10 | {"total": 0.5417008074000478, "syndrome": 0.15653341199504212, "logical": 0.3727153828367591, "pauli": 0.12452012341236696}
+[Train] Epoch 11 | {"total": 0.53836022131145, "syndrome": 0.15568394295405596, "logical": 0.370498777134344, "pauli": 0.12177503277780488}
+[Train] Epoch 12 | {"total": 0.53872962272726, "syndrome": 0.1556107972864993, "logical": 0.37071352638304234, "pauli": 0.12405296991346404}
+[Train] Epoch 13 | {"total": 0.5473846781533211, "syndrome": 0.15825613512424752, "logical": 0.3766855550929904, "pauli": 0.12442990799900144}
+[Train] Epoch 14 | {"total": 0.5433623362332582, "syndrome": 0.15649836498778313, "logical": 0.37450743233785033, "pauli": 0.12356540799373761}
+[Validation] Epoch 14 | CNN LER 0.69946289 | CNN+OSD-0 LER 0.17114258 | CNN convergence 0.30053711 | OSD called 0.6995 | paired gain +0.52832031 | shots 4096
+[Train] Epoch 15 | {"total": 0.5369328856468201, "syndrome": 0.15535844390979037, "logical": 0.36937242676503956, "pauli": 0.12202015763614327}
+[Train] Epoch 16 | {"total": 0.5465960251167417, "syndrome": 0.1572525470983237, "logical": 0.37714779237285256, "pauli": 0.12195687409257516}
+[Train] Epoch 17 | {"total": 0.548206370556727, "syndrome": 0.15794768778141588, "logical": 0.3777922654990107, "pauli": 0.12466418498661369}
+[Train] Epoch 18 | {"total": 0.5455710864625871, "syndrome": 0.1576110788155347, "logical": 0.37542642396874726, "pauli": 0.12533582106698304}
+[Train] Epoch 19 | {"total": 0.5365079254843295, "syndrome": 0.15396139112999663, "logical": 0.37041528313420713, "pauli": 0.12131247791694477}
+[Validation] Epoch 19 | CNN LER 0.69677734 | CNN+OSD-0 LER 0.18994141 | CNN convergence 0.30346680 | OSD called 0.6965 | paired gain +0.50683594 | shots 4096
+[Train] Epoch 20 | {"total": 0.5414613992907107, "syndrome": 0.15600016561802477, "logical": 0.3732397831045091, "pauli": 0.12221453938400373}
+[Train] Epoch 21 | {"total": 0.5430006897076964, "syndrome": 0.15664477401878685, "logical": 0.374089039163664, "pauli": 0.12266876309877262}
+[Train] Epoch 22 | {"total": 0.5371605413965881, "syndrome": 0.15377136669121683, "logical": 0.3711933493614197, "pauli": 0.12195826479000971}
+[Train] Epoch 23 | {"total": 0.5379637682344764, "syndrome": 0.1560694529907778, "logical": 0.3695943469647318, "pauli": 0.12299967830767855}
+[Train] Epoch 24 | {"total": 0.5454448699019849, "syndrome": 0.15689960250165313, "logical": 0.3762487950734794, "pauli": 0.12296471215086058}
+[Validation] Epoch 24 | CNN LER 0.68725586 | CNN+OSD-0 LER 0.17333984 | CNN convergence 0.31274414 | OSD called 0.6873 | paired gain +0.51391602 | shots 4096
+[Train] Epoch 25 | {"total": 0.5392979923635721, "syndrome": 0.155776213738136, "logical": 0.37120058736763895, "pauli": 0.12321194174000993}
+[Train] Epoch 26 | {"total": 0.5448480052873492, "syndrome": 0.15653556142933667, "logical": 0.3760384754277766, "pauli": 0.12273970531532541}
+[Train] Epoch 27 | {"total": 0.5443504750728607, "syndrome": 0.1566141092334874, "logical": 0.3752236943691969, "pauli": 0.12512670643627644}
+[Train] Epoch 28 | {"total": 0.5427371186669916, "syndrome": 0.1568236505263485, "logical": 0.3736431391444057, "pauli": 0.12270329619059339}
+[Train] Epoch 29 | {"total": 0.5372604662552476, "syndrome": 0.15403571462957188, "logical": 0.3710514565464109, "pauli": 0.12173296796390787}
+[Validation] Epoch 29 | CNN LER 0.68457031 | CNN+OSD-0 LER 0.15917969 | CNN convergence 0.31567383 | OSD called 0.6843 | paired gain +0.52539062 | shots 4096
+[Train] Epoch 30 | {"total": 0.5405428390949965, "syndrome": 0.15641222929116338, "logical": 0.37170391948893666, "pauli": 0.12426690058782697}
+[Train] Epoch 31 | {"total": 0.5425298835616559, "syndrome": 0.1560119132627733, "logical": 0.37403775402344763, "pauli": 0.12480218755081296}
+[Train] Epoch 32 | {"total": 0.5344030172564089, "syndrome": 0.15388728043762967, "logical": 0.368565616896376, "pauli": 0.11950125091243535}
+[Train] Epoch 33 | {"total": 0.5446901365648955, "syndrome": 0.15718858945183456, "logical": 0.3750728387385607, "pauli": 0.12428709276719019}
+[Train] Epoch 34 | {"total": 0.5452201860025525, "syndrome": 0.15743542253039777, "logical": 0.3752096917014569, "pauli": 0.12575069861486554}
+[Validation] Epoch 34 | CNN LER 0.69042969 | CNN+OSD-0 LER 0.17724609 | CNN convergence 0.30957031 | OSD called 0.6904 | paired gain +0.51318359 | shots 4096
+[Train] Epoch 35 | {"total": 0.5374225631821901, "syndrome": 0.15442162280669436, "logical": 0.370889357291162, "pauli": 0.12111584504600614}
+[Train] Epoch 36 | {"total": 0.5414730841293931, "syndrome": 0.15511857072124258, "logical": 0.3741791667416692, "pauli": 0.12175350682809949}
+[Train] Epoch 37 | {"total": 0.5355996368452907, "syndrome": 0.1540176218841225, "logical": 0.36932494794018567, "pauli": 0.12257065688027069}
+[Train] Epoch 38 | {"total": 0.5371179117355496, "syndrome": 0.15428513049846515, "logical": 0.37065941328182817, "pauli": 0.12173365865601227}
+[Train] Epoch 39 | {"total": 0.5393659372348338, "syndrome": 0.15503967180848122, "logical": 0.3722047780174762, "pauli": 0.12121486890828237}
+[Validation] Epoch 39 | CNN LER 0.67968750 | CNN+OSD-0 LER 0.16479492 | CNN convergence 0.32080078 | OSD called 0.6792 | paired gain +0.51489258 | shots 4096
+[Train] Epoch 40 | {"total": 0.5408480067271739, "syndrome": 0.15629847149830312, "logical": 0.37229663669131696, "pauli": 0.12252899818122387}
+[Train] Epoch 41 | {"total": 0.5396172651089728, "syndrome": 0.1553805370349437, "logical": 0.37202262110076845, "pauli": 0.1221410992438905}
+[Train] Epoch 42 | {"total": 0.534826995106414, "syndrome": 0.15390709886560217, "logical": 0.3688704567030072, "pauli": 0.12049439898692071}
+[Train] Epoch 43 | {"total": 0.5427575521171093, "syndrome": 0.15678711398504674, "logical": 0.37364693311974406, "pauli": 0.12323504011146724}
+[Train] Epoch 44 | {"total": 0.5361681431531906, "syndrome": 0.1546036241343245, "logical": 0.36942410352639854, "pauli": 0.12140412826556712}
+[Validation] Epoch 44 | CNN LER 0.67529297 | CNN+OSD-0 LER 0.17333984 | CNN convergence 0.32470703 | OSD called 0.6753 | paired gain +0.50195312 | shots 4096
+[Train] Epoch 45 | {"total": 0.5500566805712879, "syndrome": 0.15850198594853282, "logical": 0.37910363101400435, "pauli": 0.12451063975458965}
+[Train] Epoch 46 | {"total": 0.5309340020176023, "syndrome": 0.15222313796402887, "logical": 0.3667684069368988, "pauli": 0.11942458752309904}
+[Train] Epoch 47 | {"total": 0.5393127377610654, "syndrome": 0.1554067637771368, "logical": 0.37158868461847305, "pauli": 0.12317286274628714}
+[Train] Epoch 48 | {"total": 0.5441374322399497, "syndrome": 0.1562805186258629, "logical": 0.3756073657423258, "pauli": 0.12249548267573118}
+[Train] Epoch 49 | {"total": 0.5397867981810123, "syndrome": 0.15507466142298654, "logical": 0.37259320076555014, "pauli": 0.12118936167098582}
+[Validation] Epoch 49 | CNN LER 0.69775391 | CNN+OSD-0 LER 0.17187500 | CNN convergence 0.30224609 | OSD called 0.6978 | paired gain +0.52587891 | shots 4096
+[Train] Epoch 50 | {"total": 0.5430020983330905, "syndrome": 0.15577662707073614, "logical": 0.3751016540918499, "pauli": 0.12123813398648053}
+[Train] Epoch 51 | {"total": 0.5410384314600378, "syndrome": 0.1562284390674904, "logical": 0.37263234658166766, "pauli": 0.12177644961047918}
+[Train] Epoch 52 | {"total": 0.5366945245768875, "syndrome": 0.15405695961089805, "logical": 0.3705680218990892, "pauli": 0.1206954208901152}
+[Train] Epoch 53 | {"total": 0.5417759937699884, "syndrome": 0.15630246454384178, "logical": 0.37308370298705995, "pauli": 0.12389830517349765}
+[Train] Epoch 54 | {"total": 0.5368936299346387, "syndrome": 0.1543929306208156, "logical": 0.3703958459664136, "pauli": 0.12104853859636933}
+[Validation] Epoch 54 | CNN LER 0.69653320 | CNN+OSD-0 LER 0.17211914 | CNN convergence 0.30346680 | OSD called 0.6965 | paired gain +0.52441406 | shots 4096
+[Train] Epoch 55 | {"total": 0.5405042849015445, "syndrome": 0.15491596149513498, "logical": 0.3733570030890405, "pauli": 0.12231320148566738}
+[Train] Epoch 56 | {"total": 0.5385204693302512, "syndrome": 0.15536175825400278, "logical": 0.37088209204375744, "pauli": 0.12276618700707331}
+[Train] Epoch 57 | {"total": 0.5357150437775999, "syndrome": 0.15436583809787408, "logical": 0.3693000259809196, "pauli": 0.12049179431051016}
+[Train] Epoch 58 | {"total": 0.5401433664374053, "syndrome": 0.15640747279394418, "logical": 0.3714398602023721, "pauli": 0.12296033080201596}
+[Train] Epoch 59 | {"total": 0.5389754688367248, "syndrome": 0.15419413248309866, "logical": 0.3727218364365399, "pauli": 0.1205949725699611}
+[Validation] Epoch 59 | CNN LER 0.67675781 | CNN+OSD-0 LER 0.16577148 | CNN convergence 0.32373047 | OSD called 0.6763 | paired gain +0.51098633 | shots 4096
+[Train] Epoch 60 | {"total": 0.5359978550113738, "syndrome": 0.15319290570914745, "logical": 0.370744674699381, "pauli": 0.1206027379957959}
+[Train] Epoch 61 | {"total": 0.5449127936735749, "syndrome": 0.15672661224380136, "logical": 0.37570620654150844, "pauli": 0.12479977903421968}
+[Train] Epoch 62 | {"total": 0.5371950096450746, "syndrome": 0.15401842340361327, "logical": 0.3709765204694122, "pauli": 0.12200067908270285}
+[Train] Epoch 63 | {"total": 0.5332747169304639, "syndrome": 0.1539499302743934, "logical": 0.367245334899053, "pauli": 0.12079452216858044}
+[Train] Epoch 64 | {"total": 0.5423432721290737, "syndrome": 0.15586243488360196, "logical": 0.37421289342455566, "pauli": 0.12267941969912499}
+[Validation] Epoch 64 | CNN LER 0.68310547 | CNN+OSD-0 LER 0.16918945 | CNN convergence 0.31689453 | OSD called 0.6831 | paired gain +0.51391602 | shots 4096
+[Train] Epoch 65 | {"total": 0.5456362415570766, "syndrome": 0.1576278394786641, "logical": 0.3755179501604289, "pauli": 0.12490451970370486}
+[Train] Epoch 66 | {"total": 0.5375823432113975, "syndrome": 0.15493823250290006, "logical": 0.3703363537788391, "pauli": 0.12307757930830121}
+[Train] Epoch 67 | {"total": 0.5425512662623078, "syndrome": 0.15544253290863708, "logical": 0.37474991963244975, "pauli": 0.12358808179851621}
+[Train] Epoch 68 | {"total": 0.5401391966734082, "syndrome": 0.15583670162595809, "logical": 0.37199009978212416, "pauli": 0.12312395987100899}
+[Train] Epoch 69 | {"total": 0.5447901973966509, "syndrome": 0.15660596918314695, "logical": 0.3758560719434172, "pauli": 0.12328153679845855}
+[Validation] Epoch 69 | CNN LER 0.67919922 | CNN+OSD-0 LER 0.16186523 | CNN convergence 0.32104492 | OSD called 0.6790 | paired gain +0.51733398 | shots 4096
+[Train] Epoch 70 | {"total": 0.5296561885625124, "syndrome": 0.15297486633062363, "logical": 0.3647968517616391, "pauli": 0.11884471838129684}
+[Train] Epoch 71 | {"total": 0.5455591806676239, "syndrome": 0.15707518358249217, "logical": 0.37592714093625546, "pauli": 0.12556860683253035}
+[Train] Epoch 72 | {"total": 0.5361106158234179, "syndrome": 0.15471943392185494, "logical": 0.3692136984318495, "pauli": 0.12177482317201793}
+[Train] Epoch 73 | {"total": 0.5359206513967365, "syndrome": 0.15563893178477883, "logical": 0.367950236890465, "pauli": 0.12331484956666827}
+[Train] Epoch 74 | {"total": 0.5421689646318555, "syndrome": 0.155930447333958, "logical": 0.3740257367026061, "pauli": 0.1221278088632971}
+[Validation] Epoch 74 | CNN LER 0.68261719 | CNN+OSD-0 LER 0.16430664 | CNN convergence 0.31738281 | OSD called 0.6826 | paired gain +0.51831055 | shots 4096
+[Train] Epoch 75 | {"total": 0.5367384641431272, "syndrome": 0.15358674572780728, "logical": 0.37082612654194236, "pauli": 0.12325592874549329}
+[Train] Epoch 76 | {"total": 0.5329116035718471, "syndrome": 0.15322332928190008, "logical": 0.36768835014663637, "pauli": 0.11999923683470115}
+[Train] Epoch 77 | {"total": 0.5391711667180061, "syndrome": 0.15483618865255266, "logical": 0.3720244022551924, "pauli": 0.12310579372569919}
+[Train] Epoch 78 | {"total": 0.5399316577240825, "syndrome": 0.15528837620513514, "logical": 0.3725151252001524, "pauli": 0.12128158239647746}
+[Train] Epoch 79 | {"total": 0.5396389665547758, "syndrome": 0.1555280591128394, "logical": 0.37181003857403994, "pauli": 0.12300869665341452}
+[Validation] Epoch 79 | CNN LER 0.69482422 | CNN+OSD-0 LER 0.16601562 | CNN convergence 0.30517578 | OSD called 0.6948 | paired gain +0.52880859 | shots 4096
+[Train] Epoch 80 | {"total": 0.5376277575269341, "syndrome": 0.15444527642102912, "logical": 0.371066736523062, "pauli": 0.12115746096242219}
+[Train] Epoch 81 | {"total": 0.538908609887585, "syndrome": 0.1549152439692989, "logical": 0.3716681208461523, "pauli": 0.1232524587539956}
+[Train] Epoch 82 | {"total": 0.5383984700310975, "syndrome": 0.15511970059014857, "logical": 0.37105897604487836, "pauli": 0.12219792418181896}
+[Train] Epoch 83 | {"total": 0.5433290586806834, "syndrome": 0.15645321097690612, "logical": 0.37444094219245017, "pauli": 0.12434905261034146}
+[Train] Epoch 84 | {"total": 0.5443382607772946, "syndrome": 0.15600001788698137, "logical": 0.3758501303382218, "pauli": 0.12488117127213627}
+[Validation] Epoch 84 | CNN LER 0.67260742 | CNN+OSD-0 LER 0.17187500 | CNN convergence 0.32739258 | OSD called 0.6726 | paired gain +0.50073242 | shots 4096
+[Train] Epoch 85 | {"total": 0.5437697749584913, "syndrome": 0.1568795567145571, "logical": 0.37446138239465654, "pauli": 0.12428837531479076}
+[Train] Epoch 86 | {"total": 0.5410866220481694, "syndrome": 0.15540096687618643, "logical": 0.3733442958910018, "pauli": 0.12341361661674455}
+[Train] Epoch 87 | {"total": 0.5371249741874635, "syndrome": 0.15446395525941625, "logical": 0.3705002183560282, "pauli": 0.12160802789730951}
+[Train] Epoch 88 | {"total": 0.5420916499570012, "syndrome": 0.1566210109158419, "logical": 0.37317356071434915, "pauli": 0.12297077453695238}
+[Train] Epoch 89 | {"total": 0.5344048934057355, "syndrome": 0.15308825520332903, "logical": 0.3693901412189007, "pauli": 0.11926494899671525}
+[Validation] Epoch 89 | CNN LER 0.69677734 | CNN+OSD-0 LER 0.17578125 | CNN convergence 0.30322266 | OSD called 0.6968 | paired gain +0.52099609 | shots 4096
+[Train] Epoch 90 | {"total": 0.5418515910860151, "syndrome": 0.15561196114867926, "logical": 0.37391825299710035, "pauli": 0.12321379448985681}
+[Train] Epoch 91 | {"total": 0.5280159369576722, "syndrome": 0.15214584104251117, "logical": 0.36394402757287025, "pauli": 0.11926069692708552}
+[Train] Epoch 92 | {"total": 0.5371316040400416, "syndrome": 0.15417707880260423, "logical": 0.3709612423554063, "pauli": 0.11993283784249797}
+[Train] Epoch 93 | {"total": 0.5436027590185404, "syndrome": 0.15678157220827416, "logical": 0.3742639624979347, "pauli": 0.12557229778030887}
+[Train] Epoch 94 | {"total": 0.5456532458774745, "syndrome": 0.1580174301052466, "logical": 0.3751436765305698, "pauli": 0.12492142128758132}
+[Validation] Epoch 94 | CNN LER 0.68872070 | CNN+OSD-0 LER 0.16748047 | CNN convergence 0.31127930 | OSD called 0.6887 | paired gain +0.52124023 | shots 4096
+[Train] Epoch 95 | {"total": 0.5413942597806454, "syndrome": 0.15459454688243568, "logical": 0.3744905062485486, "pauli": 0.12309203448239714}
+[Train] Epoch 96 | {"total": 0.5318152622785419, "syndrome": 0.15324087656335905, "logical": 0.36651684530079365, "pauli": 0.12057538848603144}
+[Train] Epoch 97 | {"total": 0.538735874928534, "syndrome": 0.15558658225927502, "logical": 0.3709707362577319, "pauli": 0.12178555800346658}
+[Train] Epoch 98 | {"total": 0.5458805372472852, "syndrome": 0.15689392643980682, "logical": 0.37650056183338165, "pauli": 0.12486047588754445}
+[Train] Epoch 99 | {"total": 0.5341019504703581, "syndrome": 0.15435349219478667, "logical": 0.3676251021679491, "pauli": 0.12123354076175019}
+[Validation] Epoch 99 | CNN LER 0.68408203 | CNN+OSD-0 LER 0.16162109 | CNN convergence 0.31616211 | OSD called 0.6838 | paired gain +0.52246094 | shots 4096
+[Selected best by raw LER] Epoch 84 | CNN LER 0.69007874 | CNN+OSD-0 LER 0.16915894 | CNN convergence 0.31007385 | OSD called 0.6899 | paired gain +0.52091980 | shots 65536

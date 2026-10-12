@@ -1,15 +1,27 @@
 # Joint Tanner CNN: raw and direct OSD-0
 
-**Current launchers:** root scripts 0–2 now run selected depth-4/5 400→800
-continuations plus recovery of the failed BB144 depth-5 p=.04 run to 400.
-See [the current campaign](bb_tanner_cnn_more_training.md). The 400-epoch
-campaign commands below refer to preserved historical scripts.
+**Latest results:** all 12 models in the depth-4/5 continuation campaign completed:
+11 reached 800 epochs and BB144 depth 5 p=.04 recovered to 400. On identical
+final shots, 400→800 training improved raw LER in 10/11 models and residual
+OSD-0 LER in 7/11 after Holm correction. See the
+[October 12 analysis](../results/analysis/bb_update_2026_10_12.md) and
+[continuation comparison](../results/plots/bb/code_capacity/tanner_cnn/overview.png).
 
-The [October 10 analysis](../results/analysis/bb_update_2026_10_10.md) now covers
+**Evaluation without retraining:** compare the existing residual OSD-0 with
+published syndrome OSD-0 using frozen best checkpoints and saved final shots.
+See [post-hoc OSD evaluation](bb_cnn_posthoc_osd.md).
+
+**Current launchers:** root script 0 extends BB144 depth 5 p=.04 from 400 to
+800 epochs and evaluates standard syndrome OSD-0 afterward. Script 1 reevaluates
+the latest 44 CNN models without training. See the
+[current campaign and required files](bb_cnn_resume800_standard_osd.md).
+Historical training commands below refer to preserved scripts.
+
+The historical [October 10 analysis](../results/analysis/bb_update_2026_10_10.md) covers
 35 completed 400-epoch models at depths 2–5. Depth 5 improves raw LER over depth 4
 at all seven completed paired points; the BB144 p=.04 run failed during OSD
-validation and has no final score. See the
-[400-epoch comparison](../results/plots/bb/code_capacity/tanner_cnn/400_epochs/cnn_depth.png).
+validation and had no final score in that campaign (recovered above). See the
+[400-epoch comparison](../results/plots/bb/code_capacity/tanner_cnn/overview.png).
 
 The original 20-run, 100-epoch depth/seed campaign has completed. See the
 [September 27 result analysis](../results/analysis/bb_update_2026_09_27.md)
