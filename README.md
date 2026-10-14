@@ -16,6 +16,23 @@ pip install -r requirements.txt
 
 Circuit-level generation requires Stim 1.15 or newer.
 
+## BB circuit-level DEM CNN
+
+`--architecture=bb_dem_cnn --noise_model=circuit` trains a feed-forward CNN
+on Stim's undecomposed detector/error-mechanism graph. It shares factorized
+kernels by edge orbit and predicts one binary LLR per mechanism. Training uses
+DEM fault labels; validation and final scoring use fresh circuit shots.
+`bb_tanner_cnn` with circuit noise is an alias for this architecture.
+See [DEM CNN architecture, evaluation, and resume](docs/bb_dem_cnn.md).
+
+```bash
+python main.py --code=bb72 --architecture=bb_dem_cnn \
+  --noise_model=circuit --bb_circuit_noise_model=standard --p=.003 \
+  --rounds=1 --bb_cnn_width=8 --bb_cnn_depth=2 \
+  --epochs=1 --batch_size=2 --batches=2 --eval_batches=1 \
+  --eval_every=1 --final_eval_batches=2 --amp_dtype=none --seed=42 --save_model
+```
+
 ## BB code-capacity neural BP
 
 The BB neural BP path currently provides the published `[[72,12,6]]` and
@@ -109,7 +126,12 @@ logical (unflagged) failures.
 
 ## Current Slurm experiments
 
-Active launchers are **`run_bb_0.slurm` and `run_bb_1.slurm`**:
+The new [`run_bb_depth678.slurm`](run_bb_depth678.slurm) array trains depths
+6/7/8 for BB72 and BB144 at p=.02/.04/.06/.08, width 64, 800 fresh epochs,
+with syndrome OSD-0 in validation and final evaluation. See
+[settings and submission](docs/bb_cnn_depth678.md).
+
+The earlier launchers **`run_bb_0.slurm` and `run_bb_1.slurm`** remain available:
 
 | Script | Action |
 | --- | --- |

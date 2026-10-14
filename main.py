@@ -22,6 +22,7 @@ from src import Trainer
 from src._bb_experiment import run_bb_experiment
 from src._bb_circuit_experiment import run_bb_circuit_experiment
 from src._bb_tanner_cnn_experiment import run_bb_tanner_cnn_experiment
+from src._bb_dem_cnn_experiment import run_bb_dem_cnn_experiment
 from src.bb_stim_utils import (
     BB_CIRCUIT_NOISE_MODELS,
     resolve_bb_circuit_noise_profile,
@@ -89,6 +90,7 @@ def main() -> None:
             "convgru_weighted_mwpm",
             "bb_neural_bp",
             "bb_tanner_cnn",
+            "bb_dem_cnn",
         ],
         help=(
             "Decoder architecture. cnn3d treats time as a third spatial axis; "
@@ -102,7 +104,9 @@ def main() -> None:
             "noise and binary BP2 on Stim's detector-error-model graph for "
             "circuit noise, with cyclic edge-orbit parameter sharing. "
             "bb_tanner_cnn uses sparse periodic convolutions on the joint Hx/Hz "
-            "graph for code capacity, evaluated both raw and with direct OSD-0."
+            "graph for code capacity, evaluated both raw and with direct OSD-0. "
+            "bb_dem_cnn uses detector/mechanism convolutions on an undecomposed "
+            "Stim DEM for circuit noise; bb_tanner_cnn with circuit noise is an alias."
         ),
     )
     parser.add_argument(
@@ -176,10 +180,14 @@ def main() -> None:
     parser.add_argument("--bb_pauli_loss_weight", type=float, default=0.1)
     parser.add_argument("--bb_weight_decay", type=float, default=1e-4)
     parser.add_argument("--bb_cnn_width", type=int, default=64,
-                        help="Feature channels for bb_tanner_cnn.")
+                        help="Feature channels for BB Tanner/DEM CNNs (DEM width >= 2).")
     parser.add_argument("--bb_cnn_depth", type=int, default=2,
-                        help="Tanner CNN depth: 1 is check->qubit; each extra block adds qubit->check->qubit.")
+                        help="CNN depth: 1 is check->variable; each extra block adds variable->check->variable (DEM: detector/mechanism).")
     parser.add_argument("--bb_cnn_gradient_clip", type=float, default=1.0)
+    parser.add_argument("--bb_cnn_osd", choices=("residual", "syndrome"), default="residual",
+                        help="Capacity Tanner CNN evaluation: residual hard-centred OSD-0 or syndrome OSD-0 with zero free bits.")
+    parser.add_argument("--bb_dem_cnn_no_checkpoint", action="store_true",
+                        help="Disable activation checkpointing in the DEM CNN.")
     parser.add_argument("--bb_cnn_compare_resume", action="store_true",
                         help="Evaluate the frozen pre-resume CNN best on the same new final shots; requires --load_model.")
     parser.add_argument(
@@ -440,7 +448,8 @@ def main() -> None:
             "statistics post-processing, reported as Neural-BP+OSD versus "
             "BP+OSD on the same shots. Only unconverged shots enter the "
             "posterior-reseeded BP/OSD wrapper. When enabled, best-checkpoint "
-            "selection uses the paired OSD gain."
+            "selection uses the paired OSD gain. For bb_dem_cnn this instead "
+            "enables direct OSD-0 on at most this many paired shots; selection stays raw."
         ),
     )
     parser.add_argument(
@@ -448,26 +457,29 @@ def main() -> None:
         type=str,
         default="OSD_CS",
         choices=["OSD_0", "OSD_CS"],
-        help="Ordered-statistics variant used by --bb_osd_eval_shots.",
+        help="BP experiment OSD variant; DEM CNN always uses direct OSD-0.",
     )
     parser.add_argument(
         "--bb_osd_order",
         type=int,
         default=7,
-        help="Combination-sweep depth for --bb_osd_method=OSD_CS.",
+        help="BP experiment combination-sweep depth; does not configure DEM CNN.",
     )
 
     args = parser.parse_args()
-    bb_architecture = args.architecture in {"bb_neural_bp", "bb_tanner_cnn"}
+    bb_architecture = args.architecture in {"bb_neural_bp", "bb_tanner_cnn", "bb_dem_cnn"}
     if bb_architecture and args.code not in {"bb72", "bb144"}:
         parser.error("BB neural architectures require --code=bb72 or bb144.")
-    if args.architecture == "bb_tanner_cnn" and args.noise_model != "capacity":
-        parser.error("bb_tanner_cnn currently supports --noise_model=capacity only.")
-    bb_circuit = args.architecture == "bb_neural_bp" and args.noise_model == "circuit"
+    if args.architecture == "bb_tanner_cnn" and args.noise_model == "phenomenological":
+        parser.error("bb_tanner_cnn supports --noise_model=capacity or circuit.")
+    if args.architecture == "bb_dem_cnn" and args.noise_model != "circuit":
+        parser.error("bb_dem_cnn requires --noise_model=circuit.")
+    bb_circuit = bb_architecture and args.noise_model == "circuit"
+    dem_cnn = bb_circuit and args.architecture in {"bb_tanner_cnn", "bb_dem_cnn"}
     if args.bp_relay_legs < 0:
         parser.error("--bp_relay_legs must be non-negative.")
     if args.bp_relay_legs:
-        if not bb_circuit:
+        if not bb_circuit or args.architecture != "bb_neural_bp":
             parser.error("--bp_relay_legs requires BB neural BP with --noise_model=circuit.")
         if not 1 <= args.bp_relay_solutions <= args.bp_relay_legs:
             parser.error("--bp_relay_solutions must be in [1, bp_relay_legs].")
@@ -499,7 +511,7 @@ def main() -> None:
         if args.bb_circuit_noise_model != "legacy":
             parser.error(
                 "--bb_circuit_noise_model=standard/si1000 requires "
-                "--code=bb72 or bb144 --architecture=bb_neural_bp "
+                "--code=bb72 or bb144 with a BB neural architecture and "
                 "--noise_model=circuit."
             )
         if args.measurement_error_rate is None:
@@ -588,6 +600,33 @@ def main() -> None:
         parser.error("BB loss weights and --bb_weight_decay must be non-negative.")
 
     if bb_architecture:
+        if dem_cnn:
+            if args.loss_fn != "bb_coset":
+                parser.error("DEM CNN requires --loss_fn=bb_coset.")
+            if args.bb_cnn_width < 2 or args.bb_cnn_depth < 1:
+                parser.error("DEM CNN requires --bb_cnn_width >= 2 and --bb_cnn_depth >= 1.")
+            if not np.isfinite(args.bb_cnn_gradient_clip) or args.bb_cnn_gradient_clip <= 0:
+                parser.error("--bb_cnn_gradient_clip must be finite and positive.")
+            if args.bb_osd_eval_shots < 0:
+                parser.error("--bb_osd_eval_shots must be non-negative.")
+            if args.matching_correlations or args.bb_cnn_compare_resume:
+                parser.error("Matching correlations and capacity resume comparison do not apply to DEM CNN.")
+            if args.amp_dtype != "none":
+                parser.error("DEM CNN requires --amp_dtype=none for sparse parity loss.")
+            if args.bb_channel != "depolarizing" or args.x_error_rate is not None or args.z_error_rate is not None:
+                parser.error("Code-capacity channel settings do not apply to DEM CNN circuit noise.")
+            if not 0 <= args.bb_idle_error_rate <= 1:
+                parser.error("--bb_idle_error_rate must be in [0, 1].")
+            if args.p == args.measurement_error_rate == args.bb_idle_error_rate == 0:
+                parser.error("DEM CNN training requires a nonzero circuit error rate.")
+            if not all(np.isfinite(value) for value in (
+                args.bb_syndrome_loss_weight, args.bb_logical_loss_weight,
+                args.bb_pauli_loss_weight, args.bb_weight_decay,
+            )):
+                parser.error("DEM CNN loss weights and weight decay must be finite.")
+            args.rounds = rounds
+            run_bb_dem_cnn_experiment(args)
+            return
         if args.architecture == "bb_tanner_cnn":
             if rounds != 1 or args.measurement_error_rate != 0 or args.bb_idle_error_rate != 0:
                 parser.error("Tanner CNN capacity experiments require rounds=1 and zero measurement/idle noise.")
@@ -668,7 +707,7 @@ def main() -> None:
         return
 
     if args.code != "toric":
-        parser.error("--code=bb72/bb144 requires --architecture=bb_neural_bp or bb_tanner_cnn.")
+        parser.error("--code=bb72/bb144 requires --architecture=bb_neural_bp, bb_tanner_cnn or bb_dem_cnn.")
     if args.loss_fn == "bb_coset":
         parser.error("--loss_fn=bb_coset is only valid with a BB neural architecture.")
 

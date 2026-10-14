@@ -12,7 +12,8 @@ from src.bb_code import BBCodeSpec
 from src.bb_data_generator import BBCodeCapacityGenerator
 
 
-def trainer(directory, *, load=None, depth=2, epochs=1, compare_resume=False):
+def trainer(directory, *, load=None, depth=2, epochs=1, compare_resume=False,
+            osd="direct_hard_centered_osd0_v1"):
     code = BBCodeSpec.bb72()
     model = BBTannerCNN(code, width=4, depth=depth)
     criterion = DegeneracyAwareBPLoss(
@@ -23,7 +24,7 @@ def trainer(directory, *, load=None, depth=2, epochs=1, compare_resume=False):
         model=model, code=code, criterion=criterion, device=torch.device("cpu"),
         train_generator=BBCodeCapacityGenerator(code, .06, seed=4),
         eval_generator=BBCodeCapacityGenerator(code, .06, seed=5),
-        output_directory=directory, config={"architecture": "bb_tanner_cnn", "depth": depth},
+        output_directory=directory, config={"architecture": "bb_tanner_cnn", "depth": depth, "osd": osd},
         epochs=epochs, batches=2, batch_size=4, eval_batches=1, eval_every=1,
         final_eval_batches=2, save_model=True, load_model_path=load, compare_resume=compare_resume,
     )
@@ -41,9 +42,10 @@ def test_invalid_eval_probabilities_save_diagnostic_and_fail(tmp_path, monkeypat
         assert batch["syndrome"].shape == (4, instance.code.num_checks)
 
 
-def test_train_paired_evaluation_saved_bank_and_latest_resume(tmp_path):
+@pytest.mark.parametrize("osd", ["direct_hard_centered_osd0_v1", "syndrome_osd0_v1"])
+def test_train_paired_evaluation_saved_bank_and_latest_resume(tmp_path, osd):
     torch.manual_seed(41)
-    original = trainer(tmp_path / "first")
+    original = trainer(tmp_path / "first", osd=osd)
     before = copy.deepcopy(original.model.state_dict())
     original.train()
     assert any(not torch.equal(before[key], value) for key, value in original.model.state_dict().items())
@@ -57,15 +59,15 @@ def test_train_paired_evaluation_saved_bank_and_latest_resume(tmp_path):
         assert bank["raw_success"].mean() == final["raw"]["logical_accuracy"]
         assert bank["osd_success"].mean() == final["osd"]["logical_accuracy"]
         assert np.count_nonzero(bank["osd_success"] & ~bank["raw_success"].astype(bool)) == final["rescued"]
-        raw, osd = bank["raw_correction"], bank["osd_correction"]
+        raw, repaired = bank["raw_correction"], bank["osd_correction"]
         raw_x, raw_z = np.isin(raw, (1, 2)), np.isin(raw, (2, 3))
         valid = np.all(raw_x @ original.code.hz.T % 2 == bank["syndrome"][:, original.code.num_x_checks:], axis=1)
         valid &= np.all(raw_z @ original.code.hx.T % 2 == bank["syndrome"][:, :original.code.num_x_checks], axis=1)
-        np.testing.assert_array_equal(raw[valid], osd[valid])
+        np.testing.assert_array_equal(raw[valid], repaired[valid])
     latest = torch.load(original.directory / "model.pt", weights_only=False)
     selected = torch.load(original.directory / "best_model.pt", weights_only=False)
     assert selected["epoch"] == latest["best_epoch"] == 0
-    continued = trainer(tmp_path / "resume", load=original.directory / "model.pt")
+    continued = trainer(tmp_path / "resume", load=original.directory / "model.pt", osd=osd)
     assert continued.start_epoch == 1
     assert continued.train_generator.state_dict()["rng_state"] == latest["train_generator_state"]["rng_state"]
     assert continued.eval_generator.state_dict()["rng_state"] == latest["eval_generator_state"]["rng_state"]
@@ -75,6 +77,27 @@ def test_train_paired_evaluation_saved_bank_and_latest_resume(tmp_path):
     assert (continued.directory / "best_model.pt").is_file()
     with pytest.raises(ValueError, match="depth"):
         trainer(tmp_path / "incompatible", load=original.directory / "model.pt", depth=1)
+    other_osd = ("syndrome_osd0_v1" if osd == "direct_hard_centered_osd0_v1"
+                 else "direct_hard_centered_osd0_v1")
+    with pytest.raises(ValueError, match="osd"):
+        trainer(tmp_path / "wrong_osd", load=original.directory / "model.pt", osd=other_osd)
+
+
+def test_syndrome_osd_training_bank_matches_independent_posthoc_repair(tmp_path):
+    from scripts.evaluate_bb_cnn_osd import repair
+    from src._direct_osd import SyndromeOSD0
+
+    instance = trainer(tmp_path / "syndrome", osd="syndrome_osd0_v1", depth=6)
+    instance.train()
+    instance.model.load_state_dict(instance.best_state)
+    with np.load(instance.directory / "final_shots.npz") as bank, torch.no_grad():
+        logits = instance.model(torch.tensor(bank["syndrome"]), channel_probabilities=
+                                torch.tensor(instance.eval_generator.channel_probabilities))
+        px, pz = instance.model.component_probabilities(logits)
+        expected = repair(bank["syndrome"], px.numpy(), pz.numpy(), instance.code,
+                          (SyndromeOSD0(instance.code.hz), SyndromeOSD0(instance.code.hx)))
+        np.testing.assert_array_equal(bank["osd_correction"], expected)
+        assert json.loads(str(bank["metadata_json"]))["osd"] == "syndrome_osd0_v1"
 
 
 def test_selection_uses_raw_cnn_not_osd_and_final_restores_selected_weights(tmp_path, monkeypatch):

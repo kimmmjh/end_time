@@ -51,7 +51,7 @@ def test_css_fallback_preserves_valid_sectors():
     np.testing.assert_array_equal(np.isin(out, [2, 3]) @ code.hx.T % 2, batch.syndrome_x_checks)
 
 
-def make_run(run):
+def make_run(run, *, syndrome_osd=False):
     run.mkdir()
     torch.manual_seed(5)
     code = BBCodeSpec.bb72()
@@ -60,13 +60,16 @@ def make_run(run):
     config = {"architecture": "bb_tanner_cnn", "code": code.name, "noise_model": "capacity",
               "cnn_width": 4, "cnn_depth": 2, "channel_probabilities": generator.channel_probabilities.tolist(),
               "graph_fingerprint": hashlib.sha256(code.hx.tobytes() + code.hz.tobytes()).hexdigest()}
+    if syndrome_osd:
+        config["osd"] = "syndrome_osd0_v1"
     batch = generator.sample(8)
     syndrome, pauli = batch.syndrome.numpy().astype(np.uint8), batch.pauli.numpy().astype(np.uint8)
     with torch.no_grad():
         logits = model(batch.syndrome, channel_probabilities=batch.channel_probabilities)
         qx, qz = model.component_probabilities(logits)
         raw = model.hard_decision(logits).numpy().astype(np.uint8)
-    osd = repair(syndrome, qx.numpy(), qz.numpy(), code, (DirectOSD0(code.hz), DirectOSD0(code.hx)))
+    decoder = SyndromeOSD0 if syndrome_osd else DirectOSD0
+    osd = repair(syndrome, qx.numpy(), qz.numpy(), code, (decoder(code.hz), decoder(code.hx)))
     scoring = {k: torch.tensor(getattr(code, k)) for k in ("hx", "hz", "logicals_x", "logicals_z")}
     success = {name: bb_correction_outcomes(torch.from_numpy(value), batch.syndrome, batch.pauli,
                                            **scoring).success.numpy() for name, value in (("raw", raw), ("osd", osd))}
@@ -80,9 +83,10 @@ def make_run(run):
     (run / "history.json").write_text(json.dumps({"config": config, "final": {"epoch": 1, "shots": 8}}))
 
 
-def test_posthoc_uses_best_weights_same_shots_and_never_trains(tmp_path, monkeypatch):
+@pytest.mark.parametrize("syndrome_osd", [False, True])
+def test_posthoc_uses_best_weights_same_shots_and_never_trains(tmp_path, monkeypatch, syndrome_osd):
     source = tmp_path / "source"
-    make_run(source)
+    make_run(source, syndrome_osd=syndrome_osd)
     hashes = {p.name: sha256(p) for p in source.iterdir()}
     def forbidden(*args, **kwargs):
         raise AssertionError("Posthoc evaluation must not construct an optimizer")
@@ -93,6 +97,7 @@ def test_posthoc_uses_best_weights_same_shots_and_never_trains(tmp_path, monkeyp
     assert report["metrics"]["syndrome_osd0"]["syndrome_convergence"] == 1
     assert report["paired"]["standard_vs_raw"]["harmed"] == 0
     assert all(v["correction_mismatch_shots"] == 0 for v in report["historical_reproduction"].values())
+    assert ("syndrome_osd0" if syndrome_osd else "residual_osd0") in report["historical_reproduction"]
     assert hashes == {p.name: sha256(p) for p in source.iterdir()}
     with np.load(source / "final_shots.npz") as old, np.load(tmp_path / "out/paired_shots.npz") as new:
         np.testing.assert_array_equal(old["pauli"], new["pauli"])

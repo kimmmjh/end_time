@@ -18,7 +18,7 @@ import torch
 from models._bb_tanner_cnn import BBTannerCNN
 from ._bb_loss import DegeneracyAwareBPLoss
 from ._bb_metrics import aggregate_bb_outcomes, bb_correction_outcomes, paired_success_gain
-from ._direct_osd import DirectOSD0
+from ._direct_osd import DirectOSD0, SyndromeOSD0
 from .bb_code import BBCodeSpec
 from .bb_data_generator import BBCodeCapacityGenerator
 
@@ -44,7 +44,13 @@ class BBTannerCNNTrainer:
         self.epochs, self.batches, self.batch_size = epochs, batches, batch_size
         self.eval_batches, self.eval_every, self.final_eval_batches = eval_batches, eval_every, final_eval_batches
         self.gradient_clip, self.save_model = gradient_clip, save_model
-        self.osd_x, self.osd_z = DirectOSD0(code.hz), DirectOSD0(code.hx)
+        osd_name = self.config.get("osd", "direct_hard_centered_osd0_v1")
+        decoders = {"direct_hard_centered_osd0_v1": DirectOSD0,
+                    "syndrome_osd0_v1": SyndromeOSD0}
+        if osd_name not in decoders:
+            raise ValueError(f"Unknown Tanner CNN OSD convention: {osd_name}")
+        decoder = decoders[osd_name]
+        self.osd_x, self.osd_z = decoder(code.hz), decoder(code.hx)
         self.scoring = {key: getattr(criterion, key) for key in ("hx", "hz", "logicals_x", "logicals_z")}
         self.optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         self.history = {"train": [], "eval": [], "phases": []}
@@ -341,7 +347,8 @@ def run_bb_tanner_cnn_experiment(args):
                   logical_loss_weight=args.bb_logical_loss_weight, pauli_loss_weight=args.bb_pauli_loss_weight,
                   weight_decay=args.bb_weight_decay, gradient_clip=args.bb_cnn_gradient_clip,
                   hard_decision="component_marginal_gt_half", checkpoint_selection="raw_logical_accuracy",
-                  osd="direct_hard_centered_osd0_v1", osd_order=0, osd_extra_bp_iterations=0,
+                  osd=("syndrome_osd0_v1" if getattr(args, "bb_cnn_osd", "residual") == "syndrome"
+                       else "direct_hard_centered_osd0_v1"), osd_order=0, osd_extra_bp_iterations=0,
                   osd_sectors="css_separated", osd_policy="only_invalid_sectors",
                   parameter_count=sum(p.numel() for p in model.parameters()), dtype="float32")
     now = datetime.datetime.now()
@@ -361,7 +368,7 @@ def run_bb_tanner_cnn_experiment(args):
     )
     logging.info("Joint Tanner CNN: depth=%d width=%d | device=%s | parameters=%d",
                  model.depth, model.width, device, config["parameter_count"])
-    logging.info("Paired CNN/CNN+direct OSD-0 evaluation; best selection uses raw CNN LER. Output: %s", output)
+    logging.info("Paired CNN/CNN+%s evaluation; best selection uses raw CNN LER. Output: %s", config["osd"], output)
     if args.amp_dtype != "none":
         logging.warning("Tanner CNN and parity loss use float32; --amp_dtype=%s is not applied.", args.amp_dtype)
     trainer.train()

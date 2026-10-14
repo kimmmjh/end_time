@@ -166,7 +166,9 @@ def evaluate_run(run_dir, output_dir, *, device="cpu", batch_size=64, max_shots=
         "historical_reproduction": {
             name: {"correction_mismatch_shots": int(np.any(corrections[name] != bank[f"{old}_correction"], axis=1).sum()),
                    "success_mismatch_shots": int(np.count_nonzero(successes[name] != bank[f"{old}_success"].astype(bool)))}
-            for name, old in (("raw", "raw"), ("residual_osd0", "osd"))},
+            for name, old in (("raw", "raw"),
+                              ("syndrome_osd0" if config.get("osd") == "syndrome_osd0_v1"
+                               else "residual_osd0", "osd"))},
         "seconds": times,
     }
     output_dir.mkdir(parents=True, exist_ok=False)

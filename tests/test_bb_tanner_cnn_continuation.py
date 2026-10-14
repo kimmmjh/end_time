@@ -22,13 +22,19 @@ def source(directory):
     return checkpoint
 
 
-def test_find_archived_checkpoint_and_compute_additional_epochs(tmp_path):
+@pytest.mark.parametrize("syndrome_osd", [False, True])
+def test_find_archived_checkpoint_and_compute_additional_epochs(tmp_path, syndrome_osd):
     checkpoint = source(tmp_path / "results/bb/code_capacity/depolarizing/tanner_cnn/bb72/"
                         "resdir_58793761/outputs/date/model with spaces")
+    if syndrome_osd:
+        saved = torch.load(checkpoint, weights_only=False)
+        saved["config"]["osd"] = "syndrome_osd0_v1"
+        torch.save(saved, checkpoint)
     found = resolve_checkpoint(tmp_path, 58793761, "bb72", .06, 7201060)
     assert found == checkpoint
     command = build_command(found, repo_root=tmp_path, code="bb72", p=.06, seed=7201060)
     assert "--epochs=300" in command
+    assert f"--bb_cnn_osd={'syndrome' if syndrome_osd else 'residual'}" in command
     assert f"--load_model={checkpoint}" in command  # Path remains a single argv element.
     assert "--bb_cnn_compare_resume" in command
     assert "--final_eval_batches=1024" in command

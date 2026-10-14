@@ -11,7 +11,11 @@ OSD-0 LER in 7/11 after Holm correction. See the
 published syndrome OSD-0 using frozen best checkpoints and saved final shots.
 See [post-hoc OSD evaluation](bb_cnn_posthoc_osd.md).
 
-**Current launchers:** root script 0 extends BB144 depth 5 p=.04 from 400 to
+**Depth 6–8:** `run_bb_depth678.slurm` trains BB72/BB144 at four noise rates,
+width 64 and 800 fresh epochs, using the new syndrome OSD-0 during every
+evaluation. See [submission and settings](bb_cnn_depth678.md).
+
+**Earlier launchers:** root script 0 extends BB144 depth 5 p=.04 from 400 to
 800 epochs and evaluates standard syndrome OSD-0 afterward. Script 1 reevaluates
 the latest 44 CNN models without training. See the
 [current campaign and required files](bb_cnn_resume800_standard_osd.md).
@@ -30,9 +34,11 @@ Depth 2 consistently improves on depth 1, but raw syndrome consistency and the
 gap to previous Neural BP4 remain unresolved. These are code-capacity results.
 
 `--architecture=bb_tanner_cnn` trains a feed-forward CNN on the BB joint
-`X checks — data qubits — Z checks` graph. This first implementation supports
-**code-capacity noise with one perfect syndrome**. Circuit and phenomenological
-noise are rejected explicitly. Its LER must be compared with code-capacity
+`X checks — data qubits — Z checks` graph with `--noise_model=capacity`.
+This page describes **code-capacity noise with one perfect syndrome**.
+For circuit noise, `bb_tanner_cnn` now dispatches to the separate
+[detector/mechanism CNN](bb_dem_cnn.md), also available as `bb_dem_cnn`.
+Phenomenological noise is rejected. The results on this page must be compared with code-capacity
 baselines, not with the ongoing circuit-level BP sweep.
 
 ## Convolutions and receptive field
@@ -89,7 +95,7 @@ syndrome-valid sector and repairs only invalid sectors. The X component uses
 `Hz` and the Z-check syndrome; the Z component uses `Hx` and the X-check syndrome.
 The OSD path uses exactly the same initial hard correction as the raw path.
 
-The new `DirectOSD0` backend does not call BP or `ldpc.BpOsdDecoder`. For each
+The default `--bb_cnn_osd=residual` (`DirectOSD0`) backend does not call BP or `ldpc.BpOsdDecoder`. For each
 failed sector it solves the residual syndrome `s XOR H@hard`, picking linearly
 independent columns in ascending `abs(log((1-q)/q))` order and changing only the
 selected basis bits. Nonbasis bits retain the hard decision. Dependent check
@@ -102,6 +108,12 @@ zero-free-variable syndrome OSD bit for bit. There is no higher-order search.
 X/Z probabilities are predicted jointly but the OSD sectors are separate, so
 post-processing does not fully exploit the four-state joint probability.
 The NumPy backend prioritizes a transparent comparison, not optimized latency.
+
+`--bb_cnn_osd=syndrome` selects `SyndromeOSD0` instead: it solves the original
+syndrome with zero nonbasis bits, ordering columns by decreasing error
+probability. It retains the same invalid-sector fallback policy and raw-LER
+checkpoint selection. Checkpoints and saved banks identify this convention as
+`syndrome_osd0_v1`. Both validation and final evaluation use the selected OSD.
 
 ## Training and outputs
 
