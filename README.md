@@ -126,6 +126,12 @@ logical (unflagged) failures.
 
 ## Current Slurm experiments
 
+**October 24 results:** the depth 6–8 campaign and remaining depth-5
+continuation all finished (25 models, 800 epochs each). See the
+[analysis](results/analysis/bb_update_2026_10_24.md) and
+[depth comparison](results/plots/bb/code_capacity/tanner_cnn/depth678.png).
+The launch commands below start new jobs; they are not needed to inspect these results.
+
 The new [`run_bb_depth678.slurm`](run_bb_depth678.slurm) array trains depths
 6/7/8 for BB72 and BB144 at p=.02/.04/.06/.08, width 64, 800 fresh epochs,
 with syndrome OSD-0 in validation and final evaluation. See

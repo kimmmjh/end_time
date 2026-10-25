@@ -1,5 +1,12 @@
 # Depth 6–8 with syndrome OSD-0
 
+**Completed and audited October 24:** all 24 models reached 800 epochs.
+See the [results analysis](../results/analysis/bb_update_2026_10_24.md) and
+[depth comparison](../results/plots/bb/code_capacity/tanner_cnn/depth678.png).
+Results are archived under
+`results/bb/code_capacity/depolarizing/tanner_cnn/800_epochs/syndrome_osd0/`.
+Commands below describe the completed campaign; submitting them again starts new runs.
+
 `run_bb_depth678.slurm` trains 24 new code-capacity Tanner CNNs. All validation
 and final `osd` metrics use `SyndromeOSD0`, selected explicitly with
 `--bb_cnn_osd=syndrome`. This is the same decoder as the new post-hoc evaluator:

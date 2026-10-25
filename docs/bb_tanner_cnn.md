@@ -1,6 +1,13 @@
 # Joint Tanner CNN: raw and direct OSD-0
 
-**Latest results:** all 12 models in the depth-4/5 continuation campaign completed:
+**Latest results (October 24):** all 24 depth-6/7/8 models and the remaining
+depth-5 p=.04 continuation completed 800 epochs. Depth 6→8 improves raw LER
+at 6/8 points and syndrome OSD-0 LER at 4/8 points after Holm correction.
+See [analysis](../results/analysis/bb_update_2026_10_24.md) and
+[figure](../results/plots/bb/code_capacity/tanner_cnn/depth678.png).
+Depth-5 references use a different schedule and mostly residual OSD.
+
+**October 12 results:** all 12 models in the depth-4/5 continuation campaign completed:
 11 reached 800 epochs and BB144 depth 5 p=.04 recovered to 400. On identical
 final shots, 400→800 training improved raw LER in 10/11 models and residual
 OSD-0 LER in 7/11 after Holm correction. See the

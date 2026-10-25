@@ -1,38 +1,48 @@
 # 플롯 안내
 
-## Tanner CNN: 각 설정의 최신 결과만 한 장으로
+## Tanner CNN: 최신 모델, 두 OSD 방식 함께 표시
 
-**[통합 성능 그림](bb/code_capacity/tanner_cnn/overview.png)**은 code/p/depth/seed별
-가장 최근에 완료된 학습 결과만 표시한다. 이전 학습 단계 23개를 제외한
-**44개 설정, raw/OSD 88개 평가점**이다. 최신 run의 validation-selected best를 사용한다.
+[통합 플롯](bb/code_capacity/tanner_cnn/overview.png)은 최신 CNN **68개 설정의 raw 결과**와
+그 모델에 대응하는 **새 syndrome OSD-0 25개 결과**를 표시한다.
+이전 depth 1–5의 residual OSD 44개 결과도 OSD 패널에 함께 표시한다.
+실선·원은 새 syndrome OSD, 점선·사각형은 이전 residual OSD다.
 
-- 위 BB72 / 아래 BB144, 왼쪽 CNN 단독 / 오른쪽 CNN + 기존 residual OSD-0.
-- 색은 depth 1–5이며 depth마다 하나의 실선으로 연결한다. 이전 학습량별 곡선은 표시하지 않는다.
-- 별은 BB144 depth 5 p=.04의 114→400 복구 결과. ×는 추가 seed 결과다.
-- 오차 막대는 95% Wilson 구간. 실패 0건은 측정값 대신 상한 위치에 빈 역삼각형으로 표시한다.
-- 이전 Neural BP4는 CNN 단독 패널에 참고선으로 표시한다. 학습량과 test bank가 다르다.
+- 위 BB72 / 아래 BB144, 왼쪽 CNN 단독 / 오른쪽 CNN + OSD-0 (두 방식).
+- 색은 depth 1–8. 추가 seed는 × 표시다. Raw 패널의 Neural BP4는 다른 학습 조건의 참고선이다.
+- 새 OSD 25개 = depth 6/7/8의 native 결과 24개 + BB144 depth 5 p=.04의 전체 사후 평가 1개.
+- 최신 depth 1–5 나머지 43개 설정의 전체 새 OSD 결과는 현재 로컬에 없다. 해당 점은
+  새 OSD 점은 생략하되, 기존 residual OSD 결과를 별도 점선으로 표시한다.
+  서로 다른 OSD 방식의 점들을 하나의 선으로 연결하지 않는다.
+- 과거 400-epoch BB144 d5 p=.06 재평가와 256-shot 부분 평가는 최신 800-epoch 모델의
+  대체값으로 사용하지 않는다. 사후 평가의 checkpoint/bank/history 해시, config, best epoch,
+  전체 shot 수가 일치해야 교체한다.
+- 95% Wilson 구간을 표시하고, 실패 0건은 상한 위치에 빈 역삼각형을 표시한다.
+- `bb_cnn_latest_final.csv`의 `osd_*` 열은 새 OSD만 포함한다. 미평가 값은 빈 칸이다.
+  `recorded_osd_ler`에는 원래 값이 남아 있고 `osd_status`/`osd_source`로 출처를 확인할 수 있다.
+  `bb_cnn_all_final.csv`는 과거 단계의 원래 OSD 기록을 보존한다.
+  `bb_cnn_residual_osd_overlay.csv`에는 플롯에 추가한 residual OSD 44개 값이 있다.
 
-서로 다른 시기의 test bank를 직접 뺀 값은 paired 개선량이 아니다.
-추가 학습 효과는 [동일 샘플 비교표](../analysis/bb_update_2026_10_12_cnn_resume_pairs.csv)를 본다.
-표준 syndrome OSD-0 평가는 이 그림에 섞지 않았다. 모든 CNN 결과는 code capacity다.
-
-학습량: depth 1은 100, depth 2–3은 400 epochs. Depth 4–5는 p=.02에서 400,
-p=.04/.06/.08에서 800 epochs이며 **BB144 depth 5 p=.04만 복구 후 400 epochs**다.
-
-[표시된 최신 수치와 원본 경로](../analysis/bb_cnn_latest_final.csv) ·
-[과거 단계까지 포함한 전체 수치](../analysis/bb_cnn_all_final.csv) ·
-[100-epoch 분석](../analysis/bb_update_2026_09_27.md) ·
-[400-epoch 분석](../analysis/bb_update_2026_10_10.md) ·
-[추가 학습 분석](../analysis/bb_update_2026_10_12.md).
-기존 개별 CNN 성능·학습·seed 그림 7개는 제거했고 학습 이력과 통계 CSV는 보존했다.
-
-그림 하단의 작은 설명문은 제거했다. 평가 조건과 학습량은 이 문서에 기록한다.
+[표시된 수치](../analysis/bb_cnn_latest_final.csv) ·
+[누락된 새 OSD 평가 목록](../analysis/bb_cnn_missing_syndrome_osd.csv) ·
+[과거 기록](../analysis/bb_cnn_all_final.csv).
 
 재생성: `python scripts/plot_bb_cnn_all.py`.
-세 캠페인 분석 스크립트도 개별 CNN 그림 대신 이 통합 그림을 갱신한다.
+새 전체 평가 결과를 `results`의 Tanner CNN archive 또는 `results/analysis`에 추가하면,
+같은 명령으로 일치하는 결과를 찾아 반영한다. 이 명령은 추론이나 학습을 실행하지 않는다.
 
-[100만-shot circuit BB72 그림](bb/circuit/library_bp_osd/lowp_million.png)은
-별도 회로 실험이며 CNN code-capacity 성능과 직접 비교하지 않는다.
+## Depth 6–8 비교
+
+[Depth 비교](bb/code_capacity/tanner_cnn/depth678.png) ·
+[Validation 곡선](bb/code_capacity/tanner_cnn/depth678_validation.png) ·
+[분석](../analysis/bb_update_2026_10_24.md).
+
+Depth 6–8은 모두 fresh 800 epochs, width 64, 같은 code/p의 동일 final bank다.
+Raw 패널의 회색 D5 참조선은 다른 schedule이다. OSD 패널의 회색 점선은
+D5의 기존 residual OSD 8개 결과이며, 새 syndrome OSD로 평가한 BB144 p=.04도 별표로
+함께 표시한다. Depth 6–8 실선은 새 syndrome OSD이므로 OSD 방식 차이도 고려해야 한다. 재생성: `python scripts/analyze_bb_october24.py`.
+
+이 새 decoder는 zero-free-bit syndrome OSD-0이며 Astra의 전체 확률 변환과 fallback 정책까지
+복제한 것은 아니다. 자세한 정의는 [OSD 안내](../../docs/bb_cnn_posthoc_osd.md)에 있다.
 
 ## 새 circuit BP/OSD baseline
 

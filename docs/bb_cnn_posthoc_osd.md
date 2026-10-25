@@ -31,6 +31,40 @@ not introduced into this comparison.
 
 ## Server launchers
 
+### Depth 6/7/8: residual versus syndrome OSD
+
+Run `sbatch run_bb_depth678_osd.slurm` from `~/end_time` on Perlmutter.
+This is one job using four GPUs, with six models evaluated sequentially per
+worker (24 total: BB72/BB144 × depths 6/7/8 × p=.02/.04/.06/.08).
+The 24-hour limit applies to the whole job. No training is performed.
+Preview paths and commands with `BB_DRY_RUN=1 bash run_bb_depth678_osd.slurm`;
+this shell preview checks source directory locations but does not load weights.
+
+The launcher locates jobs 59765840, 59795406, 59892117, 59928152, 59948099,
+and 59765839 under the repository root, or in the organized
+`800_epochs/syndrome_osd0/{bb72,bb144}` archive. Before evaluation it verifies
+the complete 24-configuration grid, width 64, 800 completed training epochs,
+and 65,536 saved final shots per run. Each source needs `history.json`,
+`model.pt` (containing the best weights), and `final_shots.npz`.
+
+Upload the new launcher and the current `scripts/evaluate_bb_cnn_osd.py` to
+the server. The evaluator supports source banks produced by either OSD
+convention and compares regenerated syndrome OSD against the historical
+depth 6/7/8 results. One frozen CNN inference pass supplies probabilities to
+both residual and syndrome OSD. Original checkpoints and banks are unchanged.
+
+Outputs go to `resdir_NEW_JOB_ID/standard_osd0/`: each model gets a
+`report.json` and `paired_shots.npz`, with four `summary_shard_N.json` indexes.
+The folder name is shared with the existing evaluator; reports contain **both**
+OSD methods. Use `metrics.residual_osd0` and `metrics.syndrome_osd0` for LER;
+`paired.standard_vs_residual` is positive when syndrome OSD wins. Keep
+`paired_shots.npz` for paired comparisons. Logs, source snapshots and shard
+exit codes are saved in `resdir_NEW_JOB_ID`; `completed.txt` requires all four
+workers to succeed. Missing inputs or an existing output job directory cause
+an error instead of an overwrite.
+
+### Earlier models
+
 Use root `run_bb_1.slurm` for the latest 44 models (four GPU shards), or
 `run_bb_0.slurm` to extend BB144 depth 5 p=.04 to 800 epochs and then evaluate
 standard OSD. [Submission commands and required existing files](bb_cnn_resume800_standard_osd.md).

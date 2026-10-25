@@ -1,5 +1,22 @@
 # Result archive
 
+## October 24, 2026: depth 6–8 and depth 5 completion
+
+[결과 분석](analysis/bb_update_2026_10_24.md) ·
+[성능 그림](plots/bb/code_capacity/tanner_cnn/depth678.png) ·
+[학습 곡선](plots/bb/code_capacity/tanner_cnn/depth678_validation.png).
+
+새 7개 job / 25개 모델 모두 800 epochs 완료. Depth 6–8은
+`bb/code_capacity/depolarizing/tanner_cnn/800_epochs/syndrome_osd0/{bb72,bb144}/`,
+BB144 depth 5 p=.04의 job 59707467은 같은 Tanner CNN 경로의
+`continued_training/`에 보관했다. 338 files / 869,903,041 bytes의 이동 전후
+해시를 검증했다. [Manifest](analysis/bb_update_2026_10_24_relocation.csv).
+
+Depth 6→8은 raw 6/8조건, 새 syndrome OSD-0 4/8조건에서 유의하게 개선됐다.
+Depth 7→8의 OSD 개선은 BB72/BB144 p=.08에서만 유의했다. 이전 depth 5는
+학습 schedule과 OSD 종류가 달라 아래 과거 결과와 직접 혼합하지 않는다.
+재생성: `python scripts/analyze_bb_october24.py`.
+
 Experiment directories keep their original `resdir_<id>` names and are grouped
 by code family, noise model, and decoder:
 
