@@ -18,12 +18,12 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.bb_cnn_plot_osd import STANDARD, interval, report_index, standard_metrics
+from scripts.bb_cnn_plot_osd import STANDARD, interval, report_index, standard_metrics, residual_metrics
 ANALYSIS = ROOT / 'results/analysis'
 PLOTS = ROOT / 'results/plots/bb/code_capacity/tanner_cnn'
-SOURCES = ('2026_09_27', '2026_10_10', '2026_10_12', '2026_10_24')
+SOURCES = ('2026_09_27', '2026_10_10', '2026_10_12', '2026_10_24', '2026_10_26', '2026_10_26_evening')
 COLORS = {1: '#8c7a65', 2: '#8b63b6', 3: '#179d91', 4: '#3478c6', 5: '#d45238',
-          6: '#334790', 7: '#d98116', 8: '#12633c'}
+          6: '#334790', 7: '#d98116', 8: '#12633c', 10: '#7553a5', 12: '#c02c91'}
 
 
 def read_csv(path):
@@ -51,7 +51,8 @@ def load_results():
             row = dict(campaign=date, code=code, p=p, depth=depth, seed=seed, epochs=epochs,
                        primary=seed == int(code[2:])*100000 + 1000 + round(p*1000),
                        recovery=r.get('recovery') == 'True', shots=int(r['shots']),
-                       source=str(history_path.relative_to(ROOT)), recorded_osd=history['config']['osd'])
+                       source=str(history_path.relative_to(ROOT)), recorded_osd=history['config']['osd'],
+                       audit_level=r.get('audit_level', 'prior_campaign_audit'))
             for method in ('raw', 'osd'):
                 rate, count = float(r[f'{method}_ler']), int(r[f'{method}_failures'])
                 assert abs(rate - count/row['shots']) < 1e-12
@@ -92,8 +93,16 @@ def draw_point(ax, r, method, color, marker, alpha=1., size=5):
 def main():
     all_rows = load_results()
     rows = [dict(r) for r in latest_results(all_rows)]
-    residual_rows = [dict(r) for r in rows if r['recorded_osd'] == 'direct_hard_centered_osd0_v1']
     index = report_index()
+    residual_rows = []
+    for r in rows:
+        result = residual_metrics(ROOT/r['source'], index)
+        if result is not None:
+            metric, source, status = result
+            count, low, high = interval(metric['logical_error_rate'], r['shots'])
+            residual_rows.append(dict(r, osd_ler=metric['logical_error_rate'], osd_failures=count,
+                                     osd_low=low, osd_high=high, osd_convention='direct_hard_centered_osd0_v1',
+                                     osd_status=status, osd_source=str(source.relative_to(ROOT))))
     for r in rows:
         result = standard_metrics(ROOT/r['source'], index)
         r.update(recorded_osd_ler=r['osd_ler'], osd_convention=STANDARD,
@@ -160,7 +169,7 @@ def main():
                         bbox=dict(facecolor='white', alpha=.85, edgecolor='none'))
     assert plotted == len(rows)+available+len(residual_rows)
     depth_handles=[Line2D([],[],color=c,lw=2,label=f'Depth {d}') for d,c in COLORS.items()]
-    fig.legend(handles=depth_handles, loc='lower center', bbox_to_anchor=(.5,.075),ncol=8,frameon=False)
+    fig.legend(handles=depth_handles, loc='lower center', bbox_to_anchor=(.5,.075),ncol=len(COLORS),frameon=False)
     budget_handles = [Line2D([],[],color='#666666',marker='x',ls='',label='Additional seeds'),
                        Line2D([],[],color='#666666',marker='o',ls='-',label='Syndrome OSD-0'),
                        Line2D([],[],color='#666666',marker='s',ls='--',label='Residual OSD-0'),

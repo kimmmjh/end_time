@@ -2,15 +2,15 @@
 
 ## Tanner CNN: 최신 모델, 두 OSD 방식 함께 표시
 
-[통합 플롯](bb/code_capacity/tanner_cnn/overview.png)은 최신 CNN **68개 설정의 raw 결과**와
+[통합 플롯](bb/code_capacity/tanner_cnn/overview.png)은 최신 CNN **84개 설정의 raw 결과**와
 그 모델에 대응하는 **새 syndrome OSD-0 25개 결과**를 표시한다.
-이전 depth 1–5의 residual OSD 44개 결과도 OSD 패널에 함께 표시한다.
-실선·원은 새 syndrome OSD, 점선·사각형은 이전 residual OSD다.
+Depth 1–8·10·12의 residual OSD 84개 결과도 OSD 패널에 함께 표시한다.
+실선·원은 새 syndrome OSD, 점선·사각형은 residual OSD다.
 
 - 위 BB72 / 아래 BB144, 왼쪽 CNN 단독 / 오른쪽 CNN + OSD-0 (두 방식).
-- 색은 depth 1–8. 추가 seed는 × 표시다. Raw 패널의 Neural BP4는 다른 학습 조건의 참고선이다.
+- 색은 depth 1–8 및 10·12. 추가 seed는 × 표시다. Raw 패널의 Neural BP4는 다른 학습 조건의 참고선이다.
 - 새 OSD 25개 = depth 6/7/8의 native 결과 24개 + BB144 depth 5 p=.04의 전체 사후 평가 1개.
-- 최신 depth 1–5 나머지 43개 설정의 전체 새 OSD 결과는 현재 로컬에 없다. 해당 점은
+- 최신 depth 1–5의 43개와 depth 10/12의 16개 설정은 전체 새 OSD 결과가 로컬에 없다.
   새 OSD 점은 생략하되, 기존 residual OSD 결과를 별도 점선으로 표시한다.
   서로 다른 OSD 방식의 점들을 하나의 선으로 연결하지 않는다.
 - 과거 400-epoch BB144 d5 p=.06 재평가와 256-shot 부분 평가는 최신 800-epoch 모델의
@@ -20,7 +20,9 @@
 - `bb_cnn_latest_final.csv`의 `osd_*` 열은 새 OSD만 포함한다. 미평가 값은 빈 칸이다.
   `recorded_osd_ler`에는 원래 값이 남아 있고 `osd_status`/`osd_source`로 출처를 확인할 수 있다.
   `bb_cnn_all_final.csv`는 과거 단계의 원래 OSD 기록을 보존한다.
-  `bb_cnn_residual_osd_overlay.csv`에는 플롯에 추가한 residual OSD 44개 값이 있다.
+  `bb_cnn_residual_osd_overlay.csv`에는 플롯에 추가한 residual OSD 84개 값이 있다.
+  D6/7/8의 24개 residual 값은 원본 checkpoint/bank/history 해시를 검증한 서버 보고서에서 읽는다.
+  재평가 paired 샷 파일은 없으므로 `osd_status=posthoc_report_inputs_hash_verified`로 구분한다.
 
 [표시된 수치](../analysis/bb_cnn_latest_final.csv) ·
 [누락된 새 OSD 평가 목록](../analysis/bb_cnn_missing_syndrome_osd.csv) ·
@@ -29,6 +31,31 @@
 재생성: `python scripts/plot_bb_cnn_all.py`.
 새 전체 평가 결과를 `results`의 Tanner CNN archive 또는 `results/analysis`에 추가하면,
 같은 명령으로 일치하는 결과를 찾아 반영한다. 이 명령은 추론이나 학습을 실행하지 않는다.
+
+## Depth 10/12 및 D6/7/8 residual 재평가 완료 (2026-10-26 저녁)
+
+[같은 residual 방식의 D6/7/8/10/12 비교](bb/code_capacity/tanner_cnn/depth_comparison.png) ·
+[D8/10/12 학습 곡선](bb/code_capacity/tanner_cnn/depth1012_validation.png) ·
+[200–800 epoch 확대](bb/code_capacity/tanner_cnn/depth1012_validation_late.png) ·
+[분석](../analysis/bb_update_2026_10_26_evening.md).
+
+두 코드 × 다섯 depth × 네 p의 40개 결과를 비교한다. 모두 fresh 800 epochs, width 64,
+final 65,536 shots이며 오른쪽 패널은 residual OSD만 표시한다.
+BB144 높은 p에서는 D12까지 개선하지만 BB72는 D10→D12가 대체로 정체다.
+D10/12 다운로드에는 history/log만 있으므로 depth 간 paired 검정은 하지 않았다.
+재생성: `python scripts/analyze_bb_october26_evening.py`.
+
+## 첫 BB144 depth 12 다운로드 당시 비교 (2026-10-26, 과거 그림)
+
+[Depth 6/7/8/12 비교](bb/code_capacity/tanner_cnn/depth12.png) ·
+[학습 곡선](bb/code_capacity/tanner_cnn/depth12_validation.png) ·
+[분석](../analysis/bb_update_2026_10_26.md).
+
+BB144 depth 12의 residual OSD 결과 4개를 분홍색 점선으로 추가했던 그림이다.
+최신 depth 10과 BB72 depth 12 결과는 위 저녁 업데이트를 참고한다. Job 60255255는
+체크포인트와 샷 파일이 제외된 다운로드여서 history/log 검증만 가능하다.
+통합 CSV의 `audit_level=history_and_logs_only`로 구분한다.
+D8→D12 OSD 비교는 방식 차이가 섞이므로 순수한 depth 효과로 해석하지 않는다.
 
 ## Depth 6–8 비교
 

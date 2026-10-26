@@ -34,3 +34,14 @@ To submit BB144 only, use `sbatch --array=1,3 run_bb_depth1012.slurm`.
 Outputs follow the existing layout: `resdir_<task job ID>/outputs/`, with
 per-experiment logs, exit codes, source snapshots and completion markers.
 The Slurm log filename includes both the array job ID and task index.
+
+## Received results (2026-10-26)
+
+All 16 models are archived and plotted: 60255257=BB72 D10 (task 0),
+60261485=BB144 D10 (task 1), 60261486=BB72 D12 (task 2),
+60255255=BB144 D12 (task 3). All completed 800 epochs.
+See [analysis](../results/analysis/bb_update_2026_10_26_evening.md) and
+[same-residual comparison](../results/plots/bb/code_capacity/tanner_cnn/depth_comparison.png).
+These downloads contain history/logs only; weights and shot banks were excluded.
+The depth 6/7/8 residual reevaluation (60255150) is also imported, with original
+input hashes verified; its posthoc paired shot files were not downloaded.

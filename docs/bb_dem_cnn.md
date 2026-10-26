@@ -3,7 +3,96 @@
 Use `--architecture=bb_dem_cnn --noise_model=circuit` for BB72 or BB144.
 `bb_tanner_cnn` with circuit noise is an alias. Capacity Tanner CNN checkpoints
 and neural BP checkpoints are different architectures and cannot initialize or
-resume this model. Existing Slurm launchers are unchanged.
+resume this model. The dedicated sweep launcher is
+[`run_bb_dem_depth46812.slurm`](../run_bb_dem_depth46812.slurm).
+
+## Depth 4/6/8/12 campaign (800 epochs)
+
+```bash
+cd ~/end_time
+sbatch run_bb_dem_depth46812.slurm
+```
+
+Upload the launcher and current model/source files to the server before
+submitting. The eight array tasks are:
+
+| Array task | Code | Depth | Noisy rounds |
+|---|---|---:|---:|
+| 0 / 1 | BB72 / BB144 | 4 | 6 / 12 |
+| 2 / 3 | BB72 / BB144 | 6 | 6 / 12 |
+| 4 / 5 | BB72 / BB144 | 8 | 6 / 12 |
+| 6 / 7 | BB72 / BB144 | 12 | 6 / 12 |
+
+Each task uses four GPUs for p=.001/.002/.004/.006, one p per GPU: **32 models**.
+All train from scratch for 800 epochs with width 64, AdamW, cosine LR 3e-4,
+weight decay 1e-4, gradient clipping 1, float32, and activation checkpointing.
+This uses the existing `standard` circuit noise profile, including idle noise,
+with ideal reference and closing cycles. It is not the capacity-noise p sweep.
+
+The initial memory-conscious batch size is **4**. Each epoch has 128 batches
+(512 training shots), totaling **409,600 training shots per model**. Validation
+uses 1,024 independent circuit shots every five epochs; the selected best is
+evaluated on 8,192 fresh circuit shots. These shot budgets are smaller than the
+capacity campaign's 6,553,600 training / 65,536 final shots: 800 epochs does not
+mean the same amount of data. They are initial settings, not tuned benchmarks.
+
+Each array task has a 24-hour wall-time limit; full GPU runtime/memory at these
+settings has not been measured, so 800-epoch completion within that limit is
+not guaranteed. Checkpoints are saved every epoch. Resume support is described
+below; restarting the launcher itself starts fresh experiments.
+
+Email is configured directly as `ds08152@gmail.com`, `END,FAIL`, for completion
+or failure of the array as a whole. The script retains the existing per-job
+`resdir_JOB_ID` structure, per-experiment logs/exit codes, source snapshots,
+weights, history and final shot bank.
+
+Preview without submitting:
+
+```bash
+BB_DRY_RUN=1 bash run_bb_dem_depth46812.slurm
+```
+
+Runtime controls (exported environment variables):
+
+- `BB_DEM_BATCH_SIZE=4`: a positive divisor of 512; batch counts adjust to keep
+  training, validation and final shot budgets fixed.
+- `BB_DEM_EDGE_CHUNK_SIZE=4096`: sparse message chunk size.
+- `BB_DEM_OSD_SHOTS=0`: default raw-only scoring. A positive value enables the
+  existing **residual OSD-0** on the first min(requested, available) shots of
+  **every validation and final evaluation**, using the same paired raw subset.
+  This dense CPU solver is costly for large DEMs and is not a full-bank result
+  unless the requested subset covers that evaluation. `--bb_cnn_osd` is not
+  the control for this architecture.
+
+For example, `sbatch --export=ALL,BB_DEM_BATCH_SIZE=2,BB_DEM_OSD_SHOTS=8
+run_bb_dem_depth46812.slurm` reduces batch size and enables an eight-shot OSD
+diagnostic at each evaluation. Eight shots are a diagnostic, not an LER benchmark.
+
+Measured graph sizes for the standard profile at p=.002:
+
+| Code | Detectors | Mechanisms | Edges | Edge orbits |
+|---|---:|---:|---:|---:|
+| BB72, rounds 6 | 504 | 17,928 | 105,408 | 1,410 |
+| BB144, rounds 12 | 1,872 | 71,280 | 419,904 | 1,410 |
+
+At width 64 these two graphs share the parameter counts below because the
+weights depend on edge orbits, not the number of nodes.
+
+| Depth | Initial D→M | M→D→M blocks | Total directed convolutions | Parameters |
+|---|---:|---:|---:|---:|
+| 4 | 1 | 3 | 7 | 695,233 |
+| 6 | 1 | 5 | 11 | 1,089,729 |
+| 8 | 1 | 7 | 15 | 1,484,225 |
+| 12 | 1 | 11 | 23 | 2,273,217 |
+
+Each model also has detector and mechanism stems and a two-linear-layer output
+head. These depths count DEM graph propagation blocks and are not identical to
+the code-capacity model's architecture or computational cost.
+
+Launcher validation: all 32 commands pass the real CLI routing/configuration
+checks; all 14 DEM CNN tests pass. A BB144 rounds12/width64/depth12 model also
+completed a finite forward/backward check on CPU with batch size 1. This does
+not establish GPU batch4 memory use, training convergence, or full-run timing.
 
 ## Graph and model
 

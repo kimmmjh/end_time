@@ -11,6 +11,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 STANDARD = "syndrome_osd0_v1"
 POLICY = "paired_frozen_cnn_syndrome_osd0_v1"
+RESIDUAL = "direct_hard_centered_osd0_v1"
 
 
 @lru_cache(maxsize=None)
@@ -39,6 +40,10 @@ def standard_metrics(history_path, index):
     config, final = history["config"], history["final"]
     if config.get("osd") == STANDARD:
         return final["osd"], path, "native"
+    # Lightweight downloads retain history/logs but omit weights and shot banks.
+    # Recorded results remain plottable; a posthoc substitution cannot be verified.
+    if not all(path.with_name(name).is_file() for name in ("model.pt", "final_shots.npz")):
+        return None
     key = (sha(path.with_name("model.pt")), sha(path.with_name("final_shots.npz")))
     matches = []
     for source, report in index.get(key, []):
@@ -68,3 +73,43 @@ def interval(rate, shots):
     center = (rate + z*z/(2*shots))/denominator
     half = z*np.sqrt(rate*(1-rate)/shots + z*z/(4*shots*shots))/denominator
     return count, max(0., center-half), min(1., center+half)
+
+
+def residual_metrics(history_path, index):
+    """Read residual results, distinguishing a hashed report from shot rescoring.
+
+    Lightweight posthoc downloads may omit paired_shots.npz. Accept their
+    reported aggregates only when all three original input hashes match locally;
+    retain an explicit report-only provenance instead of claiming a local rescore.
+    """
+    path = Path(history_path)
+    history = json.loads(path.read_text())
+    config, final = history["config"], history["final"]
+    if config.get("osd") == RESIDUAL:
+        return final["osd"], path, "native"
+    if not all(path.with_name(n).is_file() for n in ("model.pt", "final_shots.npz")):
+        return None
+    key = (sha(path.with_name("model.pt")), sha(path.with_name("final_shots.npz")))
+    matches = []
+    for source, report in index.get(key, []):
+        if (report["config"] != config or report["selected_epoch"] != final["epoch"]
+                or report["history_sha256"] != sha(path)
+                or report["shots"] != final["shots"] or report["source_shots"] != final["shots"]
+                or "residual_osd0" not in report["metrics"]):
+            continue
+        assert report["weights"] == "best_model_state_dict" and report["training_steps"] == 0
+        assert report["osd_order"] == 0 and report["osd_policy"] == "only_invalid_sectors"
+        metric = report["metrics"]["residual_osd0"]
+        interval(metric["logical_error_rate"], final["shots"])
+        assert metric["samples"] == final["shots"]
+        status = "posthoc_report_inputs_hash_verified"
+        if source.with_name("paired_shots.npz").is_file():
+            with np.load(source.with_name("paired_shots.npz"), allow_pickle=False) as bank:
+                success = bank["residual_osd0_success"].astype(bool)
+                assert len(success) == final["shots"]
+                assert abs((~success).mean() - metric["logical_error_rate"]) < 1e-12
+            status = "posthoc_shots_verified"
+        matches.append((metric, source, status))
+    if len(matches) > 1:
+        assert all(m[0] == matches[0][0] for m in matches), "Conflicting residual OSD reports"
+    return matches[0] if matches else None

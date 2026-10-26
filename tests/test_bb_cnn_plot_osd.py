@@ -2,7 +2,7 @@ import json
 
 import numpy as np
 
-from scripts.bb_cnn_plot_osd import POLICY, STANDARD, report_index, sha, standard_metrics
+from scripts.bb_cnn_plot_osd import POLICY, STANDARD, report_index, sha, standard_metrics, residual_metrics
 
 
 def run_and_report(tmp_path):
@@ -50,3 +50,36 @@ def test_native_standard_results_need_no_posthoc_substitution(tmp_path):
                                "final": {"osd": {"logical_error_rate": .25}}}))
     metric, source, status = standard_metrics(path, {})
     assert metric["logical_error_rate"] == .25 and source == path and status == "native"
+
+
+def test_lightweight_download_does_not_substitute_unverifiable_posthoc(tmp_path):
+    path, _, _ = run_and_report(tmp_path)
+    index = report_index([tmp_path])
+    path.with_name("model.pt").unlink()
+    assert standard_metrics(path, index) is None
+    path.with_name("model.pt").write_bytes(b"selected checkpoint")
+    path.with_name("final_shots.npz").unlink()
+    assert standard_metrics(path, index) is None
+
+
+def test_residual_report_only_requires_matching_original_inputs(tmp_path):
+    path, report_path, report = run_and_report(tmp_path)
+    history = json.loads(path.read_text())
+    history['config']['osd'] = STANDARD
+    path.write_text(json.dumps(history))
+    # sha() may already have cached the fixture's original history.
+    sha.cache_clear()
+    report.update(config=history['config'], history_sha256=sha(path))
+    report['metrics']['residual_osd0'] = {'samples': 8, 'logical_error_rate': .25}
+    report_path.write_text(json.dumps(report))
+    report_path.with_name('paired_shots.npz').unlink()
+    metric, source, status = residual_metrics(path, report_index([tmp_path]))
+    assert metric['logical_error_rate'] == .25 and source == report_path
+    assert status == 'posthoc_report_inputs_hash_verified'
+    for field, value in (('partial', True), ('history_sha256', 'wrong'),
+                         ('selected_epoch', 3), ('source_shots', 16), ('checkpoint_sha256', 'wrong')):
+        report_path.write_text(json.dumps({**report, field: value}))
+        assert residual_metrics(path, report_index([tmp_path])) is None
+    report_path.write_text(json.dumps(report))
+    path.with_name('final_shots.npz').unlink()
+    assert residual_metrics(path, report_index([tmp_path])) is None

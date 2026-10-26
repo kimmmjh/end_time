@@ -1,5 +1,37 @@
 # Result archive
 
+## October 26, 2026 evening: depth 10/12 and residual OSD complete
+
+[분석](analysis/bb_update_2026_10_26_evening.md) ·
+[전체 플롯](plots/bb/code_capacity/tanner_cnn/overview.png) ·
+[D6/7/8/10/12 동일 residual 비교](plots/bb/code_capacity/tanner_cnn/depth_comparison.png) ·
+[학습 곡선](plots/bb/code_capacity/tanner_cnn/depth1012_validation.png).
+
+새 4개 폴더 / 165개 파일 / 8,309,136 bytes를 이동 전후 SHA-256 검증하여 정리했다.
+Jobs 60255257(BB72 D10), 60261485(BB144 D10), 60261486(BB72 D12)는
+`bb/code_capacity/depolarizing/tanner_cnn/800_epochs/residual_osd0/{bb72,bb144}/`에 보관했다.
+새 12개 모델 모두 800 epochs 완료; 기존 BB144 D12를 합쳐 D10/12 16개가 모두 수신됐다.
+Job 60255150의 D6/7/8 재평가 24개는 같은 Tanner CNN 경로의
+`posthoc_osd0/depth678/resdir_60255150/`에 보관했다.
+이는 code-capacity 결과이며 DEM circuit-level 결과는 아니다.
+
+D10/12는 history/log 검증이며 체크포인트·샷 파일은 없다. D6/7/8 재평가는
+로컬 원본 checkpoint/bank/history 해시를 보고서와 대조했다. 재평가 paired 샷 파일은
+없으므로 paired count와 residual metric은 서버 보고서 기준임을 기록했다.
+최신 전체 플롯은 raw 84개, syndrome OSD 25개, residual OSD 84개 결과를 포함한다.
+재생성: `python scripts/analyze_bb_october26_evening.py` 및 `python scripts/plot_bb_cnn_all.py`.
+
+## October 26, 2026: BB144 depth 12
+
+[분석](analysis/bb_update_2026_10_26.md) · [전체 플롯](plots/bb/code_capacity/tanner_cnn/overview.png) · [D6/7/8/12 비교](plots/bb/code_capacity/tanner_cnn/depth12.png).
+
+Job 60255255 (array task 3)의 네 p 결과를
+`bb/code_capacity/depolarizing/tanner_cnn/800_epochs/residual_osd0/bb144/resdir_60255255/`에 보관했다.
+39개 파일 / 2,691,924 bytes의 이동 전후 SHA-256을 확인했다. 모두 800 epochs 완료.
+체크포인트·샷 파일은 다운로드에 없어 history/log 검증만 수행했으며 paired 검정은 하지 않았다.
+이 첫 다운로드 당시 미수신이었던 나머지 결과는 위 저녁 업데이트에서 추가했다.
+이 시점 분석 재생성: `python scripts/analyze_bb_october26.py`.
+
 ## October 24, 2026: depth 6–8 and depth 5 completion
 
 [결과 분석](analysis/bb_update_2026_10_24.md) ·
