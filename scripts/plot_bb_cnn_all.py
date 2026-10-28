@@ -115,7 +115,6 @@ def main():
             r.update(osd_ler=metric['logical_error_rate'], osd_failures=count,
                      osd_low=low, osd_high=high, osd_status=status,
                      osd_source=str(source.relative_to(ROOT)))
-    available = sum(r['osd_status'] != 'missing' for r in rows)
     PLOTS.mkdir(parents=True, exist_ok=True)
     plt.rcParams.update({'font.size': 10, 'axes.spines.top': False, 'axes.spines.right': False})
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
@@ -125,7 +124,7 @@ def main():
             ax = axes[i, j]
             for depth, color in COLORS.items():
                 group = [r for r in rows if r['code']==code and r['depth']==depth
-                         and (method == 'raw' or r['osd_status'] != 'missing')]
+                         and method == 'raw']
                 primary = {r['p']:r for r in group if r['primary']}
                 grid = (.02, .04, .06, .08)
                 ys = [primary[p][f'{method}_ler']*100 if p in primary and primary[p][f'{method}_ler'] > 0 else np.nan for p in grid]
@@ -151,31 +150,26 @@ def main():
                 refs.sort(key=lambda r: float(r['p']))
                 ax.plot([float(r['p'])*100 for r in refs], [float(r['ler'])*100 for r in refs],
                         color='#444444', ls='-.', marker='+', lw=1.3, alpha=.8)
-            ax.set(title=f'{code.upper()}  |  {"CNN alone" if method=="raw" else "CNN + OSD-0 (both conventions)"}',
+            ax.set(title=f'{code.upper()}  |  {"CNN alone" if method=="raw" else "CNN + residual OSD-0"}',
                    xlabel='Physical error rate p (%)', ylabel='Block LER (%)', yscale='log',
                    xticks=[2,4,6,8], xlim=(1.75,8.25))
             ax.grid(alpha=.2, which='major')
-            panel = [r for r in rows if r['code']==code
-                     and (method == 'raw' or r['osd_status'] != 'missing')]
-            if method == 'osd':
-                panel += [r for r in residual_rows if r['code']==code]
+            panel = [r for r in (rows if method == 'raw' else residual_rows) if r['code']==code]
             lower = min(r[f'{method}_low'] if r[f'{method}_ler'] else r[f'{method}_high'] for r in panel)*100
             upper = max(r[f'{method}_high'] for r in panel)*100
             ax.set_ylim(lower*.6, min(110,upper*1.6))
             if method == 'osd':
-                old_count = sum(r['code']==code for r in residual_rows)
-                ax.text(.97, .03, f'{len(panel)-old_count} syndrome; {old_count} residual results',
+                ax.text(.97, .03, f'{len(panel)} residual results',
                         transform=ax.transAxes, va='bottom', ha='right', fontsize=9,
                         bbox=dict(facecolor='white', alpha=.85, edgecolor='none'))
-    assert plotted == len(rows)+available+len(residual_rows)
+    assert plotted == len(rows)+len(residual_rows)
     depth_handles=[Line2D([],[],color=c,lw=2,label=f'Depth {d}') for d,c in COLORS.items()]
     fig.legend(handles=depth_handles, loc='lower center', bbox_to_anchor=(.5,.075),ncol=len(COLORS),frameon=False)
     budget_handles = [Line2D([],[],color='#666666',marker='x',ls='',label='Additional seeds'),
-                       Line2D([],[],color='#666666',marker='o',ls='-',label='Syndrome OSD-0'),
                        Line2D([],[],color='#666666',marker='s',ls='--',label='Residual OSD-0'),
                        Line2D([],[],color='#444444',ls='-.',marker='+',label='Prior Neural BP4 (raw panels)')]
-    fig.legend(handles=budget_handles,loc='lower center',bbox_to_anchor=(.5,.028),ncol=4,frameon=False,fontsize=9)
-    fig.suptitle(f'Tanner CNN: latest completed results\n{len(rows)} raw · {available} syndrome OSD-0 · {len(residual_rows)} residual OSD-0 results',fontsize=16,y=.975)
+    fig.legend(handles=budget_handles,loc='lower center',bbox_to_anchor=(.5,.028),ncol=3,frameon=False,fontsize=9)
+    fig.suptitle(f'Tanner CNN: latest completed results\n{len(rows)} raw · {len(residual_rows)} residual OSD-0 results',fontsize=16,y=.975)
     fig.subplots_adjust(left=.075,right=.98,top=.895,bottom=.17,wspace=.23,hspace=.31)
     destination=PLOTS/'overview.png'
     fig.savefig(destination,dpi=190,facecolor='white')

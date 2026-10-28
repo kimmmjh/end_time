@@ -6,7 +6,97 @@ and neural BP checkpoints are different architectures and cannot initialize or
 resume this model. The dedicated sweep launcher is
 [`run_bb_dem_depth46812.slurm`](../run_bb_dem_depth46812.slurm).
 
+## Imported results (2026-10-28)
+
+24 models completed 800 epochs: BB72 depths 4/6/8/12 and BB144 depths 4/6,
+each at p=.001/.002/.004/.006. BB144 depth 8 has not been imported.
+The original BB144 D12 job 60310800 timed out after 24 hours; its imported
+histories contain 394/399/393/398 epochs at p=.001/.002/.004/.006 and no final
+evaluation. See the [interruption analysis](../results/analysis/bb_dem_2026_10_28_interrupted.md).
+These partial runs appear as dashed training curves, not final LER points.
+All completed runs disabled OSD and evaluated 8,192 final circuit shots.
+See the [analysis](../results/analysis/bb_dem_2026_10_28.md),
+[performance plot](../results/plots/bb/circuit/standard/dem_cnn/overview.png), and
+[validation curves](../results/plots/bb/circuit/standard/dem_cnn/validation.png).
+
+BB72 depth 12 improves at lower p, but high-p block failure remains large.
+BB144 p=.004/.006 had zero successful shots in all 160 validation evaluations;
+the earliest-tie rule therefore selected epoch 5, despite completing 800 epochs.
+Most raw failures are syndrome inconsistency. The recorded `logical_error_rate`
+includes these failures; `observable_mismatch_rate` is reported separately.
+Downloads contain logs/history/source snapshots but no checkpoints or shot banks.
+Job-log elapsed time ranged from 4.22 hours (BB72 D4) to 23.65 hours (BB144 D6).
+
 ## Depth 4/6/8/12 campaign (800 epochs)
+
+### Resume timed-out BB144 depth 8/12 jobs
+
+To resume **both depths in one submission**, upload
+`run_bb_dem_resume812.slurm` and `scripts/resume_bb_dem_cnn.py`, then run:
+
+```bash
+cd ~/end_time
+sbatch run_bb_dem_resume812.slurm
+```
+
+Array task 0 resumes BB144 D8 from original array 60310800/task 5;
+task 1 resumes BB144 D12 from task 7. Each task has a 24-hour allocation and
+four GPUs for p=0.001/0.002/0.004/0.006, and sends its own END/FAIL email.
+The latest server-side `model.pt` determines the remaining epochs up to 800.
+Results go to separate `resdir_JOB_ID` directories. OSD stays off, as in the
+original campaign. A further 24 hours is not a guarantee of completion.
+
+Preview each task on the server without training:
+
+```bash
+BB_DRY_RUN=1 SLURM_ARRAY_TASK_ID=0 bash run_bb_dem_resume812.slurm
+BB_DRY_RUN=1 SLURM_ARRAY_TASK_ID=1 bash run_bb_dem_resume812.slurm
+```
+
+For a later continuation, override sources separately with
+`BB_DEM_SOURCE_JOB_D8` and `BB_DEM_SOURCE_JOB_D12` (absolute result paths).
+Use `sbatch --array=0` or `--array=1` to resubmit only one depth.
+Do not set the single-depth launcher's `BB_DEM_DEPTH` or `BB_DEM_SOURCE_JOB`
+variables with this array launcher.
+
+The single-depth launcher remains available:
+
+Upload `run_bb_dem_resume.slurm` and `scripts/resume_bb_dem_cnn.py` into the same
+server repository. Keep the original `resdir_*/outputs/*/*/model.pt` files there.
+
+```bash
+cd ~/end_time
+sbatch run_bb_dem_resume.slurm
+```
+
+This defaults to BB144 depth 8, finds the directory whose metadata identifies
+array 60310800/task 5, and resumes all four p values on four GPUs. For each point
+it reads the latest checkpoint epoch and runs only `800 - (epoch + 1)` additional
+epochs. It restores model/optimizer/best history and preserves the source files;
+new outputs go to `resdir_NEW_JOB/`. END/FAIL email goes to ds08152@gmail.com.
+
+Preview on the server with `BB_DRY_RUN=1 bash run_bb_dem_resume.slurm`.
+For depth 12, **after its original job stops**, use:
+
+```bash
+sbatch --export=ALL,BB_DEM_DEPTH=12 run_bb_dem_resume.slurm
+```
+
+The helper checks source job state and rejects an active source. It starts a new
+cosine schedule at the checkpoint's current optimizer learning rate; this avoids
+jumping back to 3e-4, but does not reproduce the original cosine schedule. The
+Stim sampler also starts an independent phase. Record these results as resumed
+training, not an uninterrupted 800-epoch run. Noise, loss, OSD setting and shot
+budgets are inherited from the checkpoint. Final best selection includes the
+pre-resume best; ties do not replace it.
+
+If another timeout occurs, explicitly select the new result folder:
+`sbatch --export=ALL,BB_DEM_SOURCE_JOB=/absolute/path/resdir_NEW_JOB run_bb_dem_resume.slurm`
+(also set `BB_DEM_DEPTH=12` for D12). Already finished sources are skipped. If all
+800 epochs were saved but final evaluation was interrupted, the helper reports
+that evaluation-only recovery is needed and does not add unrequested training.
+
+### Fresh sweep
 
 ```bash
 cd ~/end_time

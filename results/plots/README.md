@@ -1,36 +1,49 @@
 # 플롯 안내
 
-## Tanner CNN: 최신 모델, 두 OSD 방식 함께 표시
+## DEM CNN: standard circuit noise (2026-10-28)
+
+[성능 그림](bb/circuit/standard/dem_cnn/overview.png) ·
+[Validation](bb/circuit/standard/dem_cnn/validation.png) ·
+[Logical parity loss](bb/circuit/standard/dem_cnn/logical_loss.png) ·
+[분석](../analysis/bb_dem_2026_10_28.md).
+
+BB72 D4/6/8/12와 BB144 D4/6의 24개 모델, 각 800 epochs 및 8,192 final shots.
+BB144 D8은 미수신, D12는 393–399 epochs에서 중단되어 final 평가가 없다.
+Overview에는 완료된 24개 모델만 표시한다. OSD는 모든 실험에서 꺼져 있다.
+성능 그림은 왼쪽 BB72, 오른쪽 BB144의 LER(block failure)만 표시한다.
+현재 LER는 syndrome 또는 observable 불일치를 포함하는 전체 실험 실패율이며 round당 LER가 아니다.
+X축 p는 noise location별 오류율(%); 모든 y축은 선형이며 95% Wilson 구간을 표시한다.
+Validation과 loss 그림은 trailing 25-epoch 평균으로, 패널별 축 범위가 다르다.
+BB144 D12 중단 기록은 점선으로 표시하고 마지막 기록에 ×를 표시한다.
+이는 중간 학습 지표이며 overview의 final LER와 직접 비교하지 않는다.
+[D12 중단 분석](../analysis/bb_dem_2026_10_28_interrupted.md)을 참고한다.
+BB144 p=.004/.006은 validation 160회 모두 성공 0건으로 epoch 5가 best로 유지됐다.
+Logical loss 그림의 ln(2) 점선은 parity 확률이 1/2일 때의 BCE 값이다.
+
+Code-capacity 플롯과 별도로 보관하며, 이전 idle0 회로나 평가 observable이 다른
+classical baseline과 같은 곡선에 섞지 않는다. 재생성:
+`python scripts/analyze_bb_dem_october28.py`.
+
+## Tanner CNN: CNN 단독 및 residual OSD
 
 [통합 플롯](bb/code_capacity/tanner_cnn/overview.png)은 최신 CNN **84개 설정의 raw 결과**와
-그 모델에 대응하는 **새 syndrome OSD-0 25개 결과**를 표시한다.
-Depth 1–8·10·12의 residual OSD 84개 결과도 OSD 패널에 함께 표시한다.
-실선·원은 새 syndrome OSD, 점선·사각형은 residual OSD다.
+**residual OSD-0 84개 결과**를 표시한다. Syndrome OSD 곡선은 표시에서 제외했다.
 
-- 위 BB72 / 아래 BB144, 왼쪽 CNN 단독 / 오른쪽 CNN + OSD-0 (두 방식).
-- 색은 depth 1–8 및 10·12. 추가 seed는 × 표시다. Raw 패널의 Neural BP4는 다른 학습 조건의 참고선이다.
-- 새 OSD 25개 = depth 6/7/8의 native 결과 24개 + BB144 depth 5 p=.04의 전체 사후 평가 1개.
-- 최신 depth 1–5의 43개와 depth 10/12의 16개 설정은 전체 새 OSD 결과가 로컬에 없다.
-  새 OSD 점은 생략하되, 기존 residual OSD 결과를 별도 점선으로 표시한다.
-  서로 다른 OSD 방식의 점들을 하나의 선으로 연결하지 않는다.
-- 과거 400-epoch BB144 d5 p=.06 재평가와 256-shot 부분 평가는 최신 800-epoch 모델의
-  대체값으로 사용하지 않는다. 사후 평가의 checkpoint/bank/history 해시, config, best epoch,
-  전체 shot 수가 일치해야 교체한다.
-- 95% Wilson 구간을 표시하고, 실패 0건은 상한 위치에 빈 역삼각형을 표시한다.
-- `bb_cnn_latest_final.csv`의 `osd_*` 열은 새 OSD만 포함한다. 미평가 값은 빈 칸이다.
-  `recorded_osd_ler`에는 원래 값이 남아 있고 `osd_status`/`osd_source`로 출처를 확인할 수 있다.
-  `bb_cnn_all_final.csv`는 과거 단계의 원래 OSD 기록을 보존한다.
-  `bb_cnn_residual_osd_overlay.csv`에는 플롯에 추가한 residual OSD 84개 값이 있다.
+- 위 BB72 / 아래 BB144, 왼쪽 CNN 단독 / 오른쪽 CNN + residual OSD-0.
+- 색은 depth 1–8 및 10·12. Residual은 점선·사각형, 추가 seed는 × 표시다.
+  Raw 패널의 Neural BP4는 다른 학습 조건의 참고선이다.
+- 95% Wilson 구간을 표시하고, 실패 0건은 상한 위치에 빈 역삼각형으로 표시한다.
+- 오른쪽 패널의 수치는 `bb_cnn_residual_osd_overlay.csv`에 있다.
   D6/7/8의 24개 residual 값은 원본 checkpoint/bank/history 해시를 검증한 서버 보고서에서 읽는다.
   재평가 paired 샷 파일은 없으므로 `osd_status=posthoc_report_inputs_hash_verified`로 구분한다.
+- 원래 syndrome 평가 자료는 보존한다. `bb_cnn_latest_final.csv`의 `osd_*` 열은 여전히
+  syndrome OSD이며 이번 그림의 오른쪽 패널 값이 아니다. 해당 CSV의 raw 열은 왼쪽 패널과 대응한다.
 
-[표시된 수치](../analysis/bb_cnn_latest_final.csv) ·
-[누락된 새 OSD 평가 목록](../analysis/bb_cnn_missing_syndrome_osd.csv) ·
+[Residual 표시 수치](../analysis/bb_cnn_residual_osd_overlay.csv) ·
+[Raw 및 syndrome 보관 수치](../analysis/bb_cnn_latest_final.csv) ·
 [과거 기록](../analysis/bb_cnn_all_final.csv).
 
-재생성: `python scripts/plot_bb_cnn_all.py`.
-새 전체 평가 결과를 `results`의 Tanner CNN archive 또는 `results/analysis`에 추가하면,
-같은 명령으로 일치하는 결과를 찾아 반영한다. 이 명령은 추론이나 학습을 실행하지 않는다.
+재생성: `python scripts/plot_bb_cnn_all.py`. 추론이나 학습을 실행하지 않는다.
 
 ## Depth 10/12 및 D6/7/8 residual 재평가 완료 (2026-10-26 저녁)
 

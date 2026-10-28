@@ -1,5 +1,39 @@
 # Result archive
 
+## October 28, 2026: BB144 depth 12 timeout record
+
+[중단 결과 분석](analysis/bb_dem_2026_10_28_interrupted.md) ·
+[학습 곡선](plots/bb/circuit/standard/dem_cnn/validation.png).
+
+`resdir_60310800` (array 60310800/7)은 24시간 제한으로 중단된 원래 D12 학습이다.
+34개 파일 / 1,375,378 bytes를 해시 검증하여
+`bb/circuit/standard/dem_cnn/interrupted/bb144/resdir_60310800/`로 정리했다.
+p=.001/.002/.004/.006은 각각 394/399/393/398 epochs까지 기록됐고 final 평가는 없다.
+Overview는 완료된 24개 모델만 표시하고, validation/loss에는 중단된 D12 곡선을 점선으로 추가했다.
+BB144 D8은 여전히 미수신이며 D12 재개 학습 결과도 아직 없다.
+재생성: `python scripts/analyze_bb_dem_interrupted.py`.
+
+## October 28, 2026: standard circuit-level DEM CNN
+
+[분석](analysis/bb_dem_2026_10_28.md) ·
+[성능 그림](plots/bb/circuit/standard/dem_cnn/overview.png) ·
+[Validation](plots/bb/circuit/standard/dem_cnn/validation.png) ·
+[Logical parity loss](plots/bb/circuit/standard/dem_cnn/logical_loss.png).
+
+Jobs 60310802/60310803/60316098/60316182/60318763/60330386의 24개 모델을
+`bb/circuit/standard/dem_cnn/800_epochs/{bb72,bb144}/resdir_JOB/`로 정리했다.
+252개 파일 / 15,356,901 bytes의 이동 전후 SHA-256을 검증했다.
+BB72 D4/6/8/12, BB144 D4/6 × p=.001/.002/.004/.006이며 모두 800 epochs 완료.
+BB144 D8/12의 final 결과는 없다(D12 중단 기록은 위 항목 참고). 전부 **OSD 없는 raw CNN** 평가다.
+
+모델당 training 409,600 shots, final 8,192 circuit shots.
+History와 train/validation/final 로그, 종료 코드 및 66개 source snapshot을 검증했다.
+가중치·shot bank는 다운로드에 없어 추론 재현과 paired depth 검정은 하지 않았다.
+BB72 D12는 낮은 p에서 개선되지만 높은 p의 block failure는 여전히 높다.
+BB144 p=.004/.006은 모든 validation 성공이 0건이라 epoch 5 checkpoint가 선택됐다.
+Block failure, observable mismatch, syndrome consistency를 별도 지표로 기록했다.
+재생성: `python scripts/analyze_bb_dem_october28.py`.
+
 ## October 26, 2026 evening: depth 10/12 and residual OSD complete
 
 [분석](analysis/bb_update_2026_10_26_evening.md) ·
@@ -18,7 +52,7 @@ Job 60255150의 D6/7/8 재평가 24개는 같은 Tanner CNN 경로의
 D10/12는 history/log 검증이며 체크포인트·샷 파일은 없다. D6/7/8 재평가는
 로컬 원본 checkpoint/bank/history 해시를 보고서와 대조했다. 재평가 paired 샷 파일은
 없으므로 paired count와 residual metric은 서버 보고서 기준임을 기록했다.
-최신 전체 플롯은 raw 84개, syndrome OSD 25개, residual OSD 84개 결과를 포함한다.
+최신 전체 플롯은 raw 84개와 residual OSD 84개를 표시한다. Syndrome OSD 25개는 자료만 보존한다.
 재생성: `python scripts/analyze_bb_october26_evening.py` 및 `python scripts/plot_bb_cnn_all.py`.
 
 ## October 26, 2026: BB144 depth 12
