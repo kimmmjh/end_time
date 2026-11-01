@@ -1,5 +1,16 @@
 # Result archive
 
+## November 1, 2026: BB144 D8 completion and D12 resumed timeout
+
+[최신 분석](analysis/bb_dem_2026_11_01.md) · [최신 플롯](plots/bb/circuit/standard/dem_cnn/overview.png).
+
+새 100개 파일의 SHA-256을 검증해 정리했다. 원래 D8 `60318790` 및 재중단 D12
+`60428753`은 `bb/circuit/standard/dem_cnn/interrupted/bb144/`, 완료 D8
+`60428756`은 `bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/`에 있다.
+D8 네 모델은 총 800 epochs 완료, D12는 790/798/787/795 epochs (p 오름차순), final 없음.
+Overview는 28개 완료 모델, validation/loss는 최신 D12 중간 기록도 포함한다.
+재생성: `python scripts/analyze_bb_dem_november1.py`. 아래 날짜별 항목은 당시 기록이다.
+
 ## October 28, 2026: BB144 depth 12 timeout record
 
 [중단 결과 분석](analysis/bb_dem_2026_10_28_interrupted.md) ·

@@ -1,28 +1,28 @@
 # 플롯 안내
 
-## DEM CNN: standard circuit noise (2026-10-28)
+## DEM CNN: standard circuit noise (2026-11-01)
 
 [성능 그림](bb/circuit/standard/dem_cnn/overview.png) ·
 [Validation](bb/circuit/standard/dem_cnn/validation.png) ·
 [Logical parity loss](bb/circuit/standard/dem_cnn/logical_loss.png) ·
-[분석](../analysis/bb_dem_2026_10_28.md).
+[최신 분석](../analysis/bb_dem_2026_11_01.md).
 
-BB72 D4/6/8/12와 BB144 D4/6의 24개 모델, 각 800 epochs 및 8,192 final shots.
-BB144 D8은 미수신, D12는 393–399 epochs에서 중단되어 final 평가가 없다.
-Overview에는 완료된 24개 모델만 표시한다. OSD는 모든 실험에서 꺼져 있다.
-성능 그림은 왼쪽 BB72, 오른쪽 BB144의 LER(block failure)만 표시한다.
-현재 LER는 syndrome 또는 observable 불일치를 포함하는 전체 실험 실패율이며 round당 LER가 아니다.
-X축 p는 noise location별 오류율(%); 모든 y축은 선형이며 95% Wilson 구간을 표시한다.
-Validation과 loss 그림은 trailing 25-epoch 평균으로, 패널별 축 범위가 다르다.
-BB144 D12 중단 기록은 점선으로 표시하고 마지막 기록에 ×를 표시한다.
-이는 중간 학습 지표이며 overview의 final LER와 직접 비교하지 않는다.
-[D12 중단 분석](../analysis/bb_dem_2026_10_28_interrupted.md)을 참고한다.
-BB144 p=.004/.006은 validation 160회 모두 성공 0건으로 epoch 5가 best로 유지됐다.
-Logical loss 그림의 ln(2) 점선은 parity 확률이 1/2일 때의 BCE 값이다.
+Overview는 완료된 28개 모델: BB72 D4/6/8/12, BB144 D4/6/8,
+각 총 800 epochs 및 8,192 final shots. BB144 D8은 재개 학습 결과로 표시한다.
+BB144 D12는 재개 후 787–798 epochs에서 다시 중단되어 final이 없다.
+Validation/loss에는 최신 D12 전체 이력을 점선과 마지막 ×로 표시한다.
+재개는 saved LR에서 새 cosine schedule과 독립 sampler phase를 사용했다.
 
-Code-capacity 플롯과 별도로 보관하며, 이전 idle0 회로나 평가 observable이 다른
-classical baseline과 같은 곡선에 섞지 않는다. 재생성:
-`python scripts/analyze_bb_dem_october28.py`.
+전부 OSD 없는 raw CNN이다. Overview에는 LER만 표시하며, 이는 syndrome 또는
+observable 불일치를 포함한 전체 block failure로 round당 LER가 아니다.
+X축 p는 noise location별 오류율(%), 95% Wilson 구간, 선형 y축이다.
+Validation/loss는 trailing 25-epoch 평균이며 패널별 축 범위가 다르다.
+D12의 중간 validation은 overview final과 직접 비교하지 않는다.
+BB144 D4/6/8의 p=.004/.006은 validation 성공률 동률로 epoch 5가 best로 유지됐다.
+Logical loss의 ln(2) 점선은 parity 확률 1/2의 BCE이다.
+
+재생성: `python scripts/analyze_bb_dem_november1.py`.
+Code-capacity 및 이전 idle0 회로와 별도로 보관한다.
 
 ## Tanner CNN: CNN 단독 및 residual OSD
 

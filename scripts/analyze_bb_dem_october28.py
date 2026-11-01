@@ -212,6 +212,7 @@ def plots(finals, training, validation):
     # Incomplete runs contribute training curves only, never final LER points.
     training, validation = list(training), list(validation)
     completed_keys = {(r["code"],r["depth"],r["p"]) for r in finals}
+    resumed_keys = {(r["code"],r["depth"],r["p"]) for r in finals if r.get("resumed")}
     partial = {}
     for path in sorted((ARCHIVE.parent / "interrupted").rglob("history.json")):
         h = read(path)
@@ -222,6 +223,8 @@ def plots(finals, training, validation):
         if key not in partial or len(h["train"]) > len(partial[key]["train"]):
             partial[key] = h
     for (code,depth,p),h in partial.items():
+        if len(h.get("phases", [])) > 1:
+            resumed_keys.add((code,depth,p))
         meta = dict(code=code,depth=depth,p=p)
         training.extend(dict(**meta,**t) for t in h["train"])
         validation.extend(dict(**meta,epoch=e["epoch"]+1,**e["raw"]) for e in h["eval"])
@@ -237,7 +240,7 @@ def plots(finals, training, validation):
             lo = np.array([r["block_low"]*100 for r in group])
             hi = np.array([r["block_high"]*100 for r in group])
             ax.errorbar([r["p"]*100 for r in group],ys,yerr=[np.maximum(0,ys-lo),np.maximum(0,hi-ys)],
-                        color=color,marker="o",capsize=3,label=f"Depth {depth}")
+                        color=color,marker="o",capsize=3,label=f"Depth {depth}"+(" (resumed)" if any((code,depth,r["p"]) in resumed_keys for r in group) else ""))
         ax.set(title=code.upper(),xlabel="Per-location error rate p (%)",ylabel="LER / block failure (%)",
                xticks=[.1,.2,.4,.6],ylim=(-2,102))
         ax.grid(alpha=.2)
@@ -264,7 +267,7 @@ def plots(finals, training, validation):
                     ax.plot([r["epoch"]+(kind=="loss") for r in group[window-1:]],ys,color=color,
                             ls="--" if unfinished else "-", marker="x" if unfinished else None,
                             markevery=[-1] if unfinished else None,
-                            label=f"D{depth}"+(" (partial)" if unfinished else ""))
+                            label=f"D{depth}"+(" (resumed)" if (code,depth,p) in resumed_keys else "")+(" (partial)" if unfinished else ""))
                 if kind=="loss":
                     ax.axhline(math.log(2),ls=":",color="#666666",lw=1,label="ln(2)")
                 ax.set(title=f"{code.upper()} p={p:.1%}",xlabel="Epoch",ylabel=ylabel)
