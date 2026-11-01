@@ -1,10 +1,15 @@
 # Circuit-level detector/mechanism CNN
 
+The training/resume Slurm launchers were retired on November 1, 2026. Their
+submission commands below are historical records, not available root scripts.
+Use the [hierarchical evaluation launcher](../run_bb_dem_hierarchical_eval.slurm)
+to evaluate existing DEM CNN weights without retraining; see the
+[evaluation instructions](bb_hierarchical_dem_cnn.md).
+
 Use `--architecture=bb_dem_cnn --noise_model=circuit` for BB72 or BB144.
 `bb_tanner_cnn` with circuit noise is an alias. Capacity Tanner CNN checkpoints
 and neural BP checkpoints are different architectures and cannot initialize or
-resume this model. The dedicated sweep launcher is
-[`run_bb_dem_depth46812.slurm`](../run_bb_dem_depth46812.slurm).
+resume this model. The original sweep used `run_bb_dem_depth46812.slurm`.
 
 ## Imported results (2026-10-28)
 

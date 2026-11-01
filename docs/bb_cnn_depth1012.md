@@ -1,5 +1,9 @@
 # Tanner CNN depth 10/12
 
+The root `run_bb_depth1012.slurm` launcher was retired on November 1, 2026.
+The commands below are historical and require the original script. See
+[DEM hierarchical evaluation](bb_hierarchical_dem_cnn.md) for the current launcher.
+
 Submit from `~/end_time` on Perlmutter after uploading
 `run_bb_depth1012.slurm`:
 

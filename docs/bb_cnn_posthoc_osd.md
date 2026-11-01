@@ -31,6 +31,11 @@ not introduced into this comparison.
 
 ## Server launchers
 
+The root Slurm scripts in this section were retired on November 1, 2026.
+These submission instructions are historical. The Python evaluator and direct
+commands in the next section remain available. For the current circuit-level
+DEM campaign, see [hierarchical evaluation](bb_hierarchical_dem_cnn.md).
+
 ### Depth 6/7/8: residual versus syndrome OSD
 
 Run `sbatch run_bb_depth678_osd.slurm` from `~/end_time` on Perlmutter.

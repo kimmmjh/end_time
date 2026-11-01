@@ -3,6 +3,7 @@
 from ._decoder import Decoder
 from ._bb_tanner_cnn import BBTannerCNN
 from ._bb_dem_cnn import BBDemCNN
+from ._bb_hierarchical_dem_cnn import BBHierarchicalDemCNN
 from ._equivariant_neural_bp import EquivariantNeuralBP4
 from ._equivariant_neural_bp2 import BPDecodeResult, EquivariantNeuralBP2
 from ._neural_relay_bp2 import NeuralRelayBP2, RelayDecodeResult
@@ -15,6 +16,7 @@ __all__ = [
     "Decoder",
     "BBTannerCNN",
     "BBDemCNN",
+    "BBHierarchicalDemCNN",
     "EquivariantNeuralBP4",
     "EquivariantNeuralBP2",
     "BPDecodeResult",

@@ -1,6 +1,9 @@
 # BB144 depth 5 p=.04 to 800 epochs, then standard OSD-0
 
-The active root launchers are `run_bb_0.slurm` and `run_bb_1.slurm`.
+The former root launchers `run_bb_0.slurm` and `run_bb_1.slurm` were retired on
+November 1, 2026. Submission commands below are historical and require those
+original scripts. See [DEM hierarchical evaluation](bb_hierarchical_dem_cnn.md)
+for the current launcher.
 The completed three-job continuation campaign's scripts 0–2 are preserved in
 [`scripts/slurm_archive/bb_depth45_resume800/`](../scripts/slurm_archive/bb_depth45_resume800/).
 There is no active root script 2 for that old campaign.

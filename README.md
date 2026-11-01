@@ -126,35 +126,32 @@ logical (unflagged) failures.
 
 ## Current Slurm experiments
 
-**October 24 results:** the depth 6–8 campaign and remaining depth-5
-continuation all finished (25 models, 800 epochs each). See the
-[analysis](results/analysis/bb_update_2026_10_24.md) and
-[depth comparison](results/plots/bb/code_capacity/tanner_cnn/depth678.png).
-The launch commands below start new jobs; they are not needed to inspect these results.
-
-The new [`run_bb_depth678.slurm`](run_bb_depth678.slurm) array trains depths
-6/7/8 for BB72 and BB144 at p=.02/.04/.06/.08, width 64, 800 fresh epochs,
-with syndrome OSD-0 in validation and final evaluation. See
-[settings and submission](docs/bb_cnn_depth678.md).
-
-The earlier launchers **`run_bb_0.slurm` and `run_bb_1.slurm`** remain available:
-
-| Script | Action |
-| --- | --- |
-| `run_bb_0.slurm` | BB144 depth 5 p=.04, job 59622483: 400→800 epochs, then standard syndrome OSD-0 evaluation |
-| `run_bb_1.slurm` | Latest 44 CNN models: raw / residual OSD-0 / standard syndrome OSD-0, no retraining, four GPU tasks |
+The only active root Slurm launcher is
+[`run_bb_dem_hierarchical_eval.slurm`](run_bb_dem_hierarchical_eval.slurm).
+It evaluates the 24 completed circuit-level DEM CNN models with raw and
+hierarchical residual decoding on identical fresh circuit shots. It reuses
+validation-selected best weights and performs no training.
 
 ```bash
-BB_DRY_RUN=1 bash run_bb_0.slurm
-train_job=$(sbatch --parsable run_bb_0.slurm)
-sbatch --dependency=afterok:"${train_job%%;*}" run_bb_1.slurm
+BB_DRY_RUN=1 bash run_bb_dem_hierarchical_eval.slurm
+# Pilot to estimate dense OSD runtime before the full campaign.
+sbatch --array=0 --export=ALL,BB_HIER_SHOTS=128 run_bb_dem_hierarchical_eval.slurm
+# Full campaign: 8,192 shots per model.
+sbatch run_bb_dem_hierarchical_eval.slurm
 ```
 
-[Current campaign and required source files](docs/bb_cnn_resume800_standard_osd.md).
-Source results may remain under `~/end_time/resdir_JOB` or the organized archive.
-Continuation requires `model.pt` and `history.json`; post-hoc OSD also requires
-`final_shots.npz`. No training chunks are needed. Update Python sources as well
-as Slurm scripts on the cluster. Each job writes a new `resdir_JOB`.
+See [checkpoint locations, upload files and options](docs/bb_hierarchical_dem_cnn.md).
+Local DEM imports contain metadata but no weights; the original server
+`resdir_*/outputs/...` checkpoints are needed. Each job writes a separate
+`resdir_JOB_hierarchical` directory.
+
+Seven older root launchers for code-capacity campaigns and DEM training/resume
+were removed on November 1, 2026. Their old submission instructions are
+historical; existing archived scripts and submitted result copies are preserved.
+The completed code-capacity campaign's
+[analysis](results/analysis/bb_update_2026_10_24.md) and
+[depth comparison](results/plots/bb/code_capacity/tanner_cnn/depth678.png)
+remain available.
 
 The completed 12-model continuation's scripts 0–2 are preserved in
 [`scripts/slurm_archive/bb_depth45_resume800/`](scripts/slurm_archive/bb_depth45_resume800/).

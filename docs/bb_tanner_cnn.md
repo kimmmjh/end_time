@@ -1,5 +1,10 @@
 # Joint Tanner CNN: raw and direct OSD-0
 
+Root code-capacity Slurm launchers mentioned below were retired on November 1,
+2026. Their campaign descriptions are retained as historical documentation;
+archived scripts and results are unchanged. The current root launcher is for
+[DEM hierarchical evaluation](bb_hierarchical_dem_cnn.md).
+
 **Latest results (October 24):** all 24 depth-6/7/8 models and the remaining
 depth-5 p=.04 continuation completed 800 epochs. Depth 6→8 improves raw LER
 at 6/8 points and syndrome OSD-0 LER at 4/8 points after Holm correction.

@@ -1,11 +1,15 @@
 # Depth 6–8 with syndrome OSD-0
 
+The root Slurm launchers referenced here were retired on November 1, 2026.
+Submission commands below document the historical campaign. The current
+[DEM hierarchical evaluation](bb_hierarchical_dem_cnn.md) uses existing weights.
+
 **Completed and audited October 24:** all 24 models reached 800 epochs.
 See the [results analysis](../results/analysis/bb_update_2026_10_24.md) and
 [depth comparison](../results/plots/bb/code_capacity/tanner_cnn/depth678.png).
 Results are archived under
 `results/bb/code_capacity/depolarizing/tanner_cnn/800_epochs/syndrome_osd0/`.
-Commands below describe the completed campaign; submitting them again starts new runs.
+Commands below describe the completed campaign and require the original scripts.
 
 `run_bb_depth678.slurm` trains 24 new code-capacity Tanner CNNs. All validation
 and final `osd` metrics use `SyndromeOSD0`, selected explicitly with
