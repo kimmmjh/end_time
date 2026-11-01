@@ -1,5 +1,13 @@
 # Result archive
 
+## November 1, 2026: depth 1 transfer folders returned to archive
+
+Jobs `58793764` (BB72) and `58793765` (BB144), Tanner CNN depth 1 / 100 epochs,
+are back under `bb/code_capacity/depolarizing/tanner_cnn/{bb72,bb144}/`.
+All 100 files (40,297,607 bytes) were verified by SHA-256 before and after relocation.
+The October 12 root locations below are historical; existing discovery supports the archive.
+[Relocation manifest](analysis/bb_root_cleanup_2026_11_01.csv).
+
 ## November 1, 2026: BB144 D8 completion and D12 resumed timeout
 
 [최신 분석](analysis/bb_dem_2026_11_01.md) · [최신 플롯](plots/bb/circuit/standard/dem_cnn/overview.png).
