@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Resume one BB144 DEM sweep point to a total epoch budget, without overwriting its source."""
+"""Resume one BB DEM sweep point to a total epoch budget, without overwriting its source."""
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import shutil
 import subprocess
@@ -26,25 +27,27 @@ def find_source(root, array, depth):
     return matches[0]
 
 
-def plan_resume(root, source, depth, rate, target):
+def plan_resume(root, source, depth, rate, target, *, code="bb144", learning_rate=None, expected=None):
     matches = []
     for history in source.glob("outputs/*/*/history.json"):
         c = json.loads(history.read_text())["config"]
-        if (c.get("architecture") == "bb_dem_cnn" and c.get("code") == "bb144"
+        if (c.get("architecture") == "bb_dem_cnn" and c.get("code") == code
                 and c.get("depth") == depth and c.get("noise_profile", {}).get("base_error_rate") == rate):
             matches.append(history.with_name("model.pt"))
     if len(matches) != 1 or not matches[0].is_file():
-        raise ValueError(f"Expected one latest model.pt for BB144 D{depth} p={rate}; found {matches}")
+        raise ValueError(f"Expected one latest model.pt for {code} D{depth} p={rate}; found {matches}")
     checkpoint_path = matches[0].resolve()
     saved = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     if saved.get("format") != "bb_dem_cnn_v1":
         raise ValueError("Expected a bb_dem_cnn_v1 checkpoint")
     c, history = saved["config"], saved["history"]
-    if not (c["code"] == "bb144" and c["depth"] == depth and c["noise_model"] == "circuit"
-            and c["rounds"] == 12 and c["width"] == 64
+    if not (c["code"] == code and c["depth"] == depth and c["noise_model"] == "circuit"
+            and c["rounds"] == {"bb72": 6, "bb144": 12}[code] and c["width"] == 64
             and c["noise_profile"]["name"] == "standard"
             and c["noise_profile"]["base_error_rate"] == rate):
         raise ValueError("Checkpoint configuration does not match the requested sweep point")
+    if expected and any(c.get(k) != v for k, v in expected.items()):
+        raise ValueError("Checkpoint configuration disagrees with campaign manifest")
     completed = saved["epoch"] + 1
     if [r["epoch"] for r in history["train"]] != list(range(completed)):
         raise ValueError("Checkpoint epoch and saved training history disagree")
@@ -62,11 +65,15 @@ def plan_resume(root, source, depth, rate, target):
         return dict(plan, status="already_complete", command=[])
     phase = history["phases"][-1]
     rates = {float(g["lr"]) for g in saved["optimizer_state_dict"]["param_groups"]}
-    if len(rates) != 1 or next(iter(rates)) <= 0:
-        raise ValueError("Expected one positive saved optimizer learning rate")
-    lr = rates.pop()
+    if len(rates) != 1:
+        raise ValueError("Expected one saved optimizer learning rate")
+    lr = rates.pop() if learning_rate is None else learning_rate
+    if not math.isfinite(lr) or lr <= 0:
+        raise ValueError("Expected a positive finite learning rate; use --learning-rate after cosine completion")
+    if learning_rate is not None:
+        plan["schedule"] = "new cosine over remaining epochs, starting at explicit restart LR"
     loss = c["loss_weights"]
-    values = dict(architecture="bb_dem_cnn", noise_model="circuit", code="bb144",
+    values = dict(architecture="bb_dem_cnn", noise_model="circuit", code=code,
         bb_circuit_noise_model="standard", rounds=c["rounds"], p=rate, seed=c["seed"],
         load_model=str(checkpoint_path), epochs=target-completed, batch_size=phase["batch_size"],
         batches=phase["batches"], eval_batches=phase["eval_batches"], eval_every=phase["eval_every"],
@@ -82,12 +89,34 @@ def plan_resume(root, source, depth, rate, target):
     return dict(plan, status="resume", resume_learning_rate=lr, command=command)
 
 
+def verify_source_stopped(source):
+    """Refuse to read a training checkpoint while its Slurm job may be writing it."""
+    metadata = (source / "job_metadata.txt").read_text().splitlines()
+    job_id = next((s.removeprefix("Job ID: ") for s in metadata if s.startswith("Job ID: ")), None)
+    if not job_id or not shutil.which("squeue"):
+        raise RuntimeError("Cannot verify source job is stopped; use --dry-run for a local preview")
+    active = subprocess.run(["squeue","-h","-j",job_id,"-o","%T"], text=True,capture_output=True)
+    if active.returncode:
+        # Completed jobs can already have disappeared from slurmctld.
+        accounting = subprocess.run(["sacct","-n","-X","-j",job_id,"--format=State","--parsable2"],
+                                    text=True,capture_output=True)
+        states = [s.strip().rstrip("|") for s in accounting.stdout.splitlines() if s.strip()]
+        if accounting.returncode or not states:
+            raise RuntimeError(f"Could not verify source job {job_id} is stopped")
+    else:
+        states = active.stdout.split()
+    if any(state not in ("COMPLETED", "CANCELLED", "FAILED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY") for state in states):
+        raise RuntimeError(f"Source job {job_id} is still active: {states}. Resume after it stops.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--source-array", type=int, default=60310800)
     parser.add_argument("--source-job", type=Path)
-    parser.add_argument("--depth", type=int, choices=(8,12), default=8)
+    parser.add_argument("--depth", type=int, choices=(4,6,8,12), default=8)
+    parser.add_argument("--code", choices=("bb72", "bb144"), default="bb144")
+    parser.add_argument("--learning-rate", type=float, help="Explicit cosine restart LR; required if saved LR is zero")
     parser.add_argument("--index", type=int, choices=range(4), required=True)
     parser.add_argument("--target-epochs", type=int, default=800)
     parser.add_argument("--dry-run", action="store_true")
@@ -95,27 +124,13 @@ def main():
     root = args.root.resolve()
     if args.target_epochs < 1:
         parser.error("--target-epochs must be positive")
+    if args.source_job is None and (args.code != "bb144" or args.depth not in (8,12)):
+        parser.error("--source-job is required outside the original BB144 D8/D12 sweep")
     source = args.source_job.resolve() if args.source_job else find_source(root,args.source_array,args.depth)
-    # An actively changing source is not a resume target. Explicit source jobs
-    # (including subsequent resume jobs) are checked by their metadata Job ID.
-    metadata = (source / "job_metadata.txt").read_text().splitlines()
-    job_id = next((s.removeprefix("Job ID: ") for s in metadata if s.startswith("Job ID: ")), None)
     if not args.dry_run:
-        if not job_id or not shutil.which("squeue"):
-            raise RuntimeError("Cannot verify source job is stopped; use --dry-run for a local preview")
-        active = subprocess.run(["squeue","-h","-j",job_id,"-o","%T"], text=True,capture_output=True)
-        if active.returncode:
-            # Completed jobs can already have disappeared from slurmctld.
-            accounting = subprocess.run(["sacct","-n","-X","-j",job_id,"--format=State","--parsable2"],
-                                        text=True,capture_output=True)
-            states = [s.strip().rstrip("|") for s in accounting.stdout.splitlines() if s.strip()]
-            if accounting.returncode or not states:
-                raise RuntimeError(f"Could not verify source job {job_id} is stopped")
-        else:
-            states = active.stdout.split()
-        if any(state not in ("COMPLETED", "CANCELLED", "FAILED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY") for state in states):
-            raise RuntimeError(f"Source job {job_id} is still active: {states}. Resume after it stops.")
-    plan = plan_resume(root,source,args.depth,RATES[args.index],args.target_epochs)
+        verify_source_stopped(source)
+    plan = plan_resume(root,source,args.depth,RATES[args.index],args.target_epochs,
+                       code=args.code, learning_rate=args.learning_rate)
     print(json.dumps(plan,indent=2),flush=True)
     if args.dry_run:
         return

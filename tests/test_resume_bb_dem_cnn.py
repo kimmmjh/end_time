@@ -60,3 +60,67 @@ def test_missing_latest_checkpoint_and_mismatched_checkpoint_are_rejected(tmp_pa
     (run / "model.pt").unlink()
     with pytest.raises(ValueError,match="latest model.pt"):
         plan_resume(tmp_path,source,8,.001,800)
+
+
+@pytest.mark.parametrize("code,rounds,depth", [("bb72",6,4), ("bb144",12,12)])
+def test_finished_cosine_can_restart_latest_with_explicit_lr(tmp_path, code, rounds, depth):
+    source,run,saved = fixture_checkpoint(tmp_path,completed=800,final=True)
+    saved["config"].update(code=code, rounds=rounds, depth=depth)
+    saved["optimizer_state_dict"]["param_groups"][0]["lr"] = 0.
+    (run / "history.json").write_text(json.dumps({"config": saved["config"]}))
+    torch.save(saved,run / "model.pt")
+    before = (run / "model.pt").read_bytes()
+    with pytest.raises(ValueError,match="learning rate"):
+        plan_resume(tmp_path,source,depth,.001,1000,code=code)
+    plan = plan_resume(tmp_path,source,depth,.001,1000,code=code,learning_rate=3e-5,
+                       expected={"code":code,"rounds":rounds})
+    assert plan["additional_epochs"] == 200
+    assert plan["resume_learning_rate"] == 3e-5
+    assert f"--code={code}" in plan["command"]
+    assert f"--rounds={rounds}" in plan["command"]
+    assert f"--load_model={run / 'model.pt'}" in plan["command"]
+    assert (run / "model.pt").read_bytes() == before
+    with pytest.raises(ValueError,match="manifest"):
+        plan_resume(tmp_path,source,depth,.001,1000,code=code,learning_rate=3e-5,
+                    expected={"graph_fingerprint":"wrong"})
+
+
+@pytest.mark.parametrize("lr", [0., -1., float("nan"), float("inf")])
+def test_invalid_restart_lr_is_rejected(tmp_path, lr):
+    source,_,_ = fixture_checkpoint(tmp_path)
+    with pytest.raises(ValueError,match="learning rate"):
+        plan_resume(tmp_path,source,8,.001,1000,learning_rate=lr)
+
+
+def test_followup_execution_uses_latest_and_isolates_output(tmp_path, monkeypatch):
+    from scripts import resume_bb_dem_cnn, run_bb_dem_followup
+
+    source,run,saved = fixture_checkpoint(tmp_path,completed=800,final=True)
+    saved["optimizer_state_dict"]["param_groups"][0]["lr"] = 0.
+    torch.save(saved,run / "model.pt")
+    before = (run / "model.pt").read_bytes()
+    entry = dict(action="train", task=5, index=0, training_epochs=800,
+                 expected_config=saved["config"], source_run=str(run.relative_to(tmp_path)),
+                 imported_run="unused")
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps(dict(format="bb_dem_hierarchical_sources_v1",experiments=[entry])))
+    checked, launched = [], []
+    monkeypatch.setattr(resume_bb_dem_cnn,"verify_source_stopped",checked.append)
+    monkeypatch.setattr(run_bb_dem_followup.subprocess,"run",lambda cmd,**kw: launched.append((cmd,kw)))
+    destination = tmp_path / "new_job"
+    destination.mkdir()
+    (destination / "job_metadata.txt").write_text("Job ID: 456\n")
+    argv = ["--root",str(tmp_path),"--manifest",str(manifest),"--mode","train","--worker","0",
+            "--output",str(destination / "worker_0")]
+    plan = run_bb_dem_followup.main(argv)
+    assert checked == [source]
+    assert plan["resume"]["completed_epochs"] == 800
+    assert plan["resume"]["additional_epochs"] == 200
+    assert "--lr=3e-05" in launched[0][0]
+    assert f"--load_model={run / 'model.pt'}" in launched[0][0]
+    assert launched[0][1]["cwd"] == destination / "worker_0"
+    assert (destination / "worker_0/resume_plan.json").is_file()
+    assert (destination / "worker_0/job_metadata.txt").read_text() == "Job ID: 456\n"
+    assert (run / "model.pt").read_bytes() == before
+    with pytest.raises(FileExistsError):
+        run_bb_dem_followup.main(argv)

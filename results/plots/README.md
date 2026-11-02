@@ -1,27 +1,54 @@
 # 플롯 안내
 
-## DEM CNN: standard circuit noise (2026-11-01)
+## Hierarchical DEM CNN: 전체 depth 비교 (2026-11-02)
+
+[성능 비교](bb/circuit/standard/dem_cnn/hierarchical/depth_comparison.png) ·
+[Global 호출률·시간](bb/circuit/standard/dem_cnn/hierarchical/depth_diagnostics.png) ·
+[최신 분석](../analysis/bb_dem_2026_11_02.md).
+
+BB72 D4/6/8/12와 BB144 D4/6, 네 p씩 총 24개 모델. 모델별 raw와 hierarchical은
+같은 8,192 circuit shots, best weights, confidence 0.9를 사용한다. 왼쪽 raw는 선형,
+오른쪽 hierarchical은 로그 y축이며 모두 95% Wilson 구간을 표시한다.
+BB144 D4 p=0.1%의 0/8,192는 상한 0.0469% 위치의 빈 역삼각형으로 표시하고
+추정 오류율 곡선에 연결하지 않는다. Depth 간 동일 샷 여부는 검증되지 않았다.
+시간은 batch4의 CNN/gating/전송/OSD 총시간÷샷 수다. BB144 D8/D12 hierarchical은 미수신이다.
+재생성: `python scripts/analyze_bb_dem_november2.py`.
+
+## Hierarchical DEM CNN: BB72 D4 (2026-11-01)
+
+[Raw/local/hierarchical 비교](bb/circuit/standard/dem_cnn/hierarchical/overview.png) ·
+[OSD 호출률·잔여 syndrome·시간](bb/circuit/standard/dem_cnn/hierarchical/diagnostics.png) ·
+[분석](../analysis/bb_hierarchical_dem_2026_11_01.md).
+
+동일한 기존 best weights, p별 새 circuit 8,192 paired shots, confidence=0.9.
+성능 그림은 선형/로그 축과 95% Wilson 구간으로 전체 block failure를 표시한다.
+계층형 디코딩은 syndrome failure가 0이므로 남은 실패는 logical class 불일치다.
+Local-only 곡선은 global completion 전 진단이며 완전한 디코더 성능으로 해석하지 않는다.
+시간은 batch4 누적 CNN/gating/전송/OSD 시간을 샷 수로 나눈 값이다.
+이 그림은 첫 수신 BB72 D4 한 task의 상세 기록이며 direct CNN+OSD 비교는 꺼져 있다.
+재생성: `python scripts/analyze_bb_hierarchical_dem.py`.
+
+## DEM CNN: standard circuit noise (2026-11-02)
 
 [성능 그림](bb/circuit/standard/dem_cnn/overview.png) ·
 [Validation](bb/circuit/standard/dem_cnn/validation.png) ·
 [Logical parity loss](bb/circuit/standard/dem_cnn/logical_loss.png) ·
-[최신 분석](../analysis/bb_dem_2026_11_01.md).
+[최신 분석](../analysis/bb_dem_2026_11_02.md).
 
-Overview는 완료된 28개 모델: BB72 D4/6/8/12, BB144 D4/6/8,
-각 총 800 epochs 및 8,192 final shots. BB144 D8은 재개 학습 결과로 표시한다.
-BB144 D12는 재개 후 787–798 epochs에서 다시 중단되어 final이 없다.
-Validation/loss에는 최신 D12 전체 이력을 점선과 마지막 ×로 표시한다.
+Overview는 완료된 32개 모델: BB72/BB144 모두 D4/6/8/12,
+각 총 800 epochs 및 8,192 final shots. BB144 D8/D12는 재개 학습 결과로 표시한다.
+BB144 D12 final이 추가됐으며 validation/loss에도 전체 800 epochs를 실선으로 표시한다.
 재개는 saved LR에서 새 cosine schedule과 독립 sampler phase를 사용했다.
 
 전부 OSD 없는 raw CNN이다. Overview에는 LER만 표시하며, 이는 syndrome 또는
 observable 불일치를 포함한 전체 block failure로 round당 LER가 아니다.
 X축 p는 noise location별 오류율(%), 95% Wilson 구간, 선형 y축이다.
-Validation/loss는 trailing 25-epoch 평균이며 패널별 축 범위가 다르다.
+Validation은 최근 5회 평가 평균, loss는 최근 25-epoch 평균이며 패널별 축 범위가 다르다.
 D12의 중간 validation은 overview final과 직접 비교하지 않는다.
 BB144 D4/6/8의 p=.004/.006은 validation 성공률 동률로 epoch 5가 best로 유지됐다.
 Logical loss의 ln(2) 점선은 parity 확률 1/2의 BCE이다.
 
-재생성: `python scripts/analyze_bb_dem_november1.py`.
+재생성: `python scripts/analyze_bb_dem_november2.py`.
 Code-capacity 및 이전 idle0 회로와 별도로 보관한다.
 
 ## Tanner CNN: CNN 단독 및 residual OSD

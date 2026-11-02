@@ -1,0 +1,1384 @@
+{
+  "format": "bb_dem_hierarchical_sources_v1",
+  "description": "Nov 2 follow-up: 21 latest-checkpoint extensions and 11 immediate best/latest comparisons. Original 800-epoch manifest is unchanged. Selection is a budget priority, not proof of convergence.",
+  "target_epochs": 1000,
+  "restart_learning_rate": 3e-05,
+  "experiments": [
+    {
+      "task": 0,
+      "index": 0,
+      "source_run": "resdir_60310802/outputs/2026-10-26/08-09-42-475228_circuit_bb72_standard_bb_dem_cnn_p0.001_r6_w64_d4_seed7202001",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60310802/outputs/2026-10-26/08-09-42-475228_circuit_bb72_standard_bb_dem_cnn_p0.001_r6_w64_d4_seed7202001",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 4,
+        "seed": 7202001,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.001,
+          "reset_error_rate": 0.001,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.001,
+          "swap_error_rate": 0.001,
+          "measurement_error_rate": 0.001,
+          "gate_idle_error_rate": 0.001,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "fcf7a816c9953573ac610ecf66ea4ddd54566fbaf72d7986b2d633fe5c2bcc03",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 725,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.18642578125,
+          "training_logical_loss": 0.04114599789658314
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.16328125,
+          "training_logical_loss": 0.03689607443120622
+        }
+      }
+    },
+    {
+      "task": 0,
+      "index": 1,
+      "source_run": "resdir_60310802/outputs/2026-10-26/08-09-42-297658_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d4_seed7202002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60310802/outputs/2026-10-26/08-09-42-297658_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d4_seed7202002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 4,
+        "seed": 7202002,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "7846f4fe04cf4c85a137c44461ee9d1127bceeefca9e5c185709515f6536eafc",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 725,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.56474609375,
+          "training_logical_loss": 0.16390178137880868
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.53505859375,
+          "training_logical_loss": 0.15742792460603597
+        }
+      }
+    },
+    {
+      "task": 0,
+      "index": 2,
+      "source_run": "resdir_60310802/outputs/2026-10-26/08-09-42-297683_circuit_bb72_standard_bb_dem_cnn_p0.004_r6_w64_d4_seed7202004",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60310802/outputs/2026-10-26/08-09-42-297683_circuit_bb72_standard_bb_dem_cnn_p0.004_r6_w64_d4_seed7202004",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 4,
+        "seed": 7202004,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.004,
+          "reset_error_rate": 0.004,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.004,
+          "swap_error_rate": 0.004,
+          "measurement_error_rate": 0.004,
+          "gate_idle_error_rate": 0.004,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "4fdbabe0aa457a79ee441099509ddcef3d5d6aacf7caa477b4a393fd5dd6985d",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 635,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.9775390625,
+          "training_logical_loss": 0.5379736496810801
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.97373046875,
+          "training_logical_loss": 0.5309167173458264
+        }
+      }
+    },
+    {
+      "task": 0,
+      "index": 3,
+      "source_run": "resdir_60310802/outputs/2026-10-26/08-09-42-703866_circuit_bb72_standard_bb_dem_cnn_p0.006_r6_w64_d4_seed7202006",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60310802/outputs/2026-10-26/08-09-42-703866_circuit_bb72_standard_bb_dem_cnn_p0.006_r6_w64_d4_seed7202006",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 4,
+        "seed": 7202006,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.006,
+          "reset_error_rate": 0.006,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.006,
+          "swap_error_rate": 0.006,
+          "measurement_error_rate": 0.006,
+          "gate_idle_error_rate": 0.006,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "4518b664272129ce87a534f413b88b576b9beeed0f89ff8932e199c4794a1f28",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 90,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.9998046875,
+          "training_logical_loss": 0.6825618236977608
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.9998046875,
+          "training_logical_loss": 0.6809870779328048
+        }
+      }
+    },
+    {
+      "task": 1,
+      "index": 0,
+      "source_run": "resdir_60310803/outputs/2026-10-26/08-10-27-315349_circuit_bb144_standard_bb_dem_cnn_p0.001_r12_w64_d4_seed14402001",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb144/resdir_60310803/outputs/2026-10-26/08-10-27-315349_circuit_bb144_standard_bb_dem_cnn_p0.001_r12_w64_d4_seed14402001",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 4,
+        "seed": 14402001,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.001,
+          "reset_error_rate": 0.001,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.001,
+          "swap_error_rate": 0.001,
+          "measurement_error_rate": 0.001,
+          "gate_idle_error_rate": 0.001,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "d8635b5a9d27236391d13a09b89f8b66a9031f3e64d632f4a8c8b90222c2abb6",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 790,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.55185546875,
+          "training_logical_loss": 0.06629957812925567
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.520703125,
+          "training_logical_loss": 0.06212174592059455
+        }
+      }
+    },
+    {
+      "task": 1,
+      "index": 1,
+      "source_run": "resdir_60310803/outputs/2026-10-26/08-10-27-987191_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d4_seed14402002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb144/resdir_60310803/outputs/2026-10-26/08-10-27-987191_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d4_seed14402002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 4,
+        "seed": 14402002,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "5707a301a0a8fcbb4166d21938c25fcc1bb6ab627dc54c2db947d2ead24ab930",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 755,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.96162109375,
+          "training_logical_loss": 0.33157041047670643
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.95859375,
+          "training_logical_loss": 0.3245497913873987
+        }
+      }
+    },
+    {
+      "task": 1,
+      "index": 2,
+      "source_run": "resdir_60310803/outputs/2026-10-26/08-10-27-448602_circuit_bb144_standard_bb_dem_cnn_p0.004_r12_w64_d4_seed14402004",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb144/resdir_60310803/outputs/2026-10-26/08-10-27-448602_circuit_bb144_standard_bb_dem_cnn_p0.004_r12_w64_d4_seed14402004",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 4,
+        "seed": 14402004,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.004,
+          "reset_error_rate": 0.004,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.004,
+          "swap_error_rate": 0.004,
+          "measurement_error_rate": 0.004,
+          "gate_idle_error_rate": 0.004,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "20a1c1535b28b96b4790659f266c51ffcf4c7b582c416173ebdfd80de94dd868",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 5,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6874421833362431
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6851356677897275
+        }
+      }
+    },
+    {
+      "task": 1,
+      "index": 3,
+      "source_run": "resdir_60310803/outputs/2026-10-26/08-10-27-665318_circuit_bb144_standard_bb_dem_cnn_p0.006_r12_w64_d4_seed14402006",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb144/resdir_60310803/outputs/2026-10-26/08-10-27-665318_circuit_bb144_standard_bb_dem_cnn_p0.006_r12_w64_d4_seed14402006",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 4,
+        "seed": 14402006,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.006,
+          "reset_error_rate": 0.006,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.006,
+          "swap_error_rate": 0.006,
+          "measurement_error_rate": 0.006,
+          "gate_idle_error_rate": 0.006,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "efcc4352738a6c171c1d67aa4e662a017ffabe5aa87f5f54e20847e2efd1dcd0",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 5,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6962828225363046
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6963638952095061
+        }
+      }
+    },
+    {
+      "task": 2,
+      "index": 0,
+      "source_run": "resdir_60316098/outputs/2026-10-26/09-20-50-319987_circuit_bb72_standard_bb_dem_cnn_p0.001_r6_w64_d6_seed7202001",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60316098/outputs/2026-10-26/09-20-50-319987_circuit_bb72_standard_bb_dem_cnn_p0.001_r6_w64_d6_seed7202001",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 6,
+        "seed": 7202001,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.001,
+          "reset_error_rate": 0.001,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.001,
+          "swap_error_rate": 0.001,
+          "measurement_error_rate": 0.001,
+          "gate_idle_error_rate": 0.001,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "fcf7a816c9953573ac610ecf66ea4ddd54566fbaf72d7986b2d633fe5c2bcc03",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 725,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.2033203125,
+          "training_logical_loss": 0.041090610222490796
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.1755859375,
+          "training_logical_loss": 0.03575546723919615
+        }
+      }
+    },
+    {
+      "task": 2,
+      "index": 1,
+      "source_run": "resdir_60316098/outputs/2026-10-26/09-20-50-419944_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d6_seed7202002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60316098/outputs/2026-10-26/09-20-50-419944_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d6_seed7202002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 6,
+        "seed": 7202002,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "7846f4fe04cf4c85a137c44461ee9d1127bceeefca9e5c185709515f6536eafc",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 745,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.56884765625,
+          "training_logical_loss": 0.16492427990204306
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.53935546875,
+          "training_logical_loss": 0.15513961172657217
+        }
+      }
+    },
+    {
+      "task": 2,
+      "index": 2,
+      "source_run": "resdir_60316098/outputs/2026-10-26/09-20-50-329337_circuit_bb72_standard_bb_dem_cnn_p0.004_r6_w64_d6_seed7202004",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60316098/outputs/2026-10-26/09-20-50-329337_circuit_bb72_standard_bb_dem_cnn_p0.004_r6_w64_d6_seed7202004",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 6,
+        "seed": 7202004,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.004,
+          "reset_error_rate": 0.004,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.004,
+          "swap_error_rate": 0.004,
+          "measurement_error_rate": 0.004,
+          "gate_idle_error_rate": 0.004,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "4fdbabe0aa457a79ee441099509ddcef3d5d6aacf7caa477b4a393fd5dd6985d",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 700,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.97060546875,
+          "training_logical_loss": 0.5250726224423852
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.96513671875,
+          "training_logical_loss": 0.5166437459131703
+        }
+      }
+    },
+    {
+      "task": 2,
+      "index": 3,
+      "source_run": "resdir_60316098/outputs/2026-10-26/09-20-50-675160_circuit_bb72_standard_bb_dem_cnn_p0.006_r6_w64_d6_seed7202006",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60316098/outputs/2026-10-26/09-20-50-675160_circuit_bb72_standard_bb_dem_cnn_p0.006_r6_w64_d6_seed7202006",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 6,
+        "seed": 7202006,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.006,
+          "reset_error_rate": 0.006,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.006,
+          "swap_error_rate": 0.006,
+          "measurement_error_rate": 0.006,
+          "gate_idle_error_rate": 0.006,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "4518b664272129ce87a534f413b88b576b9beeed0f89ff8932e199c4794a1f28",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 350,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.99990234375,
+          "training_logical_loss": 0.6787184291752055
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.9998046875,
+          "training_logical_loss": 0.6767942251311615
+        }
+      }
+    },
+    {
+      "task": 3,
+      "index": 0,
+      "source_run": "resdir_60316182/outputs/2026-10-26/09-23-13-379299_circuit_bb144_standard_bb_dem_cnn_p0.001_r12_w64_d6_seed14402001",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb144/resdir_60316182/outputs/2026-10-26/09-23-13-379299_circuit_bb144_standard_bb_dem_cnn_p0.001_r12_w64_d6_seed14402001",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 6,
+        "seed": 14402001,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.001,
+          "reset_error_rate": 0.001,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.001,
+          "swap_error_rate": 0.001,
+          "measurement_error_rate": 0.001,
+          "gate_idle_error_rate": 0.001,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "d8635b5a9d27236391d13a09b89f8b66a9031f3e64d632f4a8c8b90222c2abb6",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 780,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.6240234375,
+          "training_logical_loss": 0.06884968973165087
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.57197265625,
+          "training_logical_loss": 0.06333950199979882
+        }
+      }
+    },
+    {
+      "task": 3,
+      "index": 1,
+      "source_run": "resdir_60316182/outputs/2026-10-26/09-23-13-794524_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d6_seed14402002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb144/resdir_60316182/outputs/2026-10-26/09-23-13-794524_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d6_seed14402002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 6,
+        "seed": 14402002,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "5707a301a0a8fcbb4166d21938c25fcc1bb6ab627dc54c2db947d2ead24ab930",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 790,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.90654296875,
+          "training_logical_loss": 0.2668942518562835
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.8673828125,
+          "training_logical_loss": 0.23839781428097923
+        }
+      }
+    },
+    {
+      "task": 3,
+      "index": 2,
+      "source_run": "resdir_60316182/outputs/2026-10-26/09-23-13-362872_circuit_bb144_standard_bb_dem_cnn_p0.004_r12_w64_d6_seed14402004",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb144/resdir_60316182/outputs/2026-10-26/09-23-13-362872_circuit_bb144_standard_bb_dem_cnn_p0.004_r12_w64_d6_seed14402004",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 6,
+        "seed": 14402004,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.004,
+          "reset_error_rate": 0.004,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.004,
+          "swap_error_rate": 0.004,
+          "measurement_error_rate": 0.004,
+          "gate_idle_error_rate": 0.004,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "20a1c1535b28b96b4790659f266c51ffcf4c7b582c416173ebdfd80de94dd868",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 5,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6870334776956588
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6849854149483144
+        }
+      }
+    },
+    {
+      "task": 3,
+      "index": 3,
+      "source_run": "resdir_60316182/outputs/2026-10-26/09-23-13-487971_circuit_bb144_standard_bb_dem_cnn_p0.006_r12_w64_d6_seed14402006",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb144/resdir_60316182/outputs/2026-10-26/09-23-13-487971_circuit_bb144_standard_bb_dem_cnn_p0.006_r12_w64_d6_seed14402006",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 6,
+        "seed": 14402006,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.006,
+          "reset_error_rate": 0.006,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.006,
+          "swap_error_rate": 0.006,
+          "measurement_error_rate": 0.006,
+          "gate_idle_error_rate": 0.006,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "efcc4352738a6c171c1d67aa4e662a017ffabe5aa87f5f54e20847e2efd1dcd0",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 5,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6967659246083349
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6968539293669164
+        }
+      }
+    },
+    {
+      "task": 4,
+      "index": 0,
+      "source_run": "resdir_60318763/outputs/2026-10-26/12-47-01-216339_circuit_bb72_standard_bb_dem_cnn_p0.001_r6_w64_d8_seed7202001",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60318763/outputs/2026-10-26/12-47-01-216339_circuit_bb72_standard_bb_dem_cnn_p0.001_r6_w64_d8_seed7202001",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 8,
+        "seed": 7202001,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.001,
+          "reset_error_rate": 0.001,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.001,
+          "swap_error_rate": 0.001,
+          "measurement_error_rate": 0.001,
+          "gate_idle_error_rate": 0.001,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "fcf7a816c9953573ac610ecf66ea4ddd54566fbaf72d7986b2d633fe5c2bcc03",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 725,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.1416015625,
+          "training_logical_loss": 0.028243616970394216
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.12177734375,
+          "training_logical_loss": 0.024396305559821484
+        }
+      }
+    },
+    {
+      "task": 4,
+      "index": 1,
+      "source_run": "resdir_60318763/outputs/2026-10-26/12-47-01-385213_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d8_seed7202002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60318763/outputs/2026-10-26/12-47-01-385213_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d8_seed7202002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 8,
+        "seed": 7202002,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "7846f4fe04cf4c85a137c44461ee9d1127bceeefca9e5c185709515f6536eafc",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 790,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.78603515625,
+          "training_logical_loss": 0.16575020818712802
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.68896484375,
+          "training_logical_loss": 0.15814442210979907
+        }
+      }
+    },
+    {
+      "task": 4,
+      "index": 2,
+      "source_run": "resdir_60318763/outputs/2026-10-26/12-47-01-815322_circuit_bb72_standard_bb_dem_cnn_p0.004_r6_w64_d8_seed7202004",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60318763/outputs/2026-10-26/12-47-01-815322_circuit_bb72_standard_bb_dem_cnn_p0.004_r6_w64_d8_seed7202004",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 8,
+        "seed": 7202004,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.004,
+          "reset_error_rate": 0.004,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.004,
+          "swap_error_rate": 0.004,
+          "measurement_error_rate": 0.004,
+          "gate_idle_error_rate": 0.004,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "4fdbabe0aa457a79ee441099509ddcef3d5d6aacf7caa477b4a393fd5dd6985d",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 745,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.94150390625,
+          "training_logical_loss": 0.4808647197112441
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.93623046875,
+          "training_logical_loss": 0.47040548315155317
+        }
+      }
+    },
+    {
+      "task": 4,
+      "index": 3,
+      "source_run": "resdir_60318763/outputs/2026-10-26/12-47-01-441316_circuit_bb72_standard_bb_dem_cnn_p0.006_r6_w64_d8_seed7202006",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60318763/outputs/2026-10-26/12-47-01-441316_circuit_bb72_standard_bb_dem_cnn_p0.006_r6_w64_d8_seed7202006",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 8,
+        "seed": 7202006,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.006,
+          "reset_error_rate": 0.006,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.006,
+          "swap_error_rate": 0.006,
+          "measurement_error_rate": 0.006,
+          "gate_idle_error_rate": 0.006,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "4518b664272129ce87a534f413b88b576b9beeed0f89ff8932e199c4794a1f28",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 350,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.99970703125,
+          "training_logical_loss": 0.6767770157475025
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.9998046875,
+          "training_logical_loss": 0.6749820128688588
+        }
+      }
+    },
+    {
+      "task": 5,
+      "index": 0,
+      "source_run": "resdir_60428756/outputs/2026-10-28/10-37-25-486656_circuit_bb144_standard_bb_dem_cnn_p0.001_r12_w64_d8_seed14402001",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/resdir_60428756/outputs/2026-10-28/10-37-25-486656_circuit_bb144_standard_bb_dem_cnn_p0.001_r12_w64_d8_seed14402001",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 8,
+        "seed": 14402001,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.001,
+          "reset_error_rate": 0.001,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.001,
+          "swap_error_rate": 0.001,
+          "measurement_error_rate": 0.001,
+          "gate_idle_error_rate": 0.001,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "d8635b5a9d27236391d13a09b89f8b66a9031f3e64d632f4a8c8b90222c2abb6",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 774,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.4375,
+          "training_logical_loss": 0.049417381249950265
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.36851917613636365,
+          "training_logical_loss": 0.04331149058845767
+        }
+      }
+    },
+    {
+      "task": 5,
+      "index": 1,
+      "source_run": "resdir_60428756/outputs/2026-10-28/10-37-26-165138_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d8_seed14402002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/resdir_60428756/outputs/2026-10-28/10-37-26-165138_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d8_seed14402002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 8,
+        "seed": 14402002,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "5707a301a0a8fcbb4166d21938c25fcc1bb6ab627dc54c2db947d2ead24ab930",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 771,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.8473307291666666,
+          "training_logical_loss": 0.22502819780274877
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.7873757102272727,
+          "training_logical_loss": 0.18774270996284032
+        }
+      }
+    },
+    {
+      "task": 5,
+      "index": 2,
+      "source_run": "resdir_60428756/outputs/2026-10-28/10-37-26-031672_circuit_bb144_standard_bb_dem_cnn_p0.004_r12_w64_d8_seed14402004",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/resdir_60428756/outputs/2026-10-28/10-37-26-031672_circuit_bb144_standard_bb_dem_cnn_p0.004_r12_w64_d8_seed14402004",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 8,
+        "seed": 14402004,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.004,
+          "reset_error_rate": 0.004,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.004,
+          "swap_error_rate": 0.004,
+          "measurement_error_rate": 0.004,
+          "gate_idle_error_rate": 0.004,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "20a1c1535b28b96b4790659f266c51ffcf4c7b582c416173ebdfd80de94dd868",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 5,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6753722970560193
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6711062776623293
+        }
+      }
+    },
+    {
+      "task": 5,
+      "index": 3,
+      "source_run": "resdir_60428756/outputs/2026-10-28/10-37-25-909253_circuit_bb144_standard_bb_dem_cnn_p0.006_r12_w64_d8_seed14402006",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/resdir_60428756/outputs/2026-10-28/10-37-25-909253_circuit_bb144_standard_bb_dem_cnn_p0.006_r12_w64_d8_seed14402006",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 8,
+        "seed": 14402006,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.006,
+          "reset_error_rate": 0.006,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.006,
+          "swap_error_rate": 0.006,
+          "measurement_error_rate": 0.006,
+          "gate_idle_error_rate": 0.006,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "efcc4352738a6c171c1d67aa4e662a017ffabe5aa87f5f54e20847e2efd1dcd0",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 5,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6966994822211564
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6967370340507477
+        }
+      }
+    },
+    {
+      "task": 6,
+      "index": 0,
+      "source_run": "resdir_60330386/outputs/2026-10-26/18-40-20-951584_circuit_bb72_standard_bb_dem_cnn_p0.001_r6_w64_d12_seed7202001",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60330386/outputs/2026-10-26/18-40-20-951584_circuit_bb72_standard_bb_dem_cnn_p0.001_r6_w64_d12_seed7202001",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 12,
+        "seed": 7202001,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.001,
+          "reset_error_rate": 0.001,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.001,
+          "swap_error_rate": 0.001,
+          "measurement_error_rate": 0.001,
+          "gate_idle_error_rate": 0.001,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "fcf7a816c9953573ac610ecf66ea4ddd54566fbaf72d7986b2d633fe5c2bcc03",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 725,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.09541015625,
+          "training_logical_loss": 0.01885733475564848
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.07783203125,
+          "training_logical_loss": 0.015851086245311306
+        }
+      }
+    },
+    {
+      "task": 6,
+      "index": 1,
+      "source_run": "resdir_60330386/outputs/2026-10-26/18-40-21-616473_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d12_seed7202002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60330386/outputs/2026-10-26/18-40-21-616473_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d12_seed7202002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 12,
+        "seed": 7202002,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "7846f4fe04cf4c85a137c44461ee9d1127bceeefca9e5c185709515f6536eafc",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 760,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.31982421875,
+          "training_logical_loss": 0.08780741514405235
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.2873046875,
+          "training_logical_loss": 0.08091591345331835
+        }
+      }
+    },
+    {
+      "task": 6,
+      "index": 2,
+      "source_run": "resdir_60330386/outputs/2026-10-26/18-40-21-041001_circuit_bb72_standard_bb_dem_cnn_p0.004_r6_w64_d12_seed7202004",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60330386/outputs/2026-10-26/18-40-21-041001_circuit_bb72_standard_bb_dem_cnn_p0.004_r6_w64_d12_seed7202004",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 12,
+        "seed": 7202004,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.004,
+          "reset_error_rate": 0.004,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.004,
+          "swap_error_rate": 0.004,
+          "measurement_error_rate": 0.004,
+          "gate_idle_error_rate": 0.004,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "4fdbabe0aa457a79ee441099509ddcef3d5d6aacf7caa477b4a393fd5dd6985d",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 745,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.828125,
+          "training_logical_loss": 0.38074118594384343
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.80947265625,
+          "training_logical_loss": 0.36597792571468746
+        }
+      }
+    },
+    {
+      "task": 6,
+      "index": 3,
+      "source_run": "resdir_60330386/outputs/2026-10-26/18-40-21-212109_circuit_bb72_standard_bb_dem_cnn_p0.006_r6_w64_d12_seed7202006",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/800_epochs/bb72/resdir_60330386/outputs/2026-10-26/18-40-21-212109_circuit_bb72_standard_bb_dem_cnn_p0.006_r6_w64_d12_seed7202006",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "rounds": 6,
+        "width": 64,
+        "depth": 12,
+        "seed": 7202006,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.006,
+          "reset_error_rate": 0.006,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.006,
+          "swap_error_rate": 0.006,
+          "measurement_error_rate": 0.006,
+          "gate_idle_error_rate": 0.006,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "4518b664272129ce87a534f413b88b576b9beeed0f89ff8932e199c4794a1f28",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 685,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.99853515625,
+          "training_logical_loss": 0.6647418986074627
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.9974609375,
+          "training_logical_loss": 0.6607090758858248
+        }
+      }
+    },
+    {
+      "task": 7,
+      "index": 0,
+      "source_run": "resdir_60636624/outputs/2026-11-01/01-29-32-431608_circuit_bb144_standard_bb_dem_cnn_p0.001_r12_w64_d12_seed14402001",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/resdir_60636624/outputs/2026-11-01/01-29-32-431608_circuit_bb144_standard_bb_dem_cnn_p0.001_r12_w64_d12_seed14402001",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 12,
+        "seed": 14402001,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.001,
+          "reset_error_rate": 0.001,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.001,
+          "swap_error_rate": 0.001,
+          "measurement_error_rate": 0.001,
+          "gate_idle_error_rate": 0.001,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "d8635b5a9d27236391d13a09b89f8b66a9031f3e64d632f4a8c8b90222c2abb6",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 739,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.20693359375,
+          "training_logical_loss": 0.026337348940069207
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.155078125,
+          "training_logical_loss": 0.020534979943840882
+        }
+      }
+    },
+    {
+      "task": 7,
+      "index": 1,
+      "source_run": "resdir_60636624/outputs/2026-11-01/01-29-32-013061_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d12_seed14402002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/resdir_60636624/outputs/2026-11-01/01-29-32-013061_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d12_seed14402002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 12,
+        "seed": 14402002,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "5707a301a0a8fcbb4166d21938c25fcc1bb6ab627dc54c2db947d2ead24ab930",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 769,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.67470703125,
+          "training_logical_loss": 0.13982391243975145
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.5892578125,
+          "training_logical_loss": 0.11312279510842928
+        }
+      }
+    },
+    {
+      "task": 7,
+      "index": 2,
+      "source_run": "resdir_60636624/outputs/2026-11-01/01-29-31-796679_circuit_bb144_standard_bb_dem_cnn_p0.004_r12_w64_d12_seed14402004",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/resdir_60636624/outputs/2026-11-01/01-29-31-796679_circuit_bb144_standard_bb_dem_cnn_p0.004_r12_w64_d12_seed14402004",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 12,
+        "seed": 14402004,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.004,
+          "reset_error_rate": 0.004,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.004,
+          "swap_error_rate": 0.004,
+          "measurement_error_rate": 0.004,
+          "gate_idle_error_rate": 0.004,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "20a1c1535b28b96b4790659f266c51ffcf4c7b582c416173ebdfd80de94dd868",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 768,
+      "action": "train",
+      "reason": "Validation and/or logical loss still improve; test a limited 200-epoch extension.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 0.99990234375,
+          "training_logical_loss": 0.6402730849478394
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 0.999609375,
+          "training_logical_loss": 0.6234867956629023
+        }
+      }
+    },
+    {
+      "task": 7,
+      "index": 3,
+      "source_run": "resdir_60636624/outputs/2026-11-01/01-29-31-878116_circuit_bb144_standard_bb_dem_cnn_p0.006_r12_w64_d12_seed14402006",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/resdir_60636624/outputs/2026-11-01/01-29-31-878116_circuit_bb144_standard_bb_dem_cnn_p0.006_r12_w64_d12_seed14402006",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "rounds": 12,
+        "width": 64,
+        "depth": 12,
+        "seed": 14402006,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.006,
+          "reset_error_rate": 0.006,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.006,
+          "swap_error_rate": 0.006,
+          "measurement_error_rate": 0.006,
+          "gate_idle_error_rate": 0.006,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "efcc4352738a6c171c1d67aa4e662a017ffabe5aa87f5f54e20847e2efd1dcd0",
+        "circuit_schema_version": 2
+      },
+      "training_epochs": 800,
+      "selected_epoch": 5,
+      "action": "evaluate",
+      "reason": "Weak late improvement or stalled logical loss; evaluate best versus latest before spending more training.",
+      "evidence": {
+        "epochs601_650": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6964810001663864
+        },
+        "epochs751_800": {
+          "raw_validation_failure": 1.0,
+          "training_logical_loss": 0.6963814384303987
+        }
+      }
+    }
+  ]
+}

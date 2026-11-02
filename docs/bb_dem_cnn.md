@@ -11,6 +11,20 @@ Use `--architecture=bb_dem_cnn --noise_model=circuit` for BB72 or BB144.
 and neural BP checkpoints are different architectures and cannot initialize or
 resume this model. The original sweep used `run_bb_dem_depth46812.slurm`.
 
+## Latest imported results (2026-11-02)
+
+All 32 raw models now have 800-epoch final results: BB72/BB144 depths 4/6/8/12,
+four p values each. BB144 D12 job 60636624 completed the final 10/2/13/5 epochs.
+Its raw block failures are 15.735%/58.704%/99.976%/100% at p=.001/.002/.004/.006.
+The selected epochs (739/769/768/5) were already best before this last resume.
+BB144 D8/D12 are resumed runs, not uninterrupted training.
+
+The [latest analysis](../results/analysis/bb_dem_2026_11_02.md) also includes 24
+frozen-weight hierarchical evaluations. The raw overview/validation/loss plots
+are updated with D12 completion. Rebuild them with
+`python scripts/analyze_bb_dem_november2.py`. Dated sections below retain the
+state at their original import; the old timeout records remain archived.
+
 ## Imported results (2026-10-28)
 
 24 models completed 800 epochs: BB72 depths 4/6/8/12 and BB144 depths 4/6,

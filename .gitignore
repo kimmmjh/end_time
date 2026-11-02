@@ -35,3 +35,4 @@ resdir_*
 
 
 *.sh
+!/scripts/run_bb_dem_followup.sh

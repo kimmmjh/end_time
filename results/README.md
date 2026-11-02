@@ -1,5 +1,43 @@
 # Result archive
 
+## November 2, 2026: full hierarchical campaign and BB144 D12 final
+
+Six new job folders (220 files, 5,095,594 bytes) were archived with SHA-256
+verification. The five hierarchical jobs join the prior BB72 D4 job under
+`bb/circuit/standard/dem_cnn/hierarchical/{bb72,bb144}/`: 24 evaluated models,
+196,608 total shots. BB144 D12 job `60636624` is under
+`bb/circuit/standard/dem_cnn/resumed_800_epochs/bb144/`; all four models now
+have 800-epoch final results, bringing the raw training campaign to 32 models.
+
+[Full analysis](analysis/bb_dem_2026_11_02.md) ·
+[Hierarchical depth comparison](plots/bb/circuit/standard/dem_cnn/hierarchical/depth_comparison.png) ·
+[Decoder use and timing](plots/bb/circuit/standard/dem_cnn/hierarchical/depth_diagnostics.png) ·
+[Updated raw overview](plots/bb/circuit/standard/dem_cnn/overview.png).
+
+BB144 D4 at p=0.1% has zero hierarchical failures in 8,192 shots (95% Wilson
+upper bound 0.0469%, not proof of zero error). Direct CNN+OSD was not compared.
+Imports again exclude `.npz`/`.pt`, so audit coverage is metadata and logs.
+Rebuild current plots: `python scripts/analyze_bb_dem_november2.py`.
+Older dated summaries below describe their original import state.
+
+## November 1, 2026: BB72 D4 hierarchical DEM evaluation
+
+Job `60636229` (array task 0) is archived under
+`bb/circuit/standard/dem_cnn/hierarchical/bb72/resdir_60636229_hierarchical/`.
+All 37 files (800,994 bytes) were verified by SHA-256 before/after relocation.
+Four p values each completed 8,192 fresh paired circuit shots using existing
+best weights, confidence 0.9 and residual OSD-0, with no retraining.
+
+At p=0.1%/0.2%, raw block failure falls from 16.772%/54.028% to
+0.110%/3.174%. All hierarchical outputs satisfy the syndrome; high-p logical
+failure remains large. Direct CNN+OSD comparison was disabled, and no shot
+banks/checkpoints were downloaded, so the audit covers metadata and logs only.
+
+[Analysis](analysis/bb_hierarchical_dem_2026_11_01.md) ·
+[Performance](plots/bb/circuit/standard/dem_cnn/hierarchical/overview.png) ·
+[Diagnostics](plots/bb/circuit/standard/dem_cnn/hierarchical/diagnostics.png).
+Rebuild: `python scripts/analyze_bb_hierarchical_dem.py`.
+
 ## November 1, 2026: depth 1 transfer folders returned to archive
 
 Jobs `58793764` (BB72) and `58793765` (BB144), Tanner CNN depth 1 / 100 epochs,

@@ -277,7 +277,8 @@ def plots(finals, training, validation):
                 ax.grid(alpha=.2)
                 ax.legend(fontsize=8,ncol=2)
         fig.suptitle(("Raw validation failure" if kind=="validation" else "Training logical parity loss")+
-                     " | trailing 25-epoch average; panel scales differ"+
+                     (" | trailing 5-evaluation average; panel scales differ" if kind=="validation"
+                      else " | trailing 25-epoch average; panel scales differ")+
                      ("\nDashed = unfinished run; x = last available smoothed point" if partial else ""),fontsize=13)
         fig.savefig(PLOTS / filename,dpi=160)
         plt.close(fig)

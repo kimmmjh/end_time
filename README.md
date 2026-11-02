@@ -25,6 +25,11 @@ DEM fault labels; validation and final scoring use fresh circuit shots.
 `bb_tanner_cnn` with circuit noise is an alias for this architecture.
 See [DEM CNN architecture, evaluation, and resume](docs/bb_dem_cnn.md).
 
+For the November 2 follow-up, use `run_bb_dem_continue.slurm` for 21 selected
+800→1,000 epoch continuations and `run_bb_dem_hierarchical_plateau.slurm` for
+best/latest hierarchical comparisons on the other 11 models. See the
+[selection, launch commands, and worker mapping](docs/bb_dem_followup_2026_11_02.md).
+
 ```bash
 python main.py --code=bb72 --architecture=bb_dem_cnn \
   --noise_model=circuit --bb_circuit_noise_model=standard --p=.003 \

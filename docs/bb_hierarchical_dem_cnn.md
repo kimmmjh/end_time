@@ -1,5 +1,39 @@
 # Hierarchical DEM graph CNN
 
+The [November 2 follow-up scripts](bb_dem_followup_2026_11_02.md) separate
+additional DEM CNN training from immediate best/latest hierarchical evaluation.
+The imported hierarchical results below used existing best weights with no retraining.
+
+## Full imported campaign (November 2, 2026)
+
+All 24 evaluations in the manifest are imported: BB72 depths 4/6/8/12 and
+BB144 depths 4/6, each at four p values and 8,192 paired shots. All hierarchical
+outputs are reported syndrome-consistent. BB72 D12 improves the point estimates
+at p=0.2%/0.4%/0.6%, but depth does not improve every point monotonically.
+BB144 D4 at p=0.1% has 0/8,192 failures, with 95% Wilson upper bound 0.0469%.
+BB144 decoding takes roughly 624–1,769 amortized ms/shot with this dense backend.
+
+See the [combined analysis](../results/analysis/bb_dem_2026_11_02.md),
+[depth comparison](../results/plots/bb/circuit/standard/dem_cnn/hierarchical/depth_comparison.png),
+and [timing](../results/plots/bb/circuit/standard/dem_cnn/hierarchical/depth_diagnostics.png).
+Shot banks/checkpoints remain absent locally; direct CNN+OSD was not compared.
+BB144 D8/D12 hierarchical evaluations are not included, even though their raw
+training runs have now completed.
+
+## Imported evaluation (November 1, 2026)
+
+BB72 D4 job 60636229 completed all four p values with 8,192 paired shots each,
+using existing best weights and confidence 0.9. Raw versus hierarchical block
+failure at p=0.1% is 16.772% versus 0.110%; at p=0.2% it is 54.028% versus
+3.174%. No retraining occurred. High-p failure remains large. Direct CNN+OSD
+was not evaluated, so these results do not isolate an advantage of hierarchy
+over ordinary CNN+OSD. Only metadata/logs were imported, not shot banks or weights.
+
+See the [analysis](../results/analysis/bb_hierarchical_dem_2026_11_01.md) and
+[performance plot](../results/plots/bb/circuit/standard/dem_cnn/hierarchical/overview.png).
+
+## Implementation
+
 `models/_bb_hierarchical_dem_cnn.py` defines `BBHierarchicalDemCNN`, a
 feed-forward local graph CNN followed by a global residual decoder. It keeps
 the undecomposed DEM hyperedges, joint X/Z information, variable-degree
