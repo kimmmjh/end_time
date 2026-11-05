@@ -12,6 +12,43 @@ import torch
 from scripts import run_bb_dem_sample_scaling as scaling
 
 
+def test_worker_lock_rejects_another_process_and_releases(tmp_path, monkeypatch):
+    monkeypatch.setenv("SLURM_JOB_ID", "60828644")
+    # The old flock file left by the failed run is harmless.
+    (tmp_path / "worker.lock").touch()
+    with scaling.worker_lock(tmp_path):
+        owner = json.loads((tmp_path / "worker.lock.d/owner.json").read_text())
+        assert owner["job_id"] == "60828644" and owner["pid"] == os.getpid()
+        code = (
+            "from pathlib import Path\n"
+            "import sys\n"
+            "from scripts.run_bb_dem_sample_scaling import worker_lock\n"
+            "with worker_lock(Path(sys.argv[1])):\n"
+            "    raise AssertionError('Concurrent worker acquired the lock')\n"
+        )
+        child = subprocess.run([sys.executable, "-c", code, str(tmp_path)],
+                               cwd=scaling.REPO, capture_output=True, text=True)
+        assert child.returncode != 0 and "Worker lock already exists" in child.stderr
+        assert json.loads((tmp_path / "worker.lock.d/owner.json").read_text()) == owner
+    assert not (tmp_path / "worker.lock.d").exists()
+    with scaling.worker_lock(tmp_path):
+        pass
+
+
+def test_worker_lock_releases_on_exception_and_does_not_steal_stale_lock(tmp_path):
+    with pytest.raises(ValueError, match="simulated failure"):
+        with scaling.worker_lock(tmp_path):
+            raise ValueError("simulated failure")
+    lock = tmp_path / "worker.lock.d"
+    assert not lock.exists()
+    # A process killed between mkdir and metadata creation leaves an empty lock.
+    lock.mkdir()
+    with pytest.raises(RuntimeError, match="verify that its Slurm job"):
+        with scaling.worker_lock(tmp_path):
+            pytest.fail("A stale lock must not be stolen automatically")
+    assert lock.is_dir()
+
+
 def test_launcher_previews_both_experiments_without_weights():
     launcher = scaling.REPO / "run_bb_dem_sample_scaling.slurm"
     subprocess.run(["bash", "-n", str(launcher)], check=True)

@@ -30,7 +30,7 @@ Both sources live directly under the repository's server root:
 `BB_REPO_ROOT` overrides the repository location; `BB_DEM_SOURCE_ROOT` overrides
 the parent of the source `resdir_*` folders. Sources are never modified.
 
-The launcher uses account `m5328_g`, regular GPU QoS, one node, 24 hours,
+The launcher uses account `m5328_g`, regular GPU QoS, one node, 48 hours,
 two workers with one GPU and 16 CPUs each, and the existing
 `$PSCRATCH/envs/nde` environment. It does not use the other two GPUs on a
 four-GPU node. Email is enabled for END/FAIL to `ds08152@gmail.com`.
@@ -81,7 +81,14 @@ Replace `<FIRST_JOBID>` with the numeric ID. Continue pointing to this **same
 first campaign directory** on every resubmission. Each new job writes its own
 `resdir_<NEW_JOBID>/` logs and source snapshot; model and evaluation progress
 remain under the original campaign directory. Never submit overlapping resumes.
-Per-worker filesystem locks reject concurrent modification. This script does
+Per-worker atomic directory locks reject concurrent modification without calling
+`flock`, which failed with errno 524 on the compute-node home path in job
+60828644. Each `worker.lock.d/owner.json` records the Slurm job/step, host, and
+PID. Normal completion, graceful stops, and Python exceptions release the lock.
+Hard termination can leave a stale directory: inspect its owner and confirm the
+job and worker have stopped before removing that directory. Locks are never
+automatically stolen. The old empty `worker.lock` files need no cleanup.
+This script does
 not automatically submit or requeue jobs.
 
 The saved scheduler state is restored, so neither milestones nor resubmissions

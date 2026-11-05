@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 from dataclasses import asdict
-import fcntl
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -18,6 +20,33 @@ sys.path.insert(0, str(REPO))
 from scripts.evaluate_bb_hierarchical_dem_cnn import write_json
 
 MANIFEST = REPO / "scripts/manifests/bb_dem_sample_scaling.json"
+
+
+@contextmanager
+def worker_lock(directory):
+    """Exclude other workers without requiring advisory flock support.
+
+    A hard-killed owner leaves its directory behind. Never infer that a remote
+    PID or a missing scheduler response means it is safe to steal that lock.
+    """
+    path = directory / "worker.lock.d"
+    try:
+        path.mkdir()
+    except FileExistsError as exc:
+        raise RuntimeError(
+            f"Worker lock already exists: {path}. Inspect {path / 'owner.json'} "
+            "and verify that its Slurm job and worker have stopped before removing "
+            "the stale lock directory. No existing lock was removed."
+        ) from exc
+    try:
+        write_json(path / "owner.json", dict(
+            job_id=os.environ.get("SLURM_JOB_ID"),
+            step_id=os.environ.get("SLURM_STEP_ID"),
+            hostname=socket.gethostname(), pid=os.getpid(), created_unix=time.time()))
+        yield
+    finally:
+        (path / "owner.json").unlink(missing_ok=True)
+        path.rmdir()
 
 
 def digest(path):
@@ -182,8 +211,7 @@ def run(args, campaign, entry):
 
     directory = args.campaign_root / entry["name"]
     directory.mkdir(parents=True, exist_ok=True)
-    with (directory / "worker.lock").open("w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    with worker_lock(directory):
         recipe = directory / "campaign.json"
         if recipe.exists() and json.loads(recipe.read_text()) != campaign:
             raise ValueError("Campaign settings changed; resume with the original manifest")
