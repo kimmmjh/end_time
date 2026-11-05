@@ -30,6 +30,26 @@ For the November 2 follow-up, use `run_bb_dem_continue.slurm` for 21 selected
 best/latest hierarchical comparisons on the other 11 models. See the
 [selection, launch commands, and worker mapping](docs/bb_dem_followup_2026_11_02.md).
 
+For the BB72 D8 / BB144 D6 sample-scaling experiment at p=0.002, use
+`run_bb_dem_sample_scaling.slurm`. It continues epoch-1,000 checkpoints to
+2,000,384 samples each, preserves one cosine schedule across job restarts, and
+evaluates hierarchical best/latest at the baseline and three milestones.
+See [launch, recovery, and evaluation details](docs/bb_dem_sample_scaling.md).
+
+The [November 5 result analysis](results/analysis/bb_dem_2026_11_05.md) incorporates
+the completed replacements for both partial downloads: all 21 continuations and
+22 best/latest evaluations are now complete. BB144 D8 raw failure at p=.002
+falls from 78.89% to 74.33%, while BB72 D12 rises from 28.92% to 31.48%.
+BB144 D4 hierarchical failure at p=.004 is 89.11% with epoch-800 weights,
+versus 92.86% with raw-validation-best epoch-5 weights. The two-million-sample
+experiment has not been imported yet.
+
+One [combined DEM CNN figure](results/plots/bb/circuit/standard/dem_cnn/overview.png)
+shows raw performance on the left and hierarchical performance on the right,
+with BB72 above BB144. Checkpoint-selection rules are unchanged.
+The hierarchical choice is selected on the displayed evaluation shots, not an
+independent final test. Rebuild with `python scripts/plot_bb_dem_latest.py`.
+
 ```bash
 python main.py --code=bb72 --architecture=bb_dem_cnn \
   --noise_model=circuit --bb_circuit_noise_model=standard --p=.003 \
@@ -131,24 +151,23 @@ logical (unflagged) failures.
 
 ## Current Slurm experiments
 
-The only active root Slurm launcher is
-[`run_bb_dem_hierarchical_eval.slurm`](run_bb_dem_hierarchical_eval.slurm).
-It evaluates the 24 completed circuit-level DEM CNN models with raw and
-hierarchical residual decoding on identical fresh circuit shots. It reuses
-validation-selected best weights and performs no training.
+The active root Slurm launchers are
+[`run_bb_dem_continue.slurm`](run_bb_dem_continue.slurm) for 21 selected training
+continuations and [`run_bb_dem_hierarchical_plateau.slurm`](run_bb_dem_hierarchical_plateau.slurm)
+for best/latest hierarchical evaluation of the other 11 models.
 
 ```bash
-BB_DRY_RUN=1 bash run_bb_dem_hierarchical_eval.slurm
-# Pilot to estimate dense OSD runtime before the full campaign.
-sbatch --array=0 --export=ALL,BB_HIER_SHOTS=128 run_bb_dem_hierarchical_eval.slurm
-# Full campaign: 8,192 shots per model.
-sbatch run_bb_dem_hierarchical_eval.slurm
+BB_DRY_RUN=1 bash run_bb_dem_continue.slurm
+BB_DRY_RUN=1 bash run_bb_dem_hierarchical_plateau.slurm
+sbatch run_bb_dem_continue.slurm
+sbatch run_bb_dem_hierarchical_plateau.slurm
 ```
 
-See [checkpoint locations, upload files and options](docs/bb_hierarchical_dem_cnn.md).
+See [selection, checkpoint locations and options](docs/bb_dem_followup_2026_11_02.md).
 Local DEM imports contain metadata but no weights; the original server
 `resdir_*/outputs/...` checkpoints are needed. Each job writes a separate
-`resdir_JOB_hierarchical` directory.
+`resdir_<JOBID>` directory, without a descriptive suffix. Keep this naming
+convention for future launchers; record the task in `job_metadata.txt` instead.
 
 Seven older root launchers for code-capacity campaigns and DEM training/resume
 were removed on November 1, 2026. Their old submission instructions are

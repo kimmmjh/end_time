@@ -1,0 +1,119 @@
+{
+  "format": "bb_dem_sample_scaling_v1",
+  "start_epoch": 1000,
+  "target_epoch": 3907,
+  "milestones": [
+    1953,
+    2930,
+    3907
+  ],
+  "batch_size": 4,
+  "batches": 128,
+  "learning_rate": 3e-05,
+  "shots": 8192,
+  "selection_seed": 20261103,
+  "final_seed": 20261104,
+  "confidence": 0.9,
+  "experiments": [
+    {
+      "name": "bb72_d8_p0.002",
+      "source_job": "resdir_60694884_followup_train",
+      "source_run": "resdir_60694884_followup_train/worker_10/outputs/2026-11-02/10-55-11-313019_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d8_seed7202002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/followup_2026_11_02/train/resdir_60694884_followup_train/worker_10/outputs/2026-11-02/10-55-11-313019_circuit_bb72_standard_bb_dem_cnn_p0.002_r6_w64_d8_seed7202002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb72",
+        "n": 72,
+        "k": 12,
+        "d": 6,
+        "rounds": 6,
+        "circuit_schema_version": 2,
+        "detector_frames": 7,
+        "num_detectors": 504,
+        "num_mechanisms": 17928,
+        "num_observables": 24,
+        "num_orbits": 1410,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "7846f4fe04cf4c85a137c44461ee9d1127bceeefca9e5c185709515f6536eafc",
+        "dem_fingerprint": "86d37006c14b3f4b2e96825ab6e04c15998e234927211618715f69788a348753",
+        "seed": 7202002,
+        "width": 64,
+        "depth": 8,
+        "kernel": "orbit_factorized_channel_gate_v1",
+        "loss_weights": {
+          "syndrome_weight": 1.0,
+          "logical_weight": 1.0,
+          "mechanism_weight": 0.1,
+          "deep_supervision_weight": 0.0
+        },
+        "checkpoint_selection": "raw_syndrome_and_observable_accuracy",
+        "osd_policy": "optional_direct_hard_centered_osd0_v1",
+        "parameter_count": 1484225
+      },
+      "source_epochs": 1000,
+      "source_best_epoch": 985
+    },
+    {
+      "name": "bb144_d6_p0.002",
+      "source_job": "resdir_60694884_followup_train",
+      "source_run": "resdir_60694884_followup_train/worker_8/outputs/2026-11-02/10-55-15-476270_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d6_seed14402002",
+      "imported_run": "results/bb/circuit/standard/dem_cnn/followup_2026_11_02/train/resdir_60694884_followup_train/worker_8/outputs/2026-11-02/10-55-15-476270_circuit_bb144_standard_bb_dem_cnn_p0.002_r12_w64_d6_seed14402002",
+      "expected_config": {
+        "architecture": "bb_dem_cnn",
+        "noise_model": "circuit",
+        "code": "bb144",
+        "n": 144,
+        "k": 12,
+        "d": 12,
+        "rounds": 12,
+        "circuit_schema_version": 2,
+        "detector_frames": 13,
+        "num_detectors": 1872,
+        "num_mechanisms": 71280,
+        "num_observables": 24,
+        "num_orbits": 1410,
+        "noise_profile": {
+          "name": "standard",
+          "base_error_rate": 0.002,
+          "reset_error_rate": 0.002,
+          "one_qubit_error_rate": 0.0,
+          "two_qubit_error_rate": 0.002,
+          "swap_error_rate": 0.002,
+          "measurement_error_rate": 0.002,
+          "gate_idle_error_rate": 0.002,
+          "resonator_idle_error_rate": 0.0,
+          "full_tick_idle": true
+        },
+        "graph_fingerprint": "5707a301a0a8fcbb4166d21938c25fcc1bb6ab627dc54c2db947d2ead24ab930",
+        "dem_fingerprint": "2f789326d1b4b4fbf5c6f2593ce03635677382190e3c97aea53b17019efaddfd",
+        "seed": 14402002,
+        "width": 64,
+        "depth": 6,
+        "kernel": "orbit_factorized_channel_gate_v1",
+        "loss_weights": {
+          "syndrome_weight": 1.0,
+          "logical_weight": 1.0,
+          "mechanism_weight": 0.1,
+          "deep_supervision_weight": 0.0
+        },
+        "checkpoint_selection": "raw_syndrome_and_observable_accuracy",
+        "osd_policy": "optional_direct_hard_centered_osd0_v1",
+        "parameter_count": 1089729
+      },
+      "source_epochs": 1000,
+      "source_best_epoch": 985
+    }
+  ]
+}

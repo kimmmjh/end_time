@@ -1,5 +1,25 @@
 # Circuit-level detector/mechanism CNN
 
+## Follow-up import (November 4, 2026)
+
+[Latest analysis](../results/analysis/bb_dem_2026_11_04.md): five more completed
+continuations and 14 completed hierarchical evaluations. Cumulative totals are
+17 complete/four partial training runs and 18 complete/four partial evaluations.
+BB144 D12 raw failure improves at p=.001/.002; BB144 D6/D8 at p=.004 show large
+hierarchical gains when selecting latest epoch-800 instead of raw-best epoch-5
+weights. Those are different comparisons. No two-million-sample results were received.
+Rebuild current plots with `python scripts/analyze_bb_dem_november4.py`.
+
+
+## Follow-up import (November 3, 2026)
+
+See the [latest analysis](../results/analysis/bb_dem_2026_11_03.md): 12 completed
+1,000-epoch continuations, four partial training snapshots, four complete
+hierarchical checkpoint evaluations and four partial evaluations. Current plots
+include these results and label partial snapshots separately. Hierarchical results
+still use the original 800-epoch runs, not the new continuation weights.
+
+
 The training/resume Slurm launchers were retired on November 1, 2026. Their
 submission commands below are historical records, not available root scripts.
 Use the [hierarchical evaluation launcher](../run_bb_dem_hierarchical_eval.slurm)
@@ -36,7 +56,7 @@ These partial runs appear as dashed training curves, not final LER points.
 All completed runs disabled OSD and evaluated 8,192 final circuit shots.
 See the [analysis](../results/analysis/bb_dem_2026_10_28.md),
 [performance plot](../results/plots/bb/circuit/standard/dem_cnn/overview.png), and
-[validation curves](../results/plots/bb/circuit/standard/dem_cnn/validation.png).
+validation curves (historical plot removed; numerical results retained).
 
 BB72 depth 12 improves at lower p, but high-p block failure remains large.
 BB144 p=.004/.006 had zero successful shots in all 160 validation evaluations;

@@ -1,5 +1,69 @@
 # Result archive
 
+## 2026-11-05 완료 기록 교체 — 현재 상태
+
+[최신 분석](analysis/bb_dem_2026_11_05.md) · [Raw + hierarchical 통합 그림](plots/bb/circuit/standard/dem_cnn/overview.png)
+
+`60701325_followup_train`과 `60701066_followup_evaluate`의 완료 사본(94개 파일)을 검증해
+`bb/circuit/standard/dem_cnn/followup_2026_11_02/{train,evaluate}/`의 중간 사본을 교체했다.
+이전 사본과 루트 중복 폴더는 제거했다. 이제 후속 학습 21개, 평가 22개 모두 완료됐다.
+200만 샘플 실험 결과는 아직 없다.
+
+BB144 D8 raw는 p=0.001/0.002에서 각각 35.950→34.106%, 78.894→74.329%다.
+반면 BB72 D12 p=0.002 raw는 28.918→31.482%로 높아졌다.
+BB144 D4 p=0.004 hierarchical은 best(epoch 5) 92.859% → latest(epoch 800) 89.111%다.
+
+통합 그림 한 장에 raw 32개 점(1,000-epoch 예산 21개 + 800-epoch 예산 11개),
+hierarchical 27개 점을 표시한다. Raw는 최신 완료 run의 validation-best,
+hierarchical은 표시된 평가 샷에서 최저 LER인 checkpoint다. 후자는 독립 최종 평가가 아니다.
+재생성: `python scripts/analyze_bb_dem_november5.py`.
+아래 날짜별 상태와 CSV는 당시 수신 기록으로 보존한다. 11월 3일/4일 스크립트를 실행하면
+완료 사본 교체를 감지해 최신 보고서와 통합 그림을 재생성한다.
+
+## 2026-11-04 추가 결과 수신
+
+[최신 분석](analysis/bb_dem_2026_11_04.md) ·
+[Raw + hierarchical 통합 그림](plots/bb/circuit/standard/dem_cnn/overview.png).
+
+새 6개 폴더 / 243개 파일을 SHA-256 검증 후
+`bb/circuit/standard/dem_cnn/followup_2026_11_02/{train,evaluate}/`에 보관했다.
+새 완료는 학습 5개와 평가 14개다. 누적 학습 21개 중 17개 완료/4개 중간,
+평가 22개 중 18개 완료/4개 중간이며 미수신 worker는 없다.
+중간 기록은 이전 다운로드 상태다. 200만 샘플 실험 결과는 아직 없다.
+
+BB144 p=0.4%에서 hierarchical 실패율은 best(epoch 5)→latest(epoch 800) 비교 시
+D6 94.727→84.131%, D8 94.360→68.835%다. 이는 checkpoint 선택 효과이며
+800→1,000 epoch 추가 학습 효과와 구분한다. 새 BB144 D12 raw는 p=0.1%/0.2%에서
+각각 15.735→13.623%, 58.704→56.592%다. 새 `.pt`/`.npz`는 없어 paired 검정은 하지 않았다.
+
+현재 공용 플롯은 raw/hierarchical을 함께 담은 **통합 그림 한 장만** 유지한다. Raw는 최신 완료 run의 raw-validation best만,
+hierarchical은 완료 평가 중 configuration별 최저 관측 LER만 표시한다. Hierarchical은 표시된 평가 샷으로
+선택했으므로 독립 최종 성능 추정치가 아니다. Raw는 1,000-epoch 예산 17개 + 800-epoch 예산 15개다.
+재생성: `python scripts/analyze_bb_dem_november4.py`.
+아래 날짜별 내용은 당시 기록이며 공용 plot 경로는 최신 그림을 가리킨다.
+
+
+## 2026-11-03 추가 학습 / best–latest 평가 수신
+
+[분석 보고서](analysis/bb_dem_2026_11_03.md) ·
+추가 학습 전후 (historical plot removed; numerical results retained) ·
+Best/latest hierarchical 비교 (historical plot removed; numerical results retained).
+
+새 6개 폴더(280개 파일)를 `bb/circuit/standard/dem_cnn/followup_2026_11_02/{train,evaluate}/`에
+SHA-256 검증 후 정리했다. 추가 학습 12개는 1,000 epoch 완료, 4개는 중간 snapshot이다.
+Hierarchical은 4개 checkpoint 평가 완료, 4개 중간 집계다. 미완료는 다운로드 시점 상태이며
+서버의 현재 상태를 의미하지 않는다. `.pt`/`.npz`는 없어 history/metadata/log만 검증했다.
+
+BB72 D8 p=0.2%의 raw 실패율은 67.834→63.477%, BB144 D6 p=0.2%는 87.146→84.058%다.
+Best epoch가 그대로인 3개 모델은 재평가 차이를 학습 효과로 해석하지 않는다.
+BB144 D4 p=0.4% hierarchical은 공통 6,016샷의 **중간 집계**에서 best(epoch5) 92.886%,
+latest(epoch800) 89.195%다. 전체 평가와 실제 paired 샷 검증은 아직 필요하다.
+
+기존 raw overview, validation/loss 및 hierarchical depth/비용 플롯을 갱신했다.
+현재 raw overview는 1,000 epoch 12개 + 800 epoch 20개이므로 동일 학습 예산 비교가 아니다.
+새 결과로 학습이나 추론을 실행하지 않았다. 재생성: `python scripts/analyze_bb_dem_november3.py`.
+아래 날짜별 내용은 과거 분석이며 공용 plot 경로는 최신 그림을 가리킨다.
+
 ## November 2, 2026: full hierarchical campaign and BB144 D12 final
 
 Six new job folders (220 files, 5,095,594 bytes) were archived with SHA-256
@@ -10,8 +74,8 @@ verification. The five hierarchical jobs join the prior BB72 D4 job under
 have 800-epoch final results, bringing the raw training campaign to 32 models.
 
 [Full analysis](analysis/bb_dem_2026_11_02.md) ·
-[Hierarchical depth comparison](plots/bb/circuit/standard/dem_cnn/hierarchical/depth_comparison.png) ·
-[Decoder use and timing](plots/bb/circuit/standard/dem_cnn/hierarchical/depth_diagnostics.png) ·
+Hierarchical depth comparison (historical plot removed; numerical results retained) ·
+Decoder use and timing (historical plot removed; numerical results retained) ·
 [Updated raw overview](plots/bb/circuit/standard/dem_cnn/overview.png).
 
 BB144 D4 at p=0.1% has zero hierarchical failures in 8,192 shots (95% Wilson
@@ -34,8 +98,8 @@ failure remains large. Direct CNN+OSD comparison was disabled, and no shot
 banks/checkpoints were downloaded, so the audit covers metadata and logs only.
 
 [Analysis](analysis/bb_hierarchical_dem_2026_11_01.md) ·
-[Performance](plots/bb/circuit/standard/dem_cnn/hierarchical/overview.png) ·
-[Diagnostics](plots/bb/circuit/standard/dem_cnn/hierarchical/diagnostics.png).
+[Performance](plots/bb/circuit/standard/dem_cnn/overview.png) ·
+Diagnostics (historical plot removed; numerical results retained).
 Rebuild: `python scripts/analyze_bb_hierarchical_dem.py`.
 
 ## November 1, 2026: depth 1 transfer folders returned to archive
@@ -60,7 +124,7 @@ Overview는 28개 완료 모델, validation/loss는 최신 D12 중간 기록도 
 ## October 28, 2026: BB144 depth 12 timeout record
 
 [중단 결과 분석](analysis/bb_dem_2026_10_28_interrupted.md) ·
-[학습 곡선](plots/bb/circuit/standard/dem_cnn/validation.png).
+학습 곡선 (historical plot removed; numerical results retained).
 
 `resdir_60310800` (array 60310800/7)은 24시간 제한으로 중단된 원래 D12 학습이다.
 34개 파일 / 1,375,378 bytes를 해시 검증하여
@@ -74,8 +138,8 @@ BB144 D8은 여전히 미수신이며 D12 재개 학습 결과도 아직 없다.
 
 [분석](analysis/bb_dem_2026_10_28.md) ·
 [성능 그림](plots/bb/circuit/standard/dem_cnn/overview.png) ·
-[Validation](plots/bb/circuit/standard/dem_cnn/validation.png) ·
-[Logical parity loss](plots/bb/circuit/standard/dem_cnn/logical_loss.png).
+Validation (historical plot removed; numerical results retained) ·
+Logical parity loss (historical plot removed; numerical results retained).
 
 Jobs 60310802/60310803/60316098/60316182/60318763/60330386의 24개 모델을
 `bb/circuit/standard/dem_cnn/800_epochs/{bb72,bb144}/resdir_JOB/`로 정리했다.

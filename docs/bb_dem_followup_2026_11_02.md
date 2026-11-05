@@ -37,7 +37,7 @@ sbatch run_bb_dem_hierarchical_plateau.slurm
 - BB144 D12 p=0.4%는 raw failure는 거의 100%지만 loss가 0.6403→0.6235로 줄어 연장한다. D8은 0.6754→0.6711로 개선이 작고 best가 epoch 5에 남아 있으므로 latest 평가를 먼저 한다.
 - BB144 p=0.6%는 모든 depth에서 raw failure 100%, logical loss 약 0.696으로 정체돼 먼저 평가한다.
 
-[기존 분석](../results/analysis/bb_dem_2026_11_02.md) · [Validation 곡선](../results/plots/bb/circuit/standard/dem_cnn/validation.png) · [Loss 곡선](../results/plots/bb/circuit/standard/dem_cnn/logical_loss.png)
+[기존 분석](../results/analysis/bb_dem_2026_11_02.md) · Validation 곡선 (historical plot removed; numerical results retained) · Loss 곡선 (historical plot removed; numerical results retained)
 
 ## 추가 학습 동작
 
@@ -65,7 +65,7 @@ sbatch --array=0 --export=ALL,BB_HIER_SHOTS=128 run_bb_dem_hierarchical_plateau.
 
 ## 출력과 중단 시 재개
 
-출력은 저장소 루트의 `resdir_<JOBID>_followup_train` 또는 `resdir_<JOBID>_followup_evaluate`에 새로 생성한다. Source weights는 수정하지 않는다. 각 job에 source manifest, source snapshot, 실행 command, log, exit code를 저장한다.
+출력은 학습·평가 모두 저장소 루트의 `resdir_<JOBID>`에 새로 생성한다. 앞으로 결과 폴더 이름에 작업 설명 접미사를 붙이지 않는다. 작업 종류는 `job_metadata.txt`의 campaign/mode에 기록한다. Source weights는 수정하지 않는다. 각 job에 source manifest, source snapshot, 실행 command, log, exit code를 저장한다.
 
 - 학습: `worker_N/resume_plan.json`, `worker_N/outputs/<date>/<run>/{model.pt,best_model.pt,history.json,...}`
 - 평가: `worker_N/{metadata.json,results.json,shots/batch_*.npz}`

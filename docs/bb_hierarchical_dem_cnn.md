@@ -1,5 +1,26 @@
 # Hierarchical DEM graph CNN
 
+## Follow-up import (November 4, 2026)
+
+[Latest analysis](../results/analysis/bb_dem_2026_11_04.md): 14 additional complete
+evaluations bring best/latest coverage to all 11 planned pairs (nine complete,
+two with older partial snapshots). At p=.004, BB144 D6 falls from 94.727% to
+84.131% and D8 from 94.360% to 68.835% when replacing raw-best epoch-5 weights
+with latest epoch-800 weights. Both arms use existing 800-epoch runs; these are
+not results of the 1,000-epoch continuation or the new sample-scaling experiment.
+Raw checkpoint selection can conceal gains after residual decoding. `.npz`
+files are absent, so these comparisons have not been verified at the paired-shot level.
+
+
+## Follow-up import (November 3, 2026)
+
+See the [latest analysis](../results/analysis/bb_dem_2026_11_03.md): 12 completed
+1,000-epoch continuations, four partial training snapshots, four complete
+hierarchical checkpoint evaluations and four partial evaluations. Current plots
+include these results and label partial snapshots separately. Hierarchical results
+still use the original 800-epoch runs, not the new continuation weights.
+
+
 The [November 2 follow-up scripts](bb_dem_followup_2026_11_02.md) separate
 additional DEM CNN training from immediate best/latest hierarchical evaluation.
 The imported hierarchical results below used existing best weights with no retraining.
@@ -14,8 +35,8 @@ BB144 D4 at p=0.1% has 0/8,192 failures, with 95% Wilson upper bound 0.0469%.
 BB144 decoding takes roughly 624–1,769 amortized ms/shot with this dense backend.
 
 See the [combined analysis](../results/analysis/bb_dem_2026_11_02.md),
-[depth comparison](../results/plots/bb/circuit/standard/dem_cnn/hierarchical/depth_comparison.png),
-and [timing](../results/plots/bb/circuit/standard/dem_cnn/hierarchical/depth_diagnostics.png).
+depth comparison (historical plot removed; numerical results retained),
+and timing (historical plot removed; numerical results retained).
 Shot banks/checkpoints remain absent locally; direct CNN+OSD was not compared.
 BB144 D8/D12 hierarchical evaluations are not included, even though their raw
 training runs have now completed.
@@ -30,7 +51,7 @@ was not evaluated, so these results do not isolate an advantage of hierarchy
 over ordinary CNN+OSD. Only metadata/logs were imported, not shot banks or weights.
 
 See the [analysis](../results/analysis/bb_hierarchical_dem_2026_11_01.md) and
-[performance plot](../results/plots/bb/circuit/standard/dem_cnn/hierarchical/overview.png).
+[performance plot](../results/plots/bb/circuit/standard/dem_cnn/overview.png).
 
 ## Implementation
 

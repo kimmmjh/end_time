@@ -105,7 +105,7 @@ def test_depth_receptive_field_and_checkpointed_training(generator):
         torch.testing.assert_close(first.grad, second.grad)
 
 
-def make_trainer(directory, generator, *, load=None, depth=2, epochs=1):
+def make_trainer(directory, generator, *, load=None, depth=2, epochs=1, **schedule_options):
     graph = generator.graph
     train = BBCircuitGenerator("bb72", rounds=1, gate_error_rate=.003, circuit_noise_model="standard",
                               batch_size=2, seed=9 if load is None else 19, graph=graph)
@@ -118,7 +118,45 @@ def make_trainer(directory, generator, *, load=None, depth=2, epochs=1):
         device=torch.device("cpu"), output_directory=directory,
         config={"architecture": "bb_dem_cnn", "depth": depth},
         epochs=epochs, batches=2, eval_batches=1, eval_every=1, final_eval_batches=2,
-        osd_eval_shots=3, save_model=True, load_model_path=load)
+        osd_eval_shots=3, save_model=True, load_model_path=load, **schedule_options)
+
+
+def test_continuous_schedule_and_adam_survive_interruption(tmp_path, generator):
+    # Identical samples isolate scheduler/optimizer recovery from sampler reseeding.
+    batch = generator.sample_dem()
+    torch.manual_seed(120)
+    uninterrupted = make_trainer(tmp_path / "whole", generator, epochs=4, schedule_epochs=4)
+    uninterrupted.train_generator.sample_dem = lambda **kw: batch
+    uninterrupted.train(final_evaluation=False)
+
+    torch.manual_seed(120)
+    first = make_trainer(tmp_path / "split", generator, epochs=4, schedule_epochs=4)
+    first.train_generator.sample_dem = lambda **kw: batch
+    first.train(stop_requested=lambda: len(first.history["train"]) == 2, final_evaluation=False)
+    checkpoint = tmp_path / "split/model.pt"
+    saved = torch.load(checkpoint, weights_only=False)
+    assert saved["epoch"] == 1 and saved["scheduler_state_dict"]["last_epoch"] == 4
+    resumed = make_trainer(tmp_path / "resumed", generator, epochs=2, load=checkpoint,
+                           schedule_epochs=4, resume_schedule=True)
+    assert resumed.optimizer.param_groups[0]["lr"] == first.optimizer.param_groups[0]["lr"]
+    for key, state in first.optimizer.state_dict()["state"].items():
+        for name, value in state.items():
+            torch.testing.assert_close(resumed.optimizer.state_dict()["state"][key][name], value,
+                                       atol=0, rtol=0)
+    resumed.train_generator.sample_dem = lambda **kw: batch
+    resumed.train(final_evaluation=False)
+    assert resumed.scheduler.state_dict() == uninterrupted.scheduler.state_dict()
+    for a, b in zip(resumed.model.parameters(), uninterrupted.model.parameters()):
+        # Floating-point reductions may differ by an ulp after restoring tensors.
+        torch.testing.assert_close(a, b, atol=1e-7, rtol=1e-6)
+    assert resumed.optimizer.param_groups[0]["lr"] == 0
+    assert resumed.history["phases"][-1]["schedule"] == "cosine_continue"
+    with pytest.raises(ValueError, match="continuous cosine"):
+        make_trainer(tmp_path / "bad", generator, epochs=1, load=checkpoint,
+                     schedule_epochs=5, resume_schedule=True)
+    with pytest.raises(ValueError, match="exceed"):
+        make_trainer(tmp_path / "over", generator, epochs=3, load=checkpoint,
+                     schedule_epochs=4, resume_schedule=True)
 
 
 def test_training_saved_circuit_bank_paired_osd_and_resume(tmp_path, generator, monkeypatch):

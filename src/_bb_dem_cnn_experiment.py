@@ -36,7 +36,8 @@ class BBDemCNNTrainer:
     def __init__(self, *, model, train_generator, eval_generator, criterion, device,
                  output_directory, config, epochs, batches, eval_batches, eval_every,
                  final_eval_batches, learning_rate=3e-4, weight_decay=1e-4,
-                 gradient_clip=1., osd_eval_shots=0, save_model=False, load_model_path=None):
+                 gradient_clip=1., osd_eval_shots=0, save_model=False, load_model_path=None,
+                 schedule_epochs=None, resume_schedule=False):
         for name, value in (("epochs", epochs), ("batches", batches),
                             ("eval_batches", eval_batches), ("eval_every", eval_every),
                             ("final_eval_batches", final_eval_batches)):
@@ -65,6 +66,11 @@ class BBDemCNNTrainer:
         self.start_epoch, self.best_epoch, self.best_accuracy = 0, -1, -1.
         self.best_state, self.best_snapshot = None, None
         self.history = {"train": [], "eval": [], "phases": []}
+        if resume_schedule and not load_model_path:
+            raise ValueError("resume_schedule requires a checkpoint.")
+        schedule_epochs = epochs if schedule_epochs is None else schedule_epochs
+        if schedule_epochs < epochs:
+            raise ValueError("Schedule must cover the requested training segment.")
         if load_model_path:
             saved = _read_checkpoint(load_model_path)
             differences = [key for key in self.config if saved["config"].get(key) != self.config[key]]
@@ -83,10 +89,18 @@ class BBDemCNNTrainer:
             torch.set_rng_state(saved["torch_rng_state"])
             if torch.cuda.is_available() and saved.get("cuda_rng_state") is not None:
                 torch.cuda.set_rng_state_all(saved["cuda_rng_state"])
-            for group in self.optimizer.param_groups:
-                group.update(lr=learning_rate, initial_lr=learning_rate, weight_decay=weight_decay)
+            if not resume_schedule:
+                for group in self.optimizer.param_groups:
+                    group.update(lr=learning_rate, initial_lr=learning_rate, weight_decay=weight_decay)
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optimizer, T_max=epochs * batches)
+            self.optimizer, T_max=schedule_epochs * batches)
+        if resume_schedule:
+            state = saved.get("scheduler_state_dict")
+            if state is None or state["T_max"] != schedule_epochs * batches:
+                raise ValueError("Checkpoint lacks the requested continuous cosine schedule.")
+            if state["last_epoch"] + epochs * batches > state["T_max"]:
+                raise ValueError("Training would exceed the saved cosine schedule.")
+            self.scheduler.load_state_dict(state)
         self.history["phases"].append({
             "start_epoch": self.start_epoch, "epochs": epochs, "batches": batches,
             "batch_size": train_generator.batch_size, "learning_rate": learning_rate,
@@ -95,7 +109,9 @@ class BBDemCNNTrainer:
             "final_eval_batches": final_eval_batches, "osd_eval_shots": osd_eval_shots,
             "edge_chunk_size": model.first.edge_chunk_size,
             "gradient_checkpoint": model.gradient_checkpoint,
-            "schedule": "cosine_restart" if load_model_path else "cosine",
+            "schedule": "cosine_continue" if resume_schedule else (
+                "cosine_restart" if load_model_path else "cosine"),
+            "schedule_epochs": schedule_epochs,
             "sampler_policy": "independent_train_eval_seeds_from_base_seed_and_phase_start_epoch",
             "resume_source": str(load_model_path) if load_model_path else None,
         })
@@ -111,6 +127,7 @@ class BBDemCNNTrainer:
             "format": "bb_dem_cnn_v1", "epoch": epoch, "config": copy.deepcopy(self.config),
             "model_state_dict": copy.deepcopy(self.model.state_dict()),
             "optimizer_state_dict": copy.deepcopy(self.optimizer.state_dict()),
+            "scheduler_state_dict": copy.deepcopy(self.scheduler.state_dict()),
             "history": copy.deepcopy(self.history), "best_epoch": self.best_epoch,
             "best_accuracy": self.best_accuracy, "best_model_state_dict": copy.deepcopy(self.best_state),
             "torch_rng_state": torch.get_rng_state(),
@@ -242,9 +259,11 @@ class BBDemCNNTrainer:
                                 metadata_json=json.dumps(self.config))
         return result
 
-    def train(self):
+    def train(self, *, stop_requested=None, final_evaluation=True):
         final_epoch = self.start_epoch + self.epochs - 1
         for epoch in range(self.start_epoch, final_epoch + 1):
+            if stop_requested is not None and stop_requested():
+                return str(self.directory)
             losses = self._train_epoch()
             self.history["train"].append({"epoch": epoch, **losses})
             logging.info("[Train] epoch %d | %s", epoch, json.dumps(losses))
@@ -262,6 +281,10 @@ class BBDemCNNTrainer:
             if self.best_snapshot is not None:
                 self._save(self.best_snapshot, "best_model.pt")
             self._write_history()
+            if stop_requested is not None and stop_requested():
+                return str(self.directory)
+        if not final_evaluation:
+            return str(self.directory)
         latest_weights = copy.deepcopy(self.model.state_dict())
         self.model.load_state_dict(self.best_state)
         try:

@@ -49,7 +49,8 @@ fi
 for worker in "${worker_ids[@]}"; do
     "$python_bin" "$helper" "${args[@]}" --worker "$worker" --dry-run --require-checkpoint
 done
-destination="$ROOT/resdir_${SLURM_JOB_ID}_followup_${mode}"
+# Keep result directory names uniform; describe the task in job_metadata.txt.
+destination="$ROOT/resdir_${SLURM_JOB_ID}"
 mkdir "$destination"
 cp "$submitted_script" "$destination/submitted_script.slurm"
 cp "$manifest" "$destination/source_manifest.json"

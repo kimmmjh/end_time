@@ -1,7 +1,6 @@
 from dataclasses import asdict
 import json
 from pathlib import Path
-import subprocess
 
 import numpy as np
 import pytest
@@ -128,17 +127,14 @@ def test_real_evaluation_is_paired_evaluation_only_and_does_not_overwrite(checkp
     assert not args.output.exists()
 
 
-def test_slurm_syntax_and_all_dry_run_tasks():
-    import os
-    import sys
-    root = Path(__file__).resolve().parents[1]
-    launcher = root / "run_bb_dem_hierarchical_eval.slurm"
-    subprocess.run(["bash", "-n", str(launcher)], check=True)
-    env = {**os.environ, "BB_DRY_RUN": "1", "BB_PYTHON": sys.executable, "BB_REPO_ROOT": str(root)}
-    env.pop("SLURM_ARRAY_TASK_ID", None)
-    output = subprocess.run(["bash", str(launcher)], env=env, check=True, capture_output=True, text=True).stdout
-    assert output.count('"checkpoint_exists"') == 24
-    assert output.count('"shots": 8192') == 24
+def test_all_original_manifest_tasks_still_preview_without_retired_launcher(tmp_path):
+    # The old launcher was retired; the source manifest and evaluator remain usable.
+    entries = json.loads(DEFAULT_MANIFEST.read_text())["experiments"]
+    for entry in entries:
+        plan = main(["--root", str(tmp_path), "--task", str(entry["task"]),
+                     "--index", str(entry["index"]), "--dry-run"])
+        assert not plan["checkpoint_exists"]
+        assert plan["shots"] == 8192
 
 
 @pytest.mark.parametrize("options", [["--shots", "0"], ["--confidence", "nan"], ["--batch-size", "0"]])
