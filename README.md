@@ -30,11 +30,13 @@ For the November 2 follow-up, use `run_bb_dem_continue.slurm` for 21 selected
 best/latest hierarchical comparisons on the other 11 models. See the
 [selection, launch commands, and worker mapping](docs/bb_dem_followup_2026_11_02.md).
 
-For the BB72 D8 / BB144 D6 sample-scaling experiment at p=0.002, use
-`run_bb_dem_sample_scaling.slurm`. It continues epoch-1,000 checkpoints to
-2,000,384 samples each, preserves one cosine schedule across job restarts, and
-evaluates hierarchical best/latest at the baseline and three milestones.
-See [launch, recovery, and evaluation details](docs/bb_dem_sample_scaling.md).
+For the BB DEM sample-scaling experiment at p=0.002, use
+`run_bb_dem_sample_scaling.slurm`. It now defaults to **BB144 D6 only**, finishes
+the original 2,000,384-sample experiment with its saved cosine schedule, then
+continues at constant LR 1e-5. It automatically chains 48-hour jobs until stopped
+and evaluates hierarchical best/latest every 1,000 additional epochs.
+See [launch, stopping, and recovery details](scripts/README_bb_dem_continuous.md).
+The original finite experiment remains available with `BB_SCALE_CONTINUOUS=0`.
 
 The [November 5 result analysis](results/analysis/bb_dem_2026_11_05.md) incorporates
 the completed replacements for both partial downloads: all 21 continuations and
@@ -667,6 +669,11 @@ The archive contains:
 - `metadata`: JSON describing the generation parameters
 
 ## Resume training
+
+For the BB DEM sample-scaling campaign on Perlmutter, see
+[continuous BB144 training](scripts/README_bb_dem_continuous.md). Its Slurm
+launcher now defaults to BB144 only and automatically chains 48-hour jobs.
+The OneCycleLR description below applies to the `convgru` example.
 
 `--epochs` is interpreted as the number of additional epochs. Resume restores
 the model weights, optimizer moments, completed epoch, and loss/accuracy

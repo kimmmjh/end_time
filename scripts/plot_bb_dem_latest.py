@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT))
 from scripts import analyze_bb_dem_november3 as prior
 
 PLOTS = prior.PLOTS
-KEEP = {"overview.png"}
+KEEP = {"overview.png", "sample_scaling_milestones.png", "sample_scaling_milestones.pdf"}
 
 
 def emit_csv(path, rows):

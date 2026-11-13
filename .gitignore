@@ -19,11 +19,7 @@ htmlcov/
 # Generated experiment artifacts
 /outputs/
 resdir_*
-/results/*
-!/results/README.md
-!/results/plots/
-/results/plots/*
-!/results/plots/README.md
+/results/
 /threshold_*.png
 /threshold_*.csv
 /slurm-*.out
@@ -36,3 +32,6 @@ resdir_*
 
 *.sh
 !/scripts/run_bb_dem_followup.sh
+
+recovered_60828644_rhhDfV
+/docs/

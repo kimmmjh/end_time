@@ -74,7 +74,7 @@ def source_path(entry, source_root):
     return next((p for p in candidates if p.is_file()), candidates[0])
 
 
-def validate_checkpoint(saved, campaign, entry, *, initial=False):
+def validate_checkpoint(saved, campaign, entry, *, initial=False, continuation=None):
     if saved.get("format") != "bb_dem_cnn_v1" or saved["config"] != entry["expected_config"]:
         raise ValueError("Checkpoint configuration differs from the frozen campaign manifest")
     completed = saved["epoch"] + 1
@@ -83,14 +83,23 @@ def validate_checkpoint(saved, campaign, entry, *, initial=False):
     if initial and (completed != entry["source_epochs"] or
                     saved["best_epoch"] + 1 != entry["source_best_epoch"]):
         raise ValueError("Source checkpoint changed since the campaign was planned")
-    if not campaign["start_epoch"] <= completed <= campaign["target_epoch"]:
+    if completed < campaign["start_epoch"] or (continuation is None and completed > campaign["target_epoch"]):
         raise ValueError("Checkpoint epoch is outside this campaign")
     if not saved.get("optimizer_state_dict") or saved.get("best_model_state_dict") is None:
         raise ValueError("Latest checkpoint must contain AdamW and best weights")
     if any(p["batch_size"] != campaign["batch_size"] or p["batches"] != campaign["batches"]
            for p in saved["history"]["phases"]):
         raise ValueError("Sample accounting requires unchanged batch size and batches per epoch")
-    if completed > campaign["start_epoch"]:
+    if continuation is not None and completed > campaign["target_epoch"]:
+        state = saved.get("scheduler_state_dict", {})
+        expected_steps = (completed - campaign["target_epoch"]) * campaign["batches"]
+        if (saved.get("scheduler_type") != "constant" or state.get("last_epoch") != expected_steps
+                or not state.get("base_lrs")
+                or any(lr != continuation["learning_rate"] for lr in state["base_lrs"])
+                or any(group["lr"] != continuation["learning_rate"]
+                       for group in saved["optimizer_state_dict"]["param_groups"])):
+            raise ValueError("Checkpoint does not belong to the constant-LR continuation")
+    elif completed > campaign["start_epoch"]:
         state = saved.get("scheduler_state_dict", {})
         expected_steps = (completed - campaign["start_epoch"]) * campaign["batches"]
         if (state.get("last_epoch") != expected_steps or state.get("T_max") !=
@@ -99,7 +108,7 @@ def validate_checkpoint(saved, campaign, entry, *, initial=False):
     return completed
 
 
-def train_segment(checkpoint, output, end_epoch, campaign, entry, stop):
+def train_segment(checkpoint, output, end_epoch, campaign, entry, stop, *, continuation=None):
     import numpy as np
     import torch
     from models._bb_dem_cnn import BBDemCNN
@@ -110,7 +119,7 @@ def train_segment(checkpoint, output, end_epoch, campaign, entry, stop):
     from src.bb_stim_utils import CIRCUIT_SCHEMA_VERSION
 
     saved = torch.load(checkpoint, map_location="cpu", weights_only=False)
-    completed = validate_checkpoint(saved, campaign, entry)
+    completed = validate_checkpoint(saved, campaign, entry, continuation=continuation)
     c, phase = saved["config"], saved["history"]["phases"][-1]
     seeds = np.random.SeedSequence([c["seed"], completed, CIRCUIT_SCHEMA_VERSION]).spawn(3)
     torch.manual_seed(int(seeds[2].generate_state(1)[0]))
@@ -135,11 +144,13 @@ def train_segment(checkpoint, output, end_epoch, campaign, entry, stop):
         model=model, train_generator=train, eval_generator=evaluation, criterion=loss, device=device,
         output_directory=output, config=c, epochs=end_epoch-completed, batches=campaign["batches"],
         eval_batches=phase["eval_batches"], eval_every=phase["eval_every"],
-        final_eval_batches=phase["final_eval_batches"], learning_rate=campaign["learning_rate"],
+        final_eval_batches=phase["final_eval_batches"],
+        learning_rate=continuation["learning_rate"] if continuation else campaign["learning_rate"],
         weight_decay=phase["weight_decay"], gradient_clip=phase["gradient_clip"],
         osd_eval_shots=0, save_model=True, load_model_path=checkpoint,
         schedule_epochs=campaign["target_epoch"]-campaign["start_epoch"],
-        resume_schedule=completed > campaign["start_epoch"])
+        resume_schedule=completed > (campaign["target_epoch"] if continuation else campaign["start_epoch"]),
+        scheduler_type="constant" if continuation else "cosine")
     del saved
     trainer.train(stop_requested=stop, final_evaluation=False)
     del trainer, model, loss, train, evaluation
@@ -205,6 +216,78 @@ def choose_winner(records):
                                        r["epoch"], r["weights"] != "best"))
 
 
+def continuation_recipe(args, campaign):
+    return dict(format="bb_dem_continuation_v1", start_epoch=campaign["target_epoch"],
+                learning_rate=args.continuation_lr, scheduler="constant",
+                evaluation_every=args.continuation_every, batch_size=campaign["batch_size"],
+                batches=campaign["batches"], shots=campaign["shots"],
+                selection_seed=campaign["selection_seed"], confidence=campaign["confidence"])
+
+
+def run_continuation(args, campaign, entry, directory, stop):
+    """Extend the latest weights after the frozen 2M experiment, under its worker lock.
+
+    Each evaluation pair is committed before advancing the milestone. A job
+    interrupted during evaluation retries that pair, not another training block.
+    The original checkpoints, selection, and held-out evaluation stay untouched.
+    """
+    import torch
+
+    extension = directory / "continuous"
+    extension.mkdir(exist_ok=True)
+    recipe = continuation_recipe(args, campaign)
+    recipe_path = extension / "campaign.json"
+    if recipe_path.exists() and json.loads(recipe_path.read_text()) != recipe:
+        raise ValueError("Continuation settings changed; use its original LR and evaluation interval")
+    write_json(recipe_path, recipe)
+    comparison_path = extension / "comparison.json"
+    records = json.loads(comparison_path.read_text()) if comparison_path.exists() else []
+    if len(records) % 2:
+        raise ValueError("Continuation comparison must contain complete best/latest pairs")
+    start = campaign["target_epoch"]
+    for i, record in enumerate(records):
+        if (record["epoch"] != start + (i // 2 + 1) * recipe["evaluation_every"] or
+                record["weights"] != ("best", "latest")[i % 2]):
+            raise ValueError("Continuation evaluation history is not contiguous")
+    milestone = start + (len(records) // 2 + 1) * recipe["evaluation_every"]
+    latest = extension / "training/model.pt"
+    baseline = directory / f"checkpoints/epoch_{start}.pt"
+    while not stop():
+        frozen = extension / f"checkpoints/epoch_{milestone}.pt"
+        if not frozen.exists():
+            checkpoint = latest if latest.exists() else baseline
+            saved = torch.load(checkpoint, map_location="cpu", weights_only=False)
+            completed = validate_checkpoint(saved, campaign, entry, continuation=recipe)
+            del saved
+            if completed < start or completed > milestone:
+                raise ValueError("Continuation checkpoint is outside the pending training segment")
+            if completed < milestone:
+                print(f"Continuing {entry['name']}: {completed} -> {milestone} epochs, "
+                      f"constant LR {recipe['learning_rate']:g}", flush=True)
+                train_segment(checkpoint, extension / "training", milestone, campaign, entry, stop,
+                              continuation=recipe)
+                if stop():
+                    return False
+            atomic_copy(latest, frozen)
+        pair = []
+        for weights in ("best", "latest"):
+            result = run_evaluation(frozen, weights,
+                                    extension / f"evaluations/epoch_{milestone}/{weights}",
+                                    campaign, campaign["selection_seed"], stop)
+            if result is None:
+                return False
+            pair.append(dict(epoch=milestone,
+                             cumulative_samples=milestone*campaign["batch_size"]*campaign["batches"],
+                             checkpoint=str(frozen), weights=weights, result=result))
+        records.extend(pair)
+        write_json(comparison_path, records)
+        # Selection uses the recurring selection bank, never the held-out final bank.
+        original = json.loads((directory / "comparison.json").read_text())
+        write_json(extension / "selected.json", choose_winner(original + records))
+        milestone += recipe["evaluation_every"]
+    return False
+
+
 def run(args, campaign, entry):
     import torch
     from scripts.resume_bb_dem_cnn import verify_source_stopped
@@ -225,7 +308,7 @@ def run(args, campaign, entry):
             del saved
             atomic_copy(source, baseline)
             write_json(directory / "source.json", dict(checkpoint=str(source), sha256=digest(baseline)))
-        stop = lambda: args.stop_file.is_file()
+        stop = lambda: args.stop_file.is_file() or (args.campaign_root / "STOP_CONTINUOUS").is_file()
         train_output = directory / "training"
         latest = train_output / "model.pt"
         records = []
@@ -260,6 +343,8 @@ def run(args, campaign, entry):
         if final is None:
             return False
         write_json(directory / "completed.json", dict(selected=winner, held_out_evaluation=final))
+        if getattr(args, "continuous", False):
+            return run_continuation(args, campaign, entry, directory, stop)
         return True
 
 
@@ -272,7 +357,14 @@ def main(argv=None):
     parser.add_argument("--manifest", type=Path, default=MANIFEST)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--require-checkpoint", action="store_true")
+    parser.add_argument("--continuous", action="store_true",
+                        help="Finish the frozen campaign, then train until a stop request")
+    parser.add_argument("--continuation-lr", type=float, default=1e-5)
+    parser.add_argument("--continuation-every", type=int, default=1000)
     args = parser.parse_args(argv)
+    import math
+    if not math.isfinite(args.continuation_lr) or args.continuation_lr <= 0 or args.continuation_every < 1:
+        parser.error("Continuation LR must be finite and positive; interval must be positive")
     for key in ("source_root", "campaign_root", "stop_file"):
         setattr(args, key, getattr(args, key).resolve())
     campaign = json.loads(args.manifest.read_text())
@@ -288,7 +380,13 @@ def main(argv=None):
                           campaign_root=str(args.campaign_root), total_samples=3907*512,
                           additional_epochs=2907, milestones=campaign["milestones"],
                           learning_rate=campaign["learning_rate"], evaluation_shots=campaign["shots"],
+                          continuous=args.continuous,
+                          continuation=continuation_recipe(args, campaign) if args.continuous else None,
                           evaluation="best/latest at baseline and milestones; independent final bank"), indent=2), flush=True)
+    extension_recipe = args.campaign_root / entry["name"] / "continuous/campaign.json"
+    if args.continuous and extension_recipe.exists():
+        if json.loads(extension_recipe.read_text()) != continuation_recipe(args, campaign):
+            raise ValueError("Continuation settings changed; use its original LR and evaluation interval")
     if args.require_checkpoint:
         import torch
         checkpoint = baseline if baseline.exists() else source

@@ -159,6 +159,47 @@ def test_continuous_schedule_and_adam_survive_interruption(tmp_path, generator):
                      schedule_epochs=4, resume_schedule=True)
 
 
+def test_constant_extension_keeps_adam_and_resumes_identically(tmp_path, generator):
+    batch = generator.sample_dem()
+    first = make_trainer(tmp_path / "cosine", generator, epochs=1)
+    first.train_generator.sample_dem = lambda **kw: batch
+    first.train(final_evaluation=False)
+    source = first.directory / "model.pt"
+    assert first.optimizer.param_groups[0]["lr"] == 0
+
+    whole = make_trainer(tmp_path / "whole", generator, epochs=4, load=source,
+                         scheduler_type="constant", learning_rate=1e-5)
+    assert whole.optimizer.param_groups[0]["lr"] == 1e-5
+    for key, state in first.optimizer.state_dict()["state"].items():
+        for name, value in state.items():
+            torch.testing.assert_close(whole.optimizer.state_dict()["state"][key][name], value,
+                                       atol=0, rtol=0)
+    whole.train_generator.sample_dem = lambda **kw: batch
+    whole.train(final_evaluation=False)
+
+    split = make_trainer(tmp_path / "split_constant", generator, epochs=4, load=source,
+                         scheduler_type="constant", learning_rate=1e-5)
+    split.train_generator.sample_dem = lambda **kw: batch
+    split.train(stop_requested=lambda: len(split.history["train"]) == 3, final_evaluation=False)
+    resumed = make_trainer(tmp_path / "resumed_constant", generator, epochs=2,
+                           load=split.directory / "model.pt", scheduler_type="constant",
+                           learning_rate=1e-5, resume_schedule=True)
+    resumed.train_generator.sample_dem = lambda **kw: batch
+    resumed.train(final_evaluation=False)
+    assert resumed.scheduler.state_dict() == whole.scheduler.state_dict()
+    assert resumed.scheduler.last_epoch == 8  # 4 extension epochs, 2 updates each.
+    assert resumed.optimizer.param_groups[0]["lr"] == 1e-5
+    for a, b in zip(resumed.model.parameters(), whole.model.parameters()):
+        torch.testing.assert_close(a, b, atol=1e-7, rtol=1e-6)
+    for key, state in whole.optimizer.state_dict()["state"].items():
+        for name, value in state.items():
+            torch.testing.assert_close(resumed.optimizer.state_dict()["state"][key][name], value,
+                                       atol=1e-7, rtol=1e-6)
+    with pytest.raises(ValueError, match="scheduler type"):
+        make_trainer(tmp_path / "wrong", generator, load=source, scheduler_type="constant",
+                     resume_schedule=True)
+
+
 def test_training_saved_circuit_bank_paired_osd_and_resume(tmp_path, generator, monkeypatch):
     trainer = make_trainer(tmp_path / "first", generator)
     before = copy.deepcopy(trainer.model.state_dict())

@@ -37,7 +37,7 @@ class BBDemCNNTrainer:
                  output_directory, config, epochs, batches, eval_batches, eval_every,
                  final_eval_batches, learning_rate=3e-4, weight_decay=1e-4,
                  gradient_clip=1., osd_eval_shots=0, save_model=False, load_model_path=None,
-                 schedule_epochs=None, resume_schedule=False):
+                 schedule_epochs=None, resume_schedule=False, scheduler_type="cosine"):
         for name, value in (("epochs", epochs), ("batches", batches),
                             ("eval_batches", eval_batches), ("eval_every", eval_every),
                             ("final_eval_batches", final_eval_batches)):
@@ -68,8 +68,11 @@ class BBDemCNNTrainer:
         self.history = {"train": [], "eval": [], "phases": []}
         if resume_schedule and not load_model_path:
             raise ValueError("resume_schedule requires a checkpoint.")
+        if scheduler_type not in ("cosine", "constant"):
+            raise ValueError("Unknown scheduler_type.")
+        self.scheduler_type = scheduler_type
         schedule_epochs = epochs if schedule_epochs is None else schedule_epochs
-        if schedule_epochs < epochs:
+        if scheduler_type == "cosine" and schedule_epochs < epochs:
             raise ValueError("Schedule must cover the requested training segment.")
         if load_model_path:
             saved = _read_checkpoint(load_model_path)
@@ -92,13 +95,18 @@ class BBDemCNNTrainer:
             if not resume_schedule:
                 for group in self.optimizer.param_groups:
                     group.update(lr=learning_rate, initial_lr=learning_rate, weight_decay=weight_decay)
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optimizer, T_max=schedule_epochs * batches)
+        if scheduler_type == "cosine":
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                self.optimizer, T_max=schedule_epochs * batches)
+        else:
+            self.scheduler = torch.optim.lr_scheduler.LambdaLR(self.optimizer, lambda step: 1.)
         if resume_schedule:
             state = saved.get("scheduler_state_dict")
-            if state is None or state["T_max"] != schedule_epochs * batches:
+            if state is None or saved.get("scheduler_type", "cosine") != scheduler_type:
+                raise ValueError("Checkpoint scheduler type does not match.")
+            if scheduler_type == "cosine" and state["T_max"] != schedule_epochs * batches:
                 raise ValueError("Checkpoint lacks the requested continuous cosine schedule.")
-            if state["last_epoch"] + epochs * batches > state["T_max"]:
+            if scheduler_type == "cosine" and state["last_epoch"] + epochs * batches > state["T_max"]:
                 raise ValueError("Training would exceed the saved cosine schedule.")
             self.scheduler.load_state_dict(state)
         self.history["phases"].append({
@@ -109,9 +117,9 @@ class BBDemCNNTrainer:
             "final_eval_batches": final_eval_batches, "osd_eval_shots": osd_eval_shots,
             "edge_chunk_size": model.first.edge_chunk_size,
             "gradient_checkpoint": model.gradient_checkpoint,
-            "schedule": "cosine_continue" if resume_schedule else (
-                "cosine_restart" if load_model_path else "cosine"),
-            "schedule_epochs": schedule_epochs,
+            "schedule": scheduler_type + ("_continue" if resume_schedule else (
+                "_restart" if load_model_path else "")),
+            "schedule_epochs": schedule_epochs if scheduler_type == "cosine" else None,
             "sampler_policy": "independent_train_eval_seeds_from_base_seed_and_phase_start_epoch",
             "resume_source": str(load_model_path) if load_model_path else None,
         })
@@ -128,6 +136,7 @@ class BBDemCNNTrainer:
             "model_state_dict": copy.deepcopy(self.model.state_dict()),
             "optimizer_state_dict": copy.deepcopy(self.optimizer.state_dict()),
             "scheduler_state_dict": copy.deepcopy(self.scheduler.state_dict()),
+            "scheduler_type": self.scheduler_type,
             "history": copy.deepcopy(self.history), "best_epoch": self.best_epoch,
             "best_accuracy": self.best_accuracy, "best_model_state_dict": copy.deepcopy(self.best_state),
             "torch_rng_state": torch.get_rng_state(),
