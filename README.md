@@ -31,7 +31,8 @@ best/latest hierarchical comparisons on the other 11 models. See the
 [selection, launch commands, and worker mapping](docs/bb_dem_followup_2026_11_02.md).
 
 For the BB DEM sample-scaling experiment at p=0.002, use
-`run_bb_dem_sample_scaling.slurm`. It now defaults to **BB144 D6 only**, finishes
+`run_bb_dem_sample_scaling.slurm`. It now defaults to **BB72 D8 and BB144 D6,
+one GPU each on one node**, finishes
 the original 2,000,384-sample experiment with its saved cosine schedule, then
 continues at constant LR 1e-5. It automatically chains 48-hour jobs until stopped
 and evaluates hierarchical best/latest every 1,000 additional epochs.
@@ -672,7 +673,7 @@ The archive contains:
 
 For the BB DEM sample-scaling campaign on Perlmutter, see
 [continuous BB144 training](scripts/README_bb_dem_continuous.md). Its Slurm
-launcher now defaults to BB144 only and automatically chains 48-hour jobs.
+launcher now runs BB72 and BB144 on separate GPUs and automatically chains 48-hour jobs.
 The OneCycleLR description below applies to the `convgru` example.
 
 `--epochs` is interpreted as the number of additional epochs. Resume restores

@@ -53,14 +53,15 @@ def test_launcher_previews_both_experiments_without_weights():
     launcher = scaling.REPO / "run_bb_dem_sample_scaling.slurm"
     subprocess.run(["bash", "-n", str(launcher)], check=True)
     env = {**os.environ, "BB_DRY_RUN": "1", "BB_REPO_ROOT": str(scaling.REPO),
-           "BB_PYTHON": sys.executable, "BB_SCALE_WORKERS": "0,1"}
+           "BB_PYTHON": sys.executable}
+    env.pop("BB_SCALE_WORKERS", None)
     env.pop("BB_SCALE_RUN_DIR", None)
     output = subprocess.run(["bash", str(launcher)], env=env, check=True,
                             text=True, capture_output=True).stdout
     assert output.count('"total_samples": 2000384') == 2
     assert '"experiment": "bb72_d8_p0.002"' in output
     assert '"experiment": "bb144_d6_p0.002"' in output
-    env.pop("BB_SCALE_WORKERS")
+    env["BB_SCALE_WORKERS"] = "1"
     output = subprocess.run(["bash", str(launcher)], env=env, check=True,
                             text=True, capture_output=True).stdout
     assert '"experiment": "bb72_d8_p0.002"' not in output
@@ -143,7 +144,7 @@ def test_campaign_recovers_mid_training_and_uses_separate_final_bank(tmp_path, m
             args.stop_file.touch()
 
     def evaluate(path, weights, directory, campaign, seed, stop):
-        key = (str(path), weights, seed)
+        key = (str(path), weights, seed, campaign["confidence"])
         if key not in cache:
             evaluations.append(key)
             cache[key] = {"status": "complete", "shots": campaign["shots"],
@@ -168,6 +169,16 @@ def test_campaign_recovers_mid_training_and_uses_separate_final_bank(tmp_path, m
     # A completed campaign is idempotent and retrains nothing.
     assert scaling.run(args, campaign, entry)
     assert len(segments) == 4 and len(evaluations) == 9
+    historical = (directory / "comparison.json").read_bytes()
+    args.confidence = .5
+    assert scaling.run(args, campaign, entry)
+    assert len(segments) == 4  # Changing inference threshold never retrains.
+    assert len(evaluations) == 18
+    assert all(e[3] == .5 for e in evaluations[9:])
+    assert (directory / "comparison.json").read_bytes() == historical
+    profile = directory / "evaluation_policy_q_gt_0p5"
+    assert (profile / "completed.json").exists()
+    assert json.loads((profile / "policy.json").read_text())["comparison"] == "gt"
 
 
 def test_evaluation_reuses_only_matching_complete_attempt(tmp_path):
@@ -191,7 +202,8 @@ def test_evaluation_reuses_only_matching_complete_attempt(tmp_path):
                                   campaign["selection_seed"], lambda: True) is None
 
 
-def test_continuation_resumes_training_and_unfinished_evaluation(tmp_path, monkeypatch):
+@pytest.mark.parametrize("confidence", [.9, .5])
+def test_continuation_resumes_training_and_unfinished_evaluation(tmp_path, monkeypatch, confidence):
     campaign = recipe()
     entry = campaign["experiments"][1]
     directory = tmp_path / entry["name"]
@@ -203,7 +215,9 @@ def test_continuation_resumes_training_and_unfinished_evaluation(tmp_path, monke
     torch.save(saved, baseline)
     original = baseline.read_bytes()
     scaling.write_json(directory / "comparison.json", [])
-    args = SimpleNamespace(continuation_lr=1e-5, continuation_every=1000)
+    args = SimpleNamespace(continuation_lr=1e-5, continuation_every=1000, confidence=confidence)
+    _, original_output = scaling.evaluation_policy(args, campaign, directory)
+    scaling.write_json(original_output / "comparison.json", [])
     stopped = [False]
     segments, evaluated, cache = [], [], {}
 
@@ -223,6 +237,7 @@ def test_continuation_resumes_training_and_unfinished_evaluation(tmp_path, monke
             stopped[0] = True
 
     def evaluate(path, weights, directory, campaign, seed, stop):
+        assert campaign["confidence"] == confidence
         key = (str(path), weights)
         if key in cache:
             return cache[key]
@@ -242,7 +257,8 @@ def test_continuation_resumes_training_and_unfinished_evaluation(tmp_path, monke
         assert not scaling.run_continuation(args, campaign, entry, directory, lambda: stopped[0])
     assert segments == [(3907, 4907), (4000, 4907), (4907, 5907)]
     assert [weights for _, weights in evaluated] == ["best", "latest"]
-    records = json.loads((directory / "continuous/comparison.json").read_text())
+    _, evaluation_output = scaling.evaluation_policy(args, campaign, directory / "continuous")
+    records = json.loads((evaluation_output / "comparison.json").read_text())
     assert len(records) == 2 and records[-1]["epoch"] == 4907
     assert records[-1]["cumulative_samples"] == 4907 * 512
     assert baseline.read_bytes() == original
@@ -262,7 +278,8 @@ def test_continuation_resumes_training_and_unfinished_evaluation(tmp_path, monke
     ("deadline", 0, True), ("failure", 1, False), ("cancel", 0, False),
     ("manual", 0, False), ("submission_failure", 1, True),
 ])
-def test_launcher_chains_only_graceful_deadline_stops(tmp_path, mode, expected_status, submits):
+@pytest.mark.parametrize("worker_spec", ["1", "0,1"])
+def test_launcher_chains_only_graceful_deadline_stops(tmp_path, mode, expected_status, submits, worker_spec):
     # Exercise the actual Bash launcher with local scheduler stubs; no jobs submitted.
     root = tmp_path / "repo"
     root.mkdir()
@@ -295,7 +312,8 @@ def test_launcher_chains_only_graceful_deadline_stops(tmp_path, mode, expected_s
         path.chmod(0o755)
     env = {key: val for key, val in os.environ.items() if not key.startswith(("BB_", "SLURM_"))}
     env.update(PATH=str(commands) + os.pathsep + env["PATH"], PSCRATCH=str(tmp_path),
-               SLURM_JOB_ID="999", SLURM_NTASKS="1", BB_REPO_ROOT=str(root),
+               SLURM_JOB_ID="999", SLURM_NTASKS=str(len(worker_spec.split(","))), BB_REPO_ROOT=str(root),
+               BB_SCALE_WORKERS=worker_spec,
                BB_SCALE_RUN_DIR=str(campaign), BB_PYTHON=str(commands / "fakepython"),
                BB_SCALE_AUTO_RESUBMIT="0" if mode == "manual" else "1",
                TEST_SUBMISSION=str(tmp_path / "submission"))
@@ -307,7 +325,10 @@ def test_launcher_chains_only_graceful_deadline_stops(tmp_path, mode, expected_s
     if submits:
         argv = submission.read_text().splitlines()
         assert "--dependency=afterok:999" in argv
-        assert "--ntasks-per-node=1" in argv and "--time=48:00:00" in argv
+        assert f"--ntasks-per-node={len(worker_spec.split(','))}" in argv and "--time=48:00:00" in argv
+    for worker in worker_spec.split(","):
+        assert (root / f"resdir_999/log_worker_{worker}.txt").exists()
+        assert (root / f"resdir_999/exit_code_worker_{worker}.txt").exists()
     if mode == "deadline":
         assert (root / "resdir_999/next_job_id.txt").read_text().strip() == "777"
     if mode == "cancel":

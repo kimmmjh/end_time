@@ -31,6 +31,9 @@ def sha(path):
 
 
 def locate(name):
+    snapshot = ARCHIVE / "snapshots/2026-11-11" / name
+    if snapshot.is_dir():
+        return snapshot
     candidates = [p for p in (ROOT / name, ARCHIVE / name) if p.is_dir()]
     if len(candidates) != 1:
         raise RuntimeError(f"Expected one unambiguous copy of {name}: {candidates}")
@@ -126,7 +129,8 @@ def audit(campaign, job):
                 ci95_low=hier["block_failure_wilson95"][0], ci95_high=hier["block_failure_wilson95"][1],
                 global_call_fraction=data["global_call_fraction"], seconds=data["hierarchical_seconds"],
                 sampler_seed=meta["sampler_seed"], independent_final=final,
-                result_path=str((ARCHIVE / CAMPAIGN / path.relative_to(campaign)).relative_to(ROOT)),
+                result_path=str(((campaign if "snapshots" in campaign.parts else ARCHIVE / CAMPAIGN)
+                                 / path.relative_to(campaign)).relative_to(ROOT)),
             ))
         for milestone in (1953, 2930) if worker else ():
             best_result = read(folder / f"evaluations/epoch_{milestone}/best/attempt_001/results.json")
@@ -154,6 +158,18 @@ def archive(move):
                                      bytes=path.stat().st_size, sha256=sha(path)))
         emit("relocation", rows)
     rows = list(csv.DictReader(record.open()))
+    snapshot = ARCHIVE / "snapshots/2026-11-11" / CAMPAIGN
+    if snapshot.is_dir():
+        # Later imports retain this dated input without changing the original manifest.
+        actual = {str((ARCHIVE/name/relative).relative_to(ROOT))
+                  for name in (CAMPAIGN, JOB)
+                  for relative in (p.relative_to(locate(name)) for p in locate(name).rglob("*") if p.is_file())}
+        assert actual == {r["new_path"] for r in rows}
+        for row in rows:
+            logical = ROOT / row["new_path"]
+            path = snapshot / logical.relative_to(ARCHIVE/CAMPAIGN) if logical.is_relative_to(ARCHIVE/CAMPAIGN) else logical
+            assert path.stat().st_size == int(row["bytes"]) and sha(path) == row["sha256"]
+        return rows
     for name in (CAMPAIGN, JOB):
         source, dest = ROOT/name, ARCHIVE/name
         if source.exists():
@@ -178,7 +194,7 @@ def report(summaries, evaluations, archived):
         "- `STOP_REQUESTED`, `interrupted.txt`, worker 종료 코드 0/75 및 제출본의 `--signal=B:USR1@1800`이 48시간 한도 약 30분 전 정상 저장·중단한 흐름과 일치한다. worker 로그에 traceback은 없다.",
         "- BB144 로그는 0-based epoch 2026에서 시작해 3483에서 끝난다. 복구된 2,026 epoch에서 재개하여 **1,458 epoch**를 추가했고, 처음부터 다시 학습하지 않았다.",
         "- BB72 worker에는 새 Train 행이 없다. 이미 완료된 결과를 재사용했다.",
-        f"- 로컬 캠페인: `results/bb/circuit/standard/dem_cnn/sample_scaling/{CAMPAIGN}/`.",
+        f"- 이 보고서의 로컬 캠페인 snapshot: `{locate(CAMPAIGN).relative_to(ROOT)}/`.",
         f"- 로컬 실행 로그: `results/bb/circuit/standard/dem_cnn/sample_scaling/{JOB}/`.",
         "- 서버의 실제 캠페인 경로는 `$HOME/end_time/recovered_60828644_rhhDfV` 그대로다. 로컬 정리는 서버 경로를 바꾸지 않는다.",
         "- 복구 폴더 루트의 오래된 `failed.txt`/worker 로그는 최초 실패 실행의 유산이다. 이번 실행 상태는 `resdir_60998882`로 판단한다.",

@@ -140,6 +140,7 @@ def evaluate(args, checkpoint, expected=None):
     metadata = dict(format="bb_hierarchical_dem_eval_v1", source=provenance, config=config,
                     requested_shots=args.shots, batch_size=args.batch_size,
                     confidence_threshold=args.confidence, active_candidates_only=True,
+                    confidence_comparison="gt" if args.confidence == .5 else "ge",
                     backend="direct_hard_centered_osd0_v1", compare_direct_osd=args.compare_direct_osd,
                     seed=args.seed, sampler_seed=sampler_seed, sampling="fresh_exact_circuit",
                     device=str(device), torch_version=torch.__version__, stim_version=stim.__version__,
@@ -230,7 +231,7 @@ def parse_args(argv=None):
     parser.add_argument("--shots", type=int, default=8192)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--edge-chunk-size", type=int, default=4096)
-    parser.add_argument("--confidence", type=float, default=.9)
+    parser.add_argument("--confidence", type=float, default=.5)
     parser.add_argument("--seed", type=int, default=20261101)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--compare-direct-osd", action="store_true")
@@ -240,8 +241,8 @@ def parse_args(argv=None):
     args = parser.parse_args(argv)
     if min(args.shots, args.batch_size, args.edge_chunk_size) < 1 or args.seed < 0:
         parser.error("Shot/batch/chunk counts must be positive; seed must be nonnegative")
-    if not .5 < args.confidence < 1:
-        parser.error("Confidence must be strictly between 0.5 and 1")
+    if not .5 <= args.confidence < 1:
+        parser.error("Confidence must be in [0.5, 1); at 0.5, ties abstain")
     if (args.task is None) != (args.index is None):
         parser.error("--task and --index must be provided together")
     if args.checkpoint is None and args.task is None:

@@ -47,7 +47,8 @@ def test_forward_checkpoint_compatibility_and_gradients(graph):
 
 
 def test_confidence_candidates_and_exact_residual(graph):
-    model = model_with_llrs(graph, [[-5., -1., -4., -8.]], edge_chunk_size=2)
+    model = model_with_llrs(graph, [[-5., -1., -4., -8.]], edge_chunk_size=2,
+                            confidence_threshold=.9)
     detectors = torch.tensor([[1, 0, 0]])
     local = model.preprocess(detectors)
     # Low-confidence m1 abstains; detector-free m3 is not an active candidate.
@@ -107,7 +108,16 @@ def test_invalid_backend_results_are_rejected(graph, output, error):
         model.decode(torch.tensor([[1, 0, 0]]), backend=backend)
 
 
-@pytest.mark.parametrize("threshold", [0.5, 1., float("nan"), float("inf")])
+def test_default_half_threshold_is_strict_and_keeps_active_candidate_filter(graph):
+    model = model_with_llrs(graph, [[-1e-7, 0., 1e-7, -8.], [-1., -1., -1., -8.]])
+    assert model.confidence_threshold == .5
+    local = model.preprocess(torch.tensor([[1, 0, 0], [0, 0, 1]]))
+    # q just above .5 qualifies, exactly .5 and below abstain; m3 has no detectors.
+    # On the second shot, only m2 touches the active detector.
+    assert local.local_correction.tolist() == [[1, 0, 0, 0], [0, 0, 1, 0]]
+
+
+@pytest.mark.parametrize("threshold", [0.49, 1., float("nan"), float("inf")])
 def test_invalid_confidence(graph, threshold):
     with pytest.raises(ValueError, match="confidence_threshold"):
         BBHierarchicalDemCNN(graph, confidence_threshold=threshold)

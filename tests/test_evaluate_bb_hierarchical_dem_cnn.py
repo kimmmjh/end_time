@@ -112,6 +112,8 @@ def test_real_evaluation_is_paired_evaluation_only_and_does_not_overwrite(checkp
     assert path.read_bytes() == original
     metadata = json.loads((output / "metadata.json").read_text())
     assert metadata["source"]["selected_epoch"] == 5
+    assert metadata["confidence_threshold"] == .5
+    assert metadata["confidence_comparison"] == "gt"
     banks = sorted((output / "shots").glob("*.npz"))
     assert len(banks) == 2
     with np.load(banks[-1]) as bank:

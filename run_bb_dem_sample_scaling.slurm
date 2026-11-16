@@ -5,7 +5,7 @@
 #SBATCH --time=48:00:00
 #SBATCH --constraint=gpu
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=2
 #SBATCH --cpus-per-task=16
 #SBATCH --gpus-per-task=1
 #SBATCH --signal=B:USR1@1800
@@ -16,10 +16,11 @@
 set -euo pipefail
 # Preview: BB_DRY_RUN=1 bash run_bb_dem_sample_scaling.slurm
 # Resume: sbatch --export=ALL,BB_SCALE_RUN_DIR=$HOME/end_time/resdir_JOB run_bb_dem_sample_scaling.slurm
-# Default: BB144 only, finish 3907 then continue with constant LR; chain 48h jobs.
+# Default: BB72 and BB144, one GPU each; chain 48h jobs with independent checkpoints.
 # Stop the chain gracefully: touch "$BB_SCALE_RUN_DIR/STOP_CONTINUOUS"
 # One allocation only: export BB_SCALE_AUTO_RESUBMIT=0 before sbatch.
-# Original finite experiment: BB_SCALE_CONTINUOUS=0; BB_SCALE_WORKERS=0,1 needs --ntasks-per-node=2.
+# Original finite experiment: BB_SCALE_CONTINUOUS=0.
+# One model only: BB_SCALE_WORKERS=0 (BB72) or 1 (BB144), with --ntasks-per-node=1.
 if [[ "${BB_DRY_RUN:-0}" == 1 ]]; then
     ROOT="${BB_REPO_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)}"
     python_bin="${BB_PYTHON:-python3}"
@@ -39,7 +40,7 @@ job_output="$ROOT/resdir_${SLURM_JOB_ID:-preview}"
 campaign="${BB_SCALE_RUN_DIR:-$job_output}"
 continuous="${BB_SCALE_CONTINUOUS:-1}"
 auto_resubmit="${BB_SCALE_AUTO_RESUBMIT:-1}"
-worker_spec="${BB_SCALE_WORKERS:-1}"
+worker_spec="${BB_SCALE_WORKERS:-0,1}"
 case "$worker_spec" in
     0|1|0,1) IFS=, read -r -a workers <<< "$worker_spec" ;;
     *) echo 'BB_SCALE_WORKERS must be 0, 1, or 0,1' >&2; exit 1 ;;
@@ -68,7 +69,7 @@ if [[ -f "$campaign/STOP_CONTINUOUS" ]]; then
 fi
 helper="$ROOT/scripts/run_bb_dem_sample_scaling.py"
 args=(--source-root "${BB_DEM_SOURCE_ROOT:-$ROOT}" --campaign-root "$campaign"
-      --stop-file "$job_output/STOP_REQUESTED")
+      --stop-file "$job_output/STOP_REQUESTED" --confidence "${BB_SCALE_CONFIDENCE:-0.5}")
 if [[ "$continuous" == 1 ]]; then
     args+=(--continuous --continuation-lr "${BB_SCALE_CONTINUATION_LR:-1e-5}"
            --continuation-every "${BB_SCALE_CONTINUATION_EVERY:-1000}")
@@ -101,6 +102,7 @@ done
     echo "Persistent experiment directory: $campaign"
     echo "Continuous=$continuous; auto_resubmit=$auto_resubmit; one GPU per selected worker"
     echo "Continuation LR=${BB_SCALE_CONTINUATION_LR:-1e-5}; evaluation interval=${BB_SCALE_CONTINUATION_EVERY:-1000}"
+    echo "Hierarchical confidence=${BB_SCALE_CONFIDENCE:-0.5} (strict > at 0.5)"
 } > "$job_output/job_metadata.txt"
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     git rev-parse HEAD > "$job_output/git_commit.txt"
@@ -156,6 +158,7 @@ if ((paused)); then
         export BB_SCALE_AUTO_RESUBMIT="$auto_resubmit"
         export BB_SCALE_CONTINUATION_LR="${BB_SCALE_CONTINUATION_LR:-1e-5}"
         export BB_SCALE_CONTINUATION_EVERY="${BB_SCALE_CONTINUATION_EVERY:-1000}"
+        export BB_SCALE_CONFIDENCE="${BB_SCALE_CONFIDENCE:-0.5}"
         # Only a successful, graceful pause enables the successor. Never retry errors.
         if next_job=$(sbatch --parsable --dependency="afterok:$SLURM_JOB_ID" --kill-on-invalid-dep=yes \
             --export=ALL --ntasks-per-node="${#workers[@]}" --time=48:00:00 \

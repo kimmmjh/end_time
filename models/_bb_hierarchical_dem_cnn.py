@@ -51,7 +51,8 @@ class BBHierarchicalDemCNN(BBDemCNN):
     dict layout, so existing CNN weights can initialize this model. ``depth``
     controls the local graph receptive field (default 2), not hierarchy levels.
 
-    A mechanism is locally flipped only if P(fault) >= ``confidence_threshold``
+    A mechanism is locally flipped only if P(fault) > 0.5 at the default
+    threshold (ties abstain), or P(fault) >= a higher ``confidence_threshold``,
     and, by default, it touches an active detector. Every other mechanism is
     left unchanged, not frozen: the global decoder can change *any* column.
     The threshold is an inference hyperparameter, not a calibrated guarantee.
@@ -67,10 +68,10 @@ class BBHierarchicalDemCNN(BBDemCNN):
     """
 
     def __init__(self, graph, *, width=64, depth=2, edge_chunk_size=4096,
-                 gradient_checkpoint=True, confidence_threshold=0.9,
+                 gradient_checkpoint=True, confidence_threshold=0.5,
                  active_candidates_only=True):
-        if not math.isfinite(confidence_threshold) or not 0.5 < confidence_threshold < 1:
-            raise ValueError("confidence_threshold must be finite and between 0.5 and 1.")
+        if not math.isfinite(confidence_threshold) or not 0.5 <= confidence_threshold < 1:
+            raise ValueError("confidence_threshold must be finite and in [0.5, 1).")
         super().__init__(graph, width=width, depth=depth,
                          edge_chunk_size=edge_chunk_size,
                          gradient_checkpoint=gradient_checkpoint)
@@ -104,7 +105,9 @@ class BBHierarchicalDemCNN(BBDemCNN):
         syndrome = detectors.to(device=log_odds.device, dtype=torch.uint8)
         # LLR = log(P(no fault)/P(fault)); confident faults have negative LLR.
         cutoff = math.log1p(-self.confidence_threshold) - math.log(self.confidence_threshold)
-        selected = log_odds <= cutoff
+        # q = 0.5 corresponds exactly to LLR = 0; abstain on these ties.
+        # Preserve the inclusive comparison for historical higher thresholds.
+        selected = log_odds < 0 if self.confidence_threshold == 0.5 else log_odds <= cutoff
         if self.active_candidates_only:
             counts = torch.zeros_like(log_odds, dtype=torch.long)
             for start in range(0, self.edge_detector.numel(), self._edge_chunk_size):

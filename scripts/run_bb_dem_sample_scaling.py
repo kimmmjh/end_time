@@ -224,6 +224,25 @@ def continuation_recipe(args, campaign):
                 selection_seed=campaign["selection_seed"], confidence=campaign["confidence"])
 
 
+def evaluation_policy(args, campaign, directory):
+    """Keep the frozen training recipe and historical evaluation files intact.
+
+    A new inference threshold evaluates the same immutable weights in a separate
+    namespace. Selection therefore never mixes thresholds or reuses old LERs.
+    """
+    confidence = getattr(args, "confidence", campaign["confidence"])
+    evaluation = dict(campaign, confidence=confidence)
+    if confidence == campaign["confidence"]:
+        return evaluation, directory
+    comparison = "gt" if confidence == .5 else "ge"
+    label = str(confidence).replace(".", "p")
+    output = directory / f"evaluation_policy_q_{comparison}_{label}"
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "policy.json", dict(confidence=confidence, comparison=comparison,
+                                            active_candidates_only=True))
+    return evaluation, output
+
+
 def run_continuation(args, campaign, entry, directory, stop):
     """Extend the latest weights after the frozen 2M experiment, under its worker lock.
 
@@ -240,7 +259,8 @@ def run_continuation(args, campaign, entry, directory, stop):
     if recipe_path.exists() and json.loads(recipe_path.read_text()) != recipe:
         raise ValueError("Continuation settings changed; use its original LR and evaluation interval")
     write_json(recipe_path, recipe)
-    comparison_path = extension / "comparison.json"
+    evaluation, evaluation_output = evaluation_policy(args, campaign, extension)
+    comparison_path = evaluation_output / "comparison.json"
     records = json.loads(comparison_path.read_text()) if comparison_path.exists() else []
     if len(records) % 2:
         raise ValueError("Continuation comparison must contain complete best/latest pairs")
@@ -272,8 +292,8 @@ def run_continuation(args, campaign, entry, directory, stop):
         pair = []
         for weights in ("best", "latest"):
             result = run_evaluation(frozen, weights,
-                                    extension / f"evaluations/epoch_{milestone}/{weights}",
-                                    campaign, campaign["selection_seed"], stop)
+                                    evaluation_output / f"evaluations/epoch_{milestone}/{weights}",
+                                    evaluation, campaign["selection_seed"], stop)
             if result is None:
                 return False
             pair.append(dict(epoch=milestone,
@@ -282,8 +302,9 @@ def run_continuation(args, campaign, entry, directory, stop):
         records.extend(pair)
         write_json(comparison_path, records)
         # Selection uses the recurring selection bank, never the held-out final bank.
-        original = json.loads((directory / "comparison.json").read_text())
-        write_json(extension / "selected.json", choose_winner(original + records))
+        _, original_output = evaluation_policy(args, campaign, directory)
+        original = json.loads((original_output / "comparison.json").read_text())
+        write_json(evaluation_output / "selected.json", choose_winner(original + records))
         milestone += recipe["evaluation_every"]
     return False
 
@@ -299,6 +320,7 @@ def run(args, campaign, entry):
         if recipe.exists() and json.loads(recipe.read_text()) != campaign:
             raise ValueError("Campaign settings changed; resume with the original manifest")
         write_json(recipe, campaign)
+        evaluation, evaluation_output = evaluation_policy(args, campaign, directory)
         baseline = directory / "checkpoints/epoch_1000.pt"
         if not baseline.exists():
             source = source_path(entry, args.source_root)
@@ -329,20 +351,20 @@ def run(args, campaign, entry):
                         return False
                 atomic_copy(latest, frozen)
             for weights in ("best", "latest"):
-                result = run_evaluation(frozen, weights, directory / f"evaluations/epoch_{milestone}/{weights}",
-                                        campaign, campaign["selection_seed"], stop)
+                result = run_evaluation(frozen, weights, evaluation_output / f"evaluations/epoch_{milestone}/{weights}",
+                                        evaluation, campaign["selection_seed"], stop)
                 if result is None:
                     return False
                 records.append(dict(epoch=milestone, cumulative_samples=milestone*512,
                                     checkpoint=str(frozen), weights=weights, result=result))
-                write_json(directory / "comparison.json", records)
+                write_json(evaluation_output / "comparison.json", records)
         winner = choose_winner(records)
-        write_json(directory / "selected.json", winner)
-        final = run_evaluation(Path(winner["checkpoint"]), winner["weights"], directory / "final_evaluation",
-                               campaign, campaign["final_seed"], stop)
+        write_json(evaluation_output / "selected.json", winner)
+        final = run_evaluation(Path(winner["checkpoint"]), winner["weights"], evaluation_output / "final_evaluation",
+                               evaluation, campaign["final_seed"], stop)
         if final is None:
             return False
-        write_json(directory / "completed.json", dict(selected=winner, held_out_evaluation=final))
+        write_json(evaluation_output / "completed.json", dict(selected=winner, held_out_evaluation=final))
         if getattr(args, "continuous", False):
             return run_continuation(args, campaign, entry, directory, stop)
         return True
@@ -361,10 +383,14 @@ def main(argv=None):
                         help="Finish the frozen campaign, then train until a stop request")
     parser.add_argument("--continuation-lr", type=float, default=1e-5)
     parser.add_argument("--continuation-every", type=int, default=1000)
+    parser.add_argument("--confidence", type=float, default=.5,
+                        help="Inference threshold; 0.5 uses strict q > 0.5, higher values use >=")
     args = parser.parse_args(argv)
     import math
     if not math.isfinite(args.continuation_lr) or args.continuation_lr <= 0 or args.continuation_every < 1:
         parser.error("Continuation LR must be finite and positive; interval must be positive")
+    if not .5 <= args.confidence < 1:
+        parser.error("Confidence must be in [0.5, 1)")
     for key in ("source_root", "campaign_root", "stop_file"):
         setattr(args, key, getattr(args, key).resolve())
     campaign = json.loads(args.manifest.read_text())
@@ -381,6 +407,7 @@ def main(argv=None):
                           additional_epochs=2907, milestones=campaign["milestones"],
                           learning_rate=campaign["learning_rate"], evaluation_shots=campaign["shots"],
                           continuous=args.continuous,
+                          evaluation_confidence=args.confidence,
                           continuation=continuation_recipe(args, campaign) if args.continuous else None,
                           evaluation="best/latest at baseline and milestones; independent final bank"), indent=2), flush=True)
     extension_recipe = args.campaign_root / entry["name"] / "continuous/campaign.json"

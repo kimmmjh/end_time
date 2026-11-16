@@ -1,15 +1,19 @@
-# Continuous BB144 training on Perlmutter
+# Continuous BB72 and BB144 training on Perlmutter
 
-`run_bb_dem_sample_scaling.slurm` now runs **BB144 D6, p=0.002 only**, with one
-GPU. It first finishes the original 3907-epoch campaign, including its milestone
+`run_bb_dem_sample_scaling.slurm` now runs **BB72 D8 and BB144 D6, p=0.002**,
+with two independent workers on one node, one GPU and 16 CPU cores per worker.
+Each worker first finishes its original 3907-epoch campaign, including its milestone
 and independent final evaluations, then continues without a terminal epoch.
-BB72 is not launched by default.
+The models have independent checkpoints, optimizers, and evaluation progress;
+this is not distributed training of a single model. Their epoch counts need not match.
 
-Sync these three changed runtime files before submitting:
+Sync these runtime files before submitting:
 
 - `run_bb_dem_sample_scaling.slurm`
 - `scripts/run_bb_dem_sample_scaling.py`
 - `src/_bb_dem_cnn_experiment.py`
+- `models/_bb_hierarchical_dem_cnn.py`
+- `scripts/evaluate_bb_hierarchical_dem_cnn.py`
 
 On Perlmutter, with the earlier job stopped:
 
@@ -20,7 +24,9 @@ sbatch --export=ALL,BB_SCALE_RUN_DIR="$HOME/end_time/recovered_60828644_rhhDfV" 
 ```
 
 The first job resumes the last saved epoch (3484 in the last downloaded BB144
-snapshot). Existing original-campaign settings and immutable checkpoints are
+snapshot before continuous training was added). The November 16 download has
+BB72 at 3907 and BB144 at 4870 epochs; newer server checkpoints take precedence.
+Existing original-campaign settings and immutable checkpoints are
 preserved. Do not edit the original source manifest to increase its target.
 
 ## Training and checkpoint state
@@ -53,6 +59,35 @@ and retried; completed matching evaluations are reused. The original final
 held-out bank is not used to choose the extension's best model. The indefinite
 extension has no automatic final held-out evaluation; run a fresh held-out
 evaluation once you decide to finish model selection.
+
+## Hierarchical pre-correction threshold
+
+The default pre-correction rule is now **q > 0.5**, where q is the CNN's
+probability for each DEM error mechanism. Exactly q=0.5 abstains. The active
+detector candidate filter remains enabled: a mechanism must also touch at least
+one active detector. Selected mechanisms can still be undone by residual OSD-0;
+they are not permanently frozen. This changes inference only, not training loss
+or checkpoint compatibility.
+
+The original manifest and existing `campaign.json` files retain their historical
+0.9 setting so that training can resume without changing the frozen recipe.
+The effective evaluation threshold is passed separately as `--confidence 0.5`
+(Slurm variable `BB_SCALE_CONFIDENCE`, default `0.5`). The model and standalone
+evaluator also default to this strict half-probability rule. Explicit higher
+thresholds retain the historical inclusive comparison (q >= threshold).
+
+New evaluation results, comparisons, selected weights, and final evaluations
+are saved under **`evaluation_policy_q_gt_0p5/`** within the experiment directory
+and, for extension milestones, within `continuous/`. Each evaluation metadata
+file records the threshold and comparison operator. Training and immutable
+checkpoint paths stay the same.
+
+On the first run with the new threshold, existing milestone checkpoints are
+re-evaluated at q>0.5 before the runner proceeds; this can take hours. Existing
+0.9 results are not reused as 0.5 results or mixed into model selection. This
+does not repeat training. Completed evaluations under the new rule are reused
+on subsequent jobs. To reproduce the historical policy explicitly, set
+`BB_SCALE_CONFIDENCE=0.9`.
 
 ## Time limits, automatic submission, and stopping
 
@@ -95,7 +130,39 @@ initial extension recipe before it starts. Once `continuous/campaign.json`
 exists, a conflicting recipe is rejected rather than silently changing a run.
 `BB_SCALE_CONTINUOUS=0` restores the original finite 3907-epoch behavior.
 `BB_SCALE_WORKERS=0` selects BB72; `0,1` selects both and also requires
-`sbatch --ntasks-per-node=2`. The default is `1` (BB144).
+two tasks, which is now the script default. For BB144 only, set
+`BB_SCALE_WORKERS=1` and submit with `--ntasks-per-node=1`.
+The default is `0,1` (both). Set the comma-containing value with shell `export`,
+not inside Slurm's comma-separated `--export=ALL,...` list.
+
+## Switching an existing BB144-only automatic chain to both models
+
+An already submitted job uses its saved script and worker selection; changing
+the repository script does not expand that job's allocation or change its successors.
+After syncing the updated launcher, stop the old chain gracefully:
+
+```bash
+touch ~/end_time/recovered_60828644_rhhDfV/STOP_CONTINUOUS
+squeue -u "$USER" -o "%.18i %.24j %.10T %.20N"
+```
+
+Wait until the old campaign's running and queued jobs have stopped. Then start
+the two-worker chain, keeping the current evaluation threshold at 0.9:
+
+```bash
+cd ~/end_time
+rm -f recovered_60828644_rhhDfV/STOP_CONTINUOUS
+export BB_SCALE_RUN_DIR="$HOME/end_time/recovered_60828644_rhhDfV"
+export BB_SCALE_WORKERS=0,1
+export BB_SCALE_CONFIDENCE=0.9
+sbatch --export=ALL --ntasks-per-node=2 run_bb_dem_sample_scaling.slurm
+```
+
+Both workers must finish saving before the launcher submits one successor.
+An error from either worker prevents automatic submission. Original completed
+evaluations are reused at confidence 0.9; BB72 starts its extension after 3907,
+while BB144 continues its own extension from its last saved epoch. When one
+model is doing CPU OSD evaluation, the other worker can continue GPU training.
 
 ## Output locations
 
@@ -117,6 +184,11 @@ recovered_60828644_rhhDfV/bb144_d6_p0.002/
     comparison.json          completed extension evaluation pairs
     selected.json            best on the selection bank, including old milestones
 ```
+
+With the default q>0.5 policy, the `evaluations/`, `comparison.json`,
+`selected.json`, and original-campaign `final_evaluation/` and `completed.json`
+live in `evaluation_policy_q_gt_0p5/` under their respective parent instead of
+overwriting the historical files shown above.
 
 Do not delete the persistent recovery directory when cleaning up job logs.
 All runs still serialize access using the same per-experiment worker lock.
