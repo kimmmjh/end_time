@@ -31,7 +31,7 @@ resdir_*
 
 
 *.sh
-!/scripts/run_bb_dem_followup.sh
 
 recovered_60828644_rhhDfV
 /docs/
+/scripts/
