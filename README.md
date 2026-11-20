@@ -46,19 +46,11 @@ or automatically submitting another job.
 
 To evaluate **BB72 latest/best and BB144 latest** at threshold 0.5, use
 `run_bb_dem_threshold05_eval.slurm` (8192 shots per evaluation, no training).
-The `scripts/` directory is now ignored and maintained outside Git, so it must
-be copied to Perlmutter separately. Before pulling the commit that untracks it,
-back up the server's scripts; Git can remove the formerly tracked files.
-After pulling, restore that backup and update it from the Mac project directory:
-
-```bash
-rsync -av --exclude='__pycache__/' --exclude='*.pyc' \
-  scripts/ ds08152@perlmutter.nersc.gov:~/end_time/scripts/
-```
-
-See the local [threshold-0.5 evaluation instructions](scripts/README_bb_dem_threshold05.md)
-for the backup/restore and launch commands. A fresh Git clone alone does not
-include the runtime scripts or manifests.
+The `scripts/` directory contains required Python helpers and experiment manifests
+and is tracked by Git together with the root Slurm launchers. Commit/push local
+changes, then pull on Perlmutter; a separate scripts upload is not needed.
+See the [threshold-0.5 evaluation instructions](scripts/README_bb_dem_threshold05.md)
+for synchronization and launch commands.
 
 The [November 5 result analysis](results/analysis/bb_dem_2026_11_05.md) incorporates
 the completed replacements for both partial downloads: all 21 continuations and
