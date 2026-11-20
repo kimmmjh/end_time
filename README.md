@@ -39,6 +39,11 @@ and evaluates hierarchical best/latest every 1,000 additional epochs.
 See [launch, stopping, and recovery details](scripts/README_bb_dem_continuous.md).
 The original finite experiment remains available with `BB_SCALE_CONTINUOUS=0`.
 
+For a separate CPU/CUDA OSD correctness and timing experiment, see
+[the OSD benchmark instructions](scripts/README_bb_dem_osd_benchmark.md).
+`run_bb_dem_osd_benchmark.slurm` evaluates frozen checkpoint copies without training
+or automatically submitting another job.
+
 The [November 5 result analysis](results/analysis/bb_dem_2026_11_05.md) incorporates
 the completed replacements for both partial downloads: all 21 continuations and
 22 best/latest evaluations are now complete. BB144 D8 raw failure at p=.002
